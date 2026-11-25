@@ -146,72 +146,82 @@ class _FilteredDisposalScreenState extends State<FilteredDisposalScreen> {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  GestureDetector(
-                    onTap: _records.isEmpty ? null : _exportExcel,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: _records.isEmpty
-                            ? Colors.grey.shade400
-                            : const Color(0xFF107C41),
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: _records.isEmpty
-                            ? []
-                            : [
-                                BoxShadow(
-                                  color: const Color(0xFF107C41)
-                                      .withValues(alpha: 0.25),
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.table_chart_rounded,
-                              color: Colors.white, size: 17),
-                          const SizedBox(width: 5),
-                          Text(
-                            'Excel',
-                            style: GoogleFonts.poppins(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
+                  MouseRegion(
+                    cursor: _records.isEmpty
+                        ? SystemMouseCursors.basic
+                        : SystemMouseCursors.click,
+                    child: GestureDetector(
+                      onTap: _records.isEmpty ? null : _exportExcel,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: _records.isEmpty
+                              ? Colors.grey.shade400
+                              : const Color(0xFF107C41),
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: _records.isEmpty
+                              ? []
+                              : [
+                                  BoxShadow(
+                                    color: const Color(0xFF107C41)
+                                        .withValues(alpha: 0.25),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.table_chart_rounded,
+                                color: Colors.white, size: 17),
+                            const SizedBox(width: 5),
+                            Text(
+                              'Excel',
+                              style: GoogleFonts.poppins(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
                   const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: _records.isEmpty ? null : _exportPdf,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: _records.isEmpty
-                            ? Colors.grey.shade400
-                            : AppColors.navyMid,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.picture_as_pdf_rounded,
-                              color: Colors.white, size: 17),
-                          const SizedBox(width: 5),
-                          Text(
-                            'PDF',
-                            style: GoogleFonts.poppins(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
+                  MouseRegion(
+                    cursor: _records.isEmpty
+                        ? SystemMouseCursors.basic
+                        : SystemMouseCursors.click,
+                    child: GestureDetector(
+                      onTap: _records.isEmpty ? null : _exportPdf,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: _records.isEmpty
+                              ? Colors.grey.shade400
+                              : AppColors.navyMid,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.picture_as_pdf_rounded,
+                                color: Colors.white, size: 17),
+                            const SizedBox(width: 5),
+                            Text(
+                              'PDF',
+                              style: GoogleFonts.poppins(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),

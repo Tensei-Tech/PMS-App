@@ -311,98 +311,110 @@ class PendingSummaryScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  GestureDetector(
-                    onTap: !anyRows
-                        ? null
-                        : () {
-                            ExcelExportHelper.exportPendingToExcel(
-                              dataset: dataset,
-                              filename: 'Pending_Summary_All_Periods.csv',
-                              isAbsconded: isAbsconded,
-                              isVictim: isVictim,
-                              isUndetected: isUndetected,
-                            );
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                    'Pending Summary exported to Excel successfully.'),
-                                backgroundColor: Color(0xFF107C41),
-                              ),
-                            );
-                          },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: !anyRows
-                            ? Colors.grey.shade400
-                            : const Color(0xFF107C41),
-                        borderRadius: BorderRadius.circular(8),
-                        boxShadow: !anyRows
-                            ? []
-                            : [
-                                BoxShadow(
-                                  color: const Color(0xFF107C41)
-                                      .withValues(alpha: 0.25),
-                                  blurRadius: 4,
-                                  offset: const Offset(0, 2),
+                  MouseRegion(
+                    cursor: !anyRows
+                        ? SystemMouseCursors.basic
+                        : SystemMouseCursors.click,
+                    child: GestureDetector(
+                      onTap: !anyRows
+                          ? null
+                          : () {
+                              ExcelExportHelper.exportPendingToExcel(
+                                dataset: dataset,
+                                filename: 'Pending_Summary_All_Periods.csv',
+                                isAbsconded: isAbsconded,
+                                isVictim: isVictim,
+                                isUndetected: isUndetected,
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                      'Pending Summary exported to Excel successfully.'),
+                                  backgroundColor: Color(0xFF107C41),
                                 ),
-                              ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.table_chart_rounded,
-                              color: Colors.white, size: 16),
-                          const SizedBox(width: 6),
-                          Text(
-                            'Excel',
-                            style: GoogleFonts.poppins(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
+                              );
+                            },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: !anyRows
+                              ? Colors.grey.shade400
+                              : const Color(0xFF107C41),
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: !anyRows
+                              ? []
+                              : [
+                                  BoxShadow(
+                                    color: const Color(0xFF107C41)
+                                        .withValues(alpha: 0.25),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.table_chart_rounded,
+                                color: Colors.white, size: 16),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Excel',
+                              style: GoogleFonts.poppins(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
                   const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: !anyRows ? null : () => _exportPdf(context, dataset),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 8),
-                      decoration: BoxDecoration(
-                        color:
-                            !anyRows ? Colors.grey.shade400 : AppColors.navyMid,
-                        borderRadius: BorderRadius.circular(8),
-                        boxShadow: !anyRows
-                            ? []
-                            : [
-                                BoxShadow(
-                                  color:
-                                      AppColors.navyMid.withValues(alpha: 0.25),
-                                  blurRadius: 4,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.picture_as_pdf_rounded,
-                              color: Colors.white, size: 16),
-                          const SizedBox(width: 6),
-                          Text(
-                            'PDF',
-                            style: GoogleFonts.poppins(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
+                  MouseRegion(
+                    cursor: !anyRows
+                        ? SystemMouseCursors.basic
+                        : SystemMouseCursors.click,
+                    child: GestureDetector(
+                      onTap:
+                          !anyRows ? null : () => _exportPdf(context, dataset),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: !anyRows
+                              ? Colors.grey.shade400
+                              : AppColors.navyMid,
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: !anyRows
+                              ? []
+                              : [
+                                  BoxShadow(
+                                    color: AppColors.navyMid
+                                        .withValues(alpha: 0.25),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.picture_as_pdf_rounded,
+                                color: Colors.white, size: 16),
+                            const SizedBox(width: 6),
+                            Text(
+                              'PDF',
+                              style: GoogleFonts.poppins(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),

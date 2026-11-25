@@ -130,6 +130,9 @@ class NAFISSummaryScreen extends StatelessWidget {
                   : () => ExcelExportHelper.exportNafisToExcel(
                         dataset: dataset,
                       ),
+              mouseCursor: !anyRows
+                  ? SystemMouseCursors.basic
+                  : SystemMouseCursors.click,
               borderRadius: BorderRadius.circular(10),
               child: Container(
                 padding:
@@ -160,6 +163,9 @@ class NAFISSummaryScreen extends StatelessWidget {
 
             final pdfButton = InkWell(
               onTap: !anyRows ? null : () => _exportPdf(context, dataset),
+              mouseCursor: !anyRows
+                  ? SystemMouseCursors.basic
+                  : SystemMouseCursors.click,
               borderRadius: BorderRadius.circular(10),
               child: Container(
                 padding:
