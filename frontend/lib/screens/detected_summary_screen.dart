@@ -296,16 +296,6 @@ class DetectedSummaryScreen extends StatelessWidget {
                               ? Colors.grey.shade400
                               : const Color(0xFF107C41),
                           borderRadius: BorderRadius.circular(8),
-                          boxShadow: !anyRows
-                              ? []
-                              : [
-                                  BoxShadow(
-                                    color: const Color(0xFF107C41)
-                                        .withValues(alpha: 0.25),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -342,16 +332,6 @@ class DetectedSummaryScreen extends StatelessWidget {
                               ? Colors.grey.shade400
                               : AppColors.navyMid,
                           borderRadius: BorderRadius.circular(8),
-                          boxShadow: !anyRows
-                              ? []
-                              : [
-                                  BoxShadow(
-                                    color: AppColors.navyMid
-                                        .withValues(alpha: 0.25),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,

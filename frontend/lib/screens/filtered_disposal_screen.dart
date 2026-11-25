@@ -160,16 +160,6 @@ class _FilteredDisposalScreenState extends State<FilteredDisposalScreen> {
                               ? Colors.grey.shade400
                               : const Color(0xFF107C41),
                           borderRadius: BorderRadius.circular(10),
-                          boxShadow: _records.isEmpty
-                              ? []
-                              : [
-                                  BoxShadow(
-                                    color: const Color(0xFF107C41)
-                                        .withValues(alpha: 0.25),
-                                    blurRadius: 6,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
