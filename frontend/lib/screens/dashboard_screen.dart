@@ -1126,15 +1126,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         horizontal: isSmallPhone ? 8 : 16,
         vertical: 8,
       ),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border(
+          bottom: BorderSide(color: Color(0xFFE2E8F0)),
+        ),
       ),
       child: Row(
         children: [
@@ -1159,15 +1155,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ? stateBranding.shortForceTitle
                     : stateBranding.policeForceTitle;
 
-                return InkWell(
-                  onTap: () => StatePoliceBannerDialog.show(ctx, auth),
-                  borderRadius: BorderRadius.circular(8),
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
+                return MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: InkWell(
+                    onTap: () => StatePoliceBannerDialog.show(ctx, auth),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 2, vertical: 2),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -1199,65 +1194,71 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                             ],
                           ),
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 8),
                           // Dynamic State Police Badge
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 3),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  stateBranding.primaryColor
-                                      .withValues(alpha: 0.08),
-                                  stateBranding.accentColor
-                                      .withValues(alpha: 0.18),
-                                ],
+                          Flexible(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    stateBranding.primaryColor
+                                        .withValues(alpha: 0.08),
+                                    stateBranding.accentColor
+                                        .withValues(alpha: 0.16),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: stateBranding.accentColor
+                                      .withValues(alpha: 0.35),
+                                ),
                               ),
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(
-                                color: stateBranding.accentColor
-                                    .withValues(alpha: 0.4),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (stateBranding.logoAssetPath != null)
-                                  ClipOval(
-                                    child: Image.asset(
-                                      stateBranding.logoAssetPath!,
-                                      width: isSmallPhone ? 20 : 24,
-                                      height: isSmallPhone ? 20 : 24,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => Icon(
-                                        stateBranding.emblemIcon,
-                                        size: isSmallPhone ? 16 : 18,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (stateBranding.logoAssetPath != null)
+                                    ClipOval(
+                                      child: Image.asset(
+                                        stateBranding.logoAssetPath!,
+                                        width: isSmallPhone ? 20 : 22,
+                                        height: isSmallPhone ? 20 : 22,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, __, ___) => Icon(
+                                          stateBranding.emblemIcon,
+                                          size: isSmallPhone ? 16 : 18,
+                                          color: stateBranding.primaryColor,
+                                        ),
+                                      ),
+                                    )
+                                  else
+                                    Icon(
+                                      stateBranding.emblemIcon,
+                                      size: isSmallPhone ? 16 : 18,
+                                      color: stateBranding.primaryColor,
+                                    ),
+                                  const SizedBox(width: 4),
+                                  Flexible(
+                                    child: Text(
+                                      forceTitleText,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: isSmallPhone ? 10 : 11,
+                                        fontWeight: FontWeight.w700,
                                         color: stateBranding.primaryColor,
                                       ),
                                     ),
-                                  )
-                                else
+                                  ),
+                                  const SizedBox(width: 2),
                                   Icon(
-                                    stateBranding.emblemIcon,
-                                    size: isSmallPhone ? 16 : 18,
+                                    Icons.keyboard_arrow_down_rounded,
+                                    size: 14,
                                     color: stateBranding.primaryColor,
                                   ),
-                                const SizedBox(width: 3),
-                                Text(
-                                  forceTitleText,
-                                  style: GoogleFonts.poppins(
-                                    fontSize: isSmallPhone ? 10 : 11,
-                                    fontWeight: FontWeight.w700,
-                                    color: stateBranding.primaryColor,
-                                  ),
-                                ),
-                                const SizedBox(width: 2),
-                                Icon(
-                                  Icons.keyboard_arrow_down_rounded,
-                                  size: 14,
-                                  color: stateBranding.primaryColor,
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         ],
@@ -1298,51 +1299,44 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _topNavItem(IconData icon, String label, int index) {
-    // WEB FIX: top navigation items beside title for web parity
-    final isActive = _currentIndex == index; // WEB FIX: highlight current tab
-    return InkWell(
-      // WEB FIX: mouse + touch support on web
-      onTap: () => _onNavTap(index), // WEB FIX: reuse existing navigation logic
-      borderRadius:
-          BorderRadius.circular(AppRadius.lg), // WEB FIX: match pill style
-      child: Container(
-        // WEB FIX
-        padding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 8), // WEB FIX
-        decoration: BoxDecoration(
-          // WEB FIX
-          color: isActive
-              ? AppColors.navyMid.withValues(alpha: 0.08)
-              : const Color(0xFFF4F6FB), // WEB FIX: subtle active state
-          borderRadius: BorderRadius.circular(AppRadius.lg), // WEB FIX
-          border: Border.all(
-            // WEB FIX
-            color: isActive
-                ? AppColors.navyMid.withValues(alpha: 0.25)
-                : AppColors.lightBorder, // WEB FIX
-          ), // WEB FIX
-        ), // WEB FIX
-        child: Row(
-          // WEB FIX
-          mainAxisSize: MainAxisSize.min, // WEB FIX
-          children: [
-            // WEB FIX
-            Icon(icon, size: 18, color: AppColors.navyDark), // WEB FIX
-            const SizedBox(width: 8), // WEB FIX
-            Text(
-              // WEB FIX
-              label, // WEB FIX
-              style: GoogleFonts.poppins(
-                // WEB FIX
-                fontSize: 13, // WEB FIX
-                fontWeight: FontWeight.w600, // WEB FIX
-                color: AppColors.navyDark, // WEB FIX
-              ), // WEB FIX
-            ), // WEB FIX
-          ], // WEB FIX
-        ), // WEB FIX
-      ), // WEB FIX
-    ); // WEB FIX
+    final isActive = _currentIndex == index;
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: InkWell(
+        onTap: () => _onNavTap(index),
+        borderRadius: BorderRadius.circular(20),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: isActive ? AppColors.navyMid : const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isActive ? AppColors.navyMid : const Color(0xFFCBD5E1),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 17,
+                color: isActive ? Colors.white : AppColors.navyDark,
+              ),
+              const SizedBox(width: 7),
+              Text(
+                label,
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                  color: isActive ? Colors.white : AppColors.navyDark,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildDrawerHeader(AuthProvider auth, AppLocalizations l10n,
@@ -1353,7 +1347,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final isCompact = headerHeight < 160;
     final avatarRadius = isCompact ? 22.0 : 26.0;
     final avatarIconSize = isCompact ? 26.0 : 30.0;
-    final nameFontSize = isCompact ? 15.0 : 17.0;
     final topInset = isCompact ? (topPadding + 10) : (topPadding + 14);
 
     final initial =
@@ -1485,12 +1478,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   ? auth.displayName
                                   : 'Officer',
                               style: GoogleFonts.poppins(
-                                fontSize: nameFontSize,
+                                fontSize: isCompact ? 14.0 : 15.5,
                                 fontWeight: FontWeight.w700,
                                 color: Colors.white,
                                 letterSpacing: 0.2,
+                                height: 1.2,
                               ),
-                              maxLines: 1,
+                              maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
                             const SizedBox(height: 4),
@@ -1529,7 +1523,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                               color: Colors.white
                                                   .withValues(alpha: 0.9),
                                             ),
-                                            maxLines: 1,
+                                            maxLines: 2,
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
@@ -1558,7 +1552,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         color: AppColors.goldLight,
                                         letterSpacing: 0.4,
                                       ),
-                                      maxLines: 1,
+                                      maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
@@ -1939,15 +1933,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                   if (TransferRequestRoles.canAssignOfficers(auth.designation))
                     const Divider(height: 1),
-                  _drawerItem(
-                    Icons.folder_shared_outlined,
-                    MenuLocalizations.get(lang, 'myCases'),
-                    () => Navigator.push(
-                      context,
-                      AppTheme.fadeSlideRoute(page: const MyCasesScreen()),
+                  if (MediaQuery.of(context).size.width <
+                      Breakpoints.tablet) ...[
+                    _drawerItem(
+                      Icons.folder_shared_outlined,
+                      MenuLocalizations.get(lang, 'myCases'),
+                      () => Navigator.push(
+                        context,
+                        AppTheme.fadeSlideRoute(page: const MyCasesScreen()),
+                      ),
                     ),
-                  ),
-                  const Divider(height: 1),
+                    const Divider(height: 1),
+                  ],
                   _drawerItem(
                     Icons.lock_person_rounded,
                     l10n.loginSecurity,
@@ -2790,7 +2787,7 @@ class _HomeTabState extends State<_HomeTab> {
             carouselController: _carouselCtrl,
             itemCount: news.items.length,
             options: CarouselOptions(
-              height: 160,
+              height: isWide ? 116 : 136,
               viewportFraction: 1.0,
               autoPlay: true,
               autoPlayInterval: AppTimeouts.carouselInterval,
@@ -2801,7 +2798,7 @@ class _HomeTabState extends State<_HomeTab> {
             itemBuilder: (context, i, _) {
               final item = news.items[i];
               final color = Color(item.iconColorHex);
-              return _newsCard(item, color);
+              return _newsCard(item, color, isWide: isWide);
             },
           ),
         ),
@@ -2823,10 +2820,13 @@ class _HomeTabState extends State<_HomeTab> {
     );
   }
 
-  Widget _newsCard(NewsItem item, Color color) {
+  Widget _newsCard(NewsItem item, Color color, {bool isWide = false}) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: isWide ? 14 : 18,
+      ),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -2882,7 +2882,8 @@ class _HomeTabState extends State<_HomeTab> {
                 const SizedBox(height: 4),
                 Text(TranslationHelper.translate(context, item.description),
                     style: GoogleFonts.poppins(
-                        fontSize: 11, color: Colors.white70),
+                        fontSize: 11.5,
+                        color: Colors.white.withValues(alpha: 0.92)),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis),
               ],
@@ -3705,11 +3706,11 @@ class _HomeTabState extends State<_HomeTab> {
 
     int cols = 4;
     if (width > 1200) {
-      cols = 10;
-    } else if (width > 900) {
       cols = 8;
+    } else if (width > 900) {
+      cols = 7;
     } else if (width > 600) {
-      cols = 6;
+      cols = 5;
     }
 
     final itemsPerGroup = cols * 3;
@@ -3918,9 +3919,9 @@ class _HomeTabState extends State<_HomeTab> {
                       physics: const NeverScrollableScrollPhysics(),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: cols,
-                        childAspectRatio: isWide ? 0.77 : 0.73,
-                        mainAxisSpacing: 10,
-                        crossAxisSpacing: 10,
+                        childAspectRatio: isWide ? 0.84 : 0.76,
+                        mainAxisSpacing: 12,
+                        crossAxisSpacing: 12,
                       ),
                       itemCount: group.length,
                       itemBuilder: (context, i) {
@@ -4045,55 +4046,63 @@ class _HomeTabState extends State<_HomeTab> {
       }
     }
 
-    return GestureDetector(
-      onTap: () => _openClassificationItem(context, item),
-      child: Column(
-        children: [
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppColors.navyDark.withValues(alpha: 0.06),
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                border: Border.all(color: AppColors.lightBorder),
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _openClassificationItem(context, item),
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          hoverColor: AppColors.navyMid.withValues(alpha: 0.06),
+          child: Column(
+            children: [
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.navyDark.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    border: Border.all(color: AppColors.lightBorder),
+                  ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final side = constraints.maxWidth < constraints.maxHeight
+                          ? constraints.maxWidth
+                          : constraints.maxHeight;
+                      final baseSize = (side * 0.44).clamp(18.0, 30.0);
+                      return Center(
+                        child: _buildGridIcon(
+                            item.name,
+                            matchedTool?.icon ?? _classIcon(item.iconName),
+                            AppColors.navyMid,
+                            baseSize),
+                      );
+                    },
+                  ),
+                ),
               ),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final side = constraints.maxWidth < constraints.maxHeight
-                      ? constraints.maxWidth
-                      : constraints.maxHeight;
-                  final baseSize = (side * 0.44).clamp(18.0, 30.0);
-                  return Center(
-                    child: _buildGridIcon(
-                        item.name,
-                        matchedTool?.icon ?? _classIcon(item.iconName),
-                        AppColors.navyMid,
-                        baseSize),
-                  );
-                },
+              const SizedBox(height: 6),
+              // Fixed two-line label area: one- and two-line labels take the same
+              // height, so every icon box in a row has the same size and position.
+              SizedBox(
+                height: MediaQuery.textScalerOf(context).scale(34.0),
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: Text(
+                    TranslationHelper.translate(context, item.name),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        height: 1.2,
+                        color: AppColors.lightText),
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
-          const SizedBox(height: 5),
-          // Fixed two-line label area: one- and two-line labels take the same
-          // height, so every icon box in a row has the same size and position.
-          SizedBox(
-            height: MediaQuery.textScalerOf(context).scale(34.0),
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: Text(
-                TranslationHelper.translate(context, item.name),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.poppins(
-                    fontSize: 9.5,
-                    fontWeight: FontWeight.w500,
-                    height: 1.25,
-                    color: AppColors.lightText),
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
