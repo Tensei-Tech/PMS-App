@@ -1588,8 +1588,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         TranslationHelper.translate(context, months[_reportMonth - 1]);
     final monthYearLabel = '$transMonth $_reportYear';
 
+    final isMobile = MediaQuery.sizeOf(context).width < 650;
     return Padding(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: EdgeInsets.all(isMobile ? 12 : AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -1603,86 +1604,22 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                 TranslationHelper.translate(
                     context, 'Summons & Warrant Report'),
                 style: GoogleFonts.poppins(
-                  fontSize: 16,
+                  fontSize: isMobile ? 15 : 16,
                   fontWeight: FontWeight.w700,
                   color: AppColors.navyDark,
                 ),
               ),
-              const SizedBox(width: 8),
-              Container(
-                width: 165,
-                height: 40,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFFCBD5E1)),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<int>(
-                    value: _reportMonth,
-                    isExpanded: true,
-                    icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                        color: AppColors.navyMid),
-                    items: List.generate(
-                      12,
-                      (i) => DropdownMenuItem(
-                        value: i + 1,
-                        child: Text(
-                          TranslationHelper.translate(context, months[i]),
-                          style: GoogleFonts.poppins(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.navyDark),
-                        ),
-                      ),
-                    ),
-                    onChanged: (v) {
-                      if (v != null) {
-                        setState(() => _reportMonth = v);
-                      }
-                    },
-                  ),
-                ),
-              ),
-              Container(
-                width: 96,
-                height: 40,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFFCBD5E1)),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<int>(
-                    value: _reportYear,
-                    isExpanded: true,
-                    icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                        color: AppColors.navyMid),
-                    items: List.generate(
-                      5,
-                      (i) {
-                        final y = DateTime.now().year - i;
-                        return DropdownMenuItem(
-                          value: y,
-                          child: Text(
-                            '$y',
-                            style: GoogleFonts.poppins(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.navyDark),
-                          ),
-                        );
-                      },
-                    ),
-                    onChanged: (v) {
-                      if (v != null) {
-                        setState(() => _reportYear = v);
-                      }
-                    },
-                  ),
-                ),
+              if (!isMobile) const SizedBox(width: 8),
+              Row(
+                mainAxisSize: isMobile ? MainAxisSize.max : MainAxisSize.min,
+                children: [
+                  if (isMobile)
+                    Expanded(child: _buildMonthDropdown(months))
+                  else
+                    SizedBox(width: 165, child: _buildMonthDropdown(months)),
+                  const SizedBox(width: 8),
+                  SizedBox(width: 96, child: _buildYearDropdown()),
+                ],
               ),
             ],
           ),
@@ -1695,6 +1632,85 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
             selectedMonth: _reportMonth,
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildMonthDropdown(List<String> months) {
+    return Container(
+      height: 40,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFCBD5E1)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<int>(
+          value: _reportMonth,
+          isExpanded: true,
+          icon: const Icon(Icons.keyboard_arrow_down_rounded,
+              color: AppColors.navyMid),
+          items: List.generate(
+            12,
+            (i) => DropdownMenuItem(
+              value: i + 1,
+              child: Text(
+                TranslationHelper.translate(context, months[i]),
+                style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.navyDark),
+              ),
+            ),
+          ),
+          onChanged: (v) {
+            if (v != null) {
+              setState(() => _reportMonth = v);
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildYearDropdown() {
+    return Container(
+      height: 40,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFCBD5E1)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<int>(
+          value: _reportYear,
+          isExpanded: true,
+          icon: const Icon(Icons.keyboard_arrow_down_rounded,
+              color: AppColors.navyMid),
+          items: List.generate(
+            5,
+            (i) {
+              final y = DateTime.now().year - i;
+              return DropdownMenuItem(
+                value: y,
+                child: Text(
+                  '$y',
+                  style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.navyDark),
+                ),
+              );
+            },
+          ),
+          onChanged: (v) {
+            if (v != null) {
+              setState(() => _reportYear = v);
+            }
+          },
+        ),
       ),
     );
   }

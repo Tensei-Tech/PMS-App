@@ -420,32 +420,37 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
     final grandTotal =
         _reportData?['grand_total'] as Map<String, dynamic>? ?? {};
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.lightBorder),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = constraints.maxWidth < 600;
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.lightBorder),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-        ],
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _buildHeader(),
-          const SizedBox(height: 16),
-          _buildSectionPills(sections),
-          const SizedBox(height: 16),
-          _buildSummaryCards(sections, grandTotal),
-          const SizedBox(height: 16),
-          _buildReportTable(sections, grandTotal),
-        ],
-      ),
+          padding: EdgeInsets.all(isCompact ? 12 : 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildHeader(),
+              SizedBox(height: isCompact ? 12 : 16),
+              _buildSectionPills(sections),
+              SizedBox(height: isCompact ? 12 : 16),
+              _buildSummaryCards(sections, grandTotal),
+              SizedBox(height: isCompact ? 12 : 16),
+              _buildReportTable(sections, grandTotal),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -504,168 +509,163 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
             ),
           ],
         ),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ElevatedButton.icon(
-                onPressed: () async {
-                  final added = await AddWarrantCaseDialog.show(
-                    context,
-                    initialYear: widget.selectedYear,
-                    initialMonth: widget.selectedMonth,
-                  );
-                  if (added == true) {
-                    _fetchReport();
-                  }
-                },
-                icon: const Icon(Icons.add_rounded,
-                    size: 15, color: Colors.white),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            ElevatedButton.icon(
+              onPressed: () async {
+                final added = await AddWarrantCaseDialog.show(
+                  context,
+                  initialYear: widget.selectedYear,
+                  initialMonth: widget.selectedMonth,
+                );
+                if (added == true) {
+                  _fetchReport();
+                }
+              },
+              icon:
+                  const Icon(Icons.add_rounded, size: 15, color: Colors.white),
+              label: Text(
+                'Add Case',
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.navyMid,
+                elevation: 0,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            OutlinedButton.icon(
+              onPressed: _openAllAnalyzedCases,
+              icon: const Icon(Icons.folder_shared_rounded,
+                  size: 15, color: AppColors.navyMid),
+              label: Text(
+                'View All Cases ($totalAnalyzed)',
+                style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.navyMid),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: AppColors.navyMid, width: 1.2),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+            if (isAbovePl) ...[
+              const SizedBox(width: 8),
+              // PS-wise breakdown toggle (only for officers above PL level)
+              OutlinedButton.icon(
+                onPressed: () => setState(
+                    () => _showStationBreakdown = !_showStationBreakdown),
+                icon: Icon(
+                  Icons.location_city_rounded,
+                  size: 15,
+                  color: _showStationBreakdown
+                      ? AppColors.navyDark
+                      : AppColors.navyMid,
+                ),
                 label: Text(
-                  'Add Case',
+                  'PS Breakdown',
                   style: GoogleFonts.poppins(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.navyMid,
-                  elevation: 0,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              OutlinedButton.icon(
-                onPressed: _openAllAnalyzedCases,
-                icon: const Icon(Icons.folder_shared_rounded,
-                    size: 15, color: AppColors.navyMid),
-                label: Text(
-                  'View All Cases ($totalAnalyzed)',
-                  style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.navyMid),
-                ),
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: AppColors.navyMid, width: 1.2),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-              if (isAbovePl) ...[
-                const SizedBox(width: 8),
-                // PS-wise breakdown toggle (only for officers above PL level)
-                OutlinedButton.icon(
-                  onPressed: () => setState(
-                      () => _showStationBreakdown = !_showStationBreakdown),
-                  icon: Icon(
-                    Icons.location_city_rounded,
-                    size: 15,
                     color: _showStationBreakdown
                         ? AppColors.navyDark
                         : AppColors.navyMid,
                   ),
-                  label: Text(
-                    'PS Breakdown',
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: _showStationBreakdown
-                          ? AppColors.navyDark
-                          : AppColors.navyMid,
-                    ),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    backgroundColor: _showStationBreakdown
-                        ? AppColors.navyMid.withValues(alpha: 0.1)
-                        : Colors.transparent,
-                    side: BorderSide(
-                      color: AppColors.navyMid,
-                      width: _showStationBreakdown ? 1.6 : 1.2,
-                    ),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
                 ),
-              ],
-              const SizedBox(width: 8),
-              ElevatedButton.icon(
-                onPressed: _exportPdf,
-                icon: const Icon(Icons.picture_as_pdf_rounded,
-                    size: 15, color: Colors.white),
-                label: Text('PDF',
-                    style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.navyMid,
-                  elevation: 0,
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: _showStationBreakdown
+                      ? AppColors.navyMid.withValues(alpha: 0.1)
+                      : Colors.transparent,
+                  side: BorderSide(
+                    color: AppColors.navyMid,
+                    width: _showStationBreakdown ? 1.6 : 1.2,
+                  ),
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
               ),
             ],
-          ),
+            const SizedBox(width: 8),
+            ElevatedButton.icon(
+              onPressed: _exportPdf,
+              icon: const Icon(Icons.picture_as_pdf_rounded,
+                  size: 15, color: Colors.white),
+              label: Text('PDF',
+                  style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.navyMid,
+                elevation: 0,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
+              ),
+            ),
+          ],
         ),
       ],
     );
   }
 
   Widget _buildSectionPills(List<dynamic> sections) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          _pillButton('All Sam/Warrant (सर्व)', 'all'),
-          ...sections.map((s) {
-            final key = s['key']?.toString() ?? '';
-            final titleMr = s['title_mr']?.toString() ?? '';
-            final titleEn = s['code']?.toString() ?? '';
-            return _pillButton('$titleEn ($titleMr)', key);
-          }),
-        ],
-      ),
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        _pillButton('All Sam/Warrant (सर्व)', 'all'),
+        ...sections.map((s) {
+          final key = s['key']?.toString() ?? '';
+          final titleMr = s['title_mr']?.toString() ?? '';
+          final titleEn = s['code']?.toString() ?? '';
+          return _pillButton('$titleEn ($titleMr)', key);
+        }),
+      ],
     );
   }
 
   Widget _pillButton(String label, String key) {
     final isSelected = _selectedSectionKey == key;
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: InkWell(
-        onTap: () => setState(() => _selectedSectionKey = key),
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-          decoration: BoxDecoration(
-            color: isSelected ? AppColors.navyMid : const Color(0xFFF1F5F9),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: isSelected ? AppColors.navyMid : Colors.grey.shade300,
-            ),
+    return InkWell(
+      onTap: () => setState(() => _selectedSectionKey = key),
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.navyMid : const Color(0xFFF1F5F9),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? AppColors.navyMid : Colors.grey.shade300,
           ),
-          child: Text(
-            label,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-              color: isSelected ? Colors.white : AppColors.navyDark,
-            ),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.poppins(
+            fontSize: 12,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+            color: isSelected ? Colors.white : AppColors.navyDark,
           ),
         ),
       ),
@@ -714,16 +714,24 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
             ],
           );
         }
-        return SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              for (var i = 0; i < cards.length; i++) ...[
-                if (i > 0) const SizedBox(width: 8),
-                SizedBox(width: i == 1 ? 160 : 130, child: cards[i]),
+        return Column(
+          children: [
+            Row(
+              children: [
+                Expanded(child: cards[0]),
+                const SizedBox(width: 8),
+                Expanded(child: cards[1]),
               ],
-            ],
-          ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(child: cards[2]),
+                const SizedBox(width: 8),
+                Expanded(child: cards[3]),
+              ],
+            ),
+          ],
         );
       },
     );
