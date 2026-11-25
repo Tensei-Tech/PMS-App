@@ -1,10 +1,15 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/api_config.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/dynamic_map_pdf.dart';
+import '../utils/excel_export_helper.dart';
+import '../utils/pdf_unicode_fonts.dart';
 import '../widgets/app_error_popup.dart';
 import '../widgets/app_success_popup.dart';
+import '../widgets/custom_pdf_preview_dialog.dart';
 import 'filtered_pending_screen.dart';
 
 class ItssoHubScreen extends StatefulWidget {
@@ -22,6 +27,9 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
   List<dynamic> caseWiseData = [];
   List<dynamic> timeWiseData = [];
   List<dynamic> ioWiseData = [];
+
+  final Set<String> _remindedCaseIds = {};
+  final Set<String> _sendingCaseIds = {};
 
   bool isLoading = true;
   String? error;
@@ -45,6 +53,7 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
 
   void _handleTabChange() {
     if (_tabController.indexIsChanging) return;
+    setState(() {});
   }
 
   Future<void> fetchAllData() async {
@@ -55,26 +64,18 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
     try {
       final apiService = ApiService();
 
-      final qp = <String>[];
-      if (widget.stationName.isNotEmpty &&
-          widget.stationName != 'All Stations') {
-        qp.add('station_name=${Uri.encodeComponent(widget.stationName)}');
-      }
-      final queryStr = qp.isNotEmpty ? '?${qp.join('&')}' : '';
-
-      final caseRes = await apiService.get('$baseUrl/itsso/cases/$queryStr');
+      final caseRes = await apiService.get('$baseUrl/itsso/cases/');
       if (caseRes.isSuccess && caseRes.data != null) {
         var decoded = caseRes.data;
         caseWiseData = decoded is Map ? (decoded['results'] ?? []) : decoded;
       }
 
-      final timeRes =
-          await apiService.get('$baseUrl/itsso/time-wise/$queryStr');
+      final timeRes = await apiService.get('$baseUrl/itsso/time-wise/');
       if (timeRes.isSuccess && timeRes.data != null) {
         timeWiseData = timeRes.data is List ? timeRes.data : [];
       }
 
-      final ioRes = await apiService.get('$baseUrl/itsso/io-wise/$queryStr');
+      final ioRes = await apiService.get('$baseUrl/itsso/io-wise/');
       if (ioRes.isSuccess && ioRes.data != null) {
         ioWiseData = ioRes.data is List ? ioRes.data : [];
       }
@@ -141,6 +142,289 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
     );
   }
 
+  static String _getSectionAct(Map<String, dynamic> item) {
+    final direct = item['section_act']?.toString().trim();
+    if (direct != null && direct.isNotEmpty && direct != '—' && direct != '-') {
+      return direct;
+    }
+    final ef = item['extra_fields'];
+    if (ef is Map) {
+      final act = ef['section_act'] ??
+          ef['section'] ??
+          ef['act_section'] ??
+          ef['acts_sections'] ??
+          ef['act'] ??
+          ef['sections'];
+      if (act != null && act.toString().trim().isNotEmpty) {
+        return ExcelExportHelper.formatSectionAct(act);
+      }
+    }
+    final title = (item['title'] ??
+            item['description'] ??
+            item['head'] ??
+            item['sub_category'] ??
+            '')
+        .toString()
+        .trim();
+    if (title.isNotEmpty && title.toLowerCase() != 'pocso') return title;
+    return '—';
+  }
+
+  static String _getChargeSheetInfo(Map<String, dynamic> item) {
+    final cs = item['charge_sheet_date']?.toString().trim();
+    if (cs != null &&
+        cs.isNotEmpty &&
+        cs != 'Pending' &&
+        cs != '—' &&
+        cs != '-') {
+      return cs;
+    }
+    final ef = item['extra_fields'];
+    if (ef is Map) {
+      final csNo = ef['charge_sheet_number'] ??
+          ef['charge_sheet_no'] ??
+          ef['cc_st_number'] ??
+          ef['ccStNumber'];
+      if (csNo != null && csNo.toString().trim().isNotEmpty) {
+        return csNo.toString();
+      }
+      final csDate =
+          ef['charge_sheet_date'] ?? ef['chargeSheetDate'] ?? ef['cs_date'];
+      if (csDate != null && csDate.toString().trim().isNotEmpty) {
+        return csDate.toString().split('T')[0];
+      }
+    }
+    return 'Pending';
+  }
+
+  void _exportExcel() {
+    if (caseWiseData.isEmpty) return;
+    final headers = [
+      'Sr. No.',
+      'CR No.',
+      'Section/Act',
+      'Charge Sheet / CC No.',
+      'IO Name',
+      'Status',
+      'Action'
+    ];
+    final rows = caseWiseData.asMap().entries.map((entry) {
+      final index = entry.key;
+      final c = entry.value is Map<String, dynamic>
+          ? entry.value as Map<String, dynamic>
+          : Map<String, dynamic>.from(entry.value as Map);
+      final isGreen =
+          c['itsso_status_color']?.toString().toLowerCase() == 'green' ||
+              c['itsso_status']?.toString().toLowerCase() == 'chargesheeted';
+      return [
+        c['sr_no']?.toString() ?? '${index + 1}',
+        c['case_number']?.toString() ?? '—',
+        _getSectionAct(c),
+        _getChargeSheetInfo(c),
+        c['assigned_officer']?.toString() ?? 'Unassigned',
+        c['itsso_status']?.toString() ??
+            (isGreen ? 'Chargesheeted' : 'Pending'),
+        isGreen ? '—' : 'Remind to IO',
+      ];
+    }).toList();
+
+    ExcelExportHelper.exportTableToCsv(
+      headers: headers,
+      rows: rows,
+      filename: 'ITSSO_Cases_${DateTime.now().millisecondsSinceEpoch}.csv',
+    );
+  }
+
+  Future<void> _exportPdf() async {
+    if (caseWiseData.isEmpty) return;
+    final rows = caseWiseData.asMap().entries.map((entry) {
+      final index = entry.key;
+      final c = entry.value is Map<String, dynamic>
+          ? entry.value as Map<String, dynamic>
+          : Map<String, dynamic>.from(entry.value as Map);
+      final isGreen =
+          c['itsso_status_color']?.toString().toLowerCase() == 'green' ||
+              c['itsso_status']?.toString().toLowerCase() == 'chargesheeted';
+      return {
+        'Sr. No.': c['sr_no']?.toString() ?? '${index + 1}',
+        'CR No.': c['case_number']?.toString() ?? '—',
+        'Section/Act': _getSectionAct(c),
+        'Charge Sheet / CC No.': _getChargeSheetInfo(c),
+        'IO Name': c['assigned_officer']?.toString() ?? 'Unassigned',
+        'Status': c['itsso_status']?.toString() ??
+            (isGreen ? 'Chargesheeted' : 'Pending'),
+        'Action': isGreen ? '—' : 'Remind to IO',
+      };
+    }).toList();
+
+    final theme = await PdfUnicodeFonts.openSansTheme();
+    final doc = DynamicMapPdf.buildLandscapeDataTableDocument(
+      theme: theme,
+      title: 'ITSSO (POCSO) — Case Wise Records',
+      rows: rows,
+      prependSerial: false,
+      columnOrder: const [
+        'Sr. No.',
+        'CR No.',
+        'Section/Act',
+        'Charge Sheet / CC No.',
+        'IO Name',
+        'Status',
+        'Action',
+      ],
+    );
+
+    if (!mounted) return;
+
+    await CustomPdfPreviewDialog.show(
+      context: context,
+      title: 'ITSSO — Cases',
+      fileName: 'ITSSO_Cases_${DateTime.now().millisecondsSinceEpoch}.pdf',
+      buildPdf: (_) async => doc.save(),
+    );
+  }
+
+  Future<void> _sendReminder(
+    Map<String, dynamic> c,
+    String crNo,
+    String ioName,
+  ) async {
+    final caseId = (c['id'] ?? '').toString();
+    if (caseId.isEmpty) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEF4444).withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.notifications_active_rounded,
+                  color: Color(0xFFEF4444), size: 20),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              'Remind to IO',
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppColors.navyDark,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Send a supervisory reminder to the Investigating Officer to enter the Charge Sheet Number for this POCSO case?',
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                color: AppColors.navyDark,
+                height: 1.35,
+              ),
+            ),
+            const SizedBox(height: 14),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF6F8FF),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'CR No: $crNo',
+                    style: GoogleFonts.poppins(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.navyDark,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Assigned IO: $ioName',
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: AppColors.lightSubText,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.poppins(color: AppColors.lightSubText),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFEF4444),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              'Send Reminder',
+              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    setState(() {
+      _sendingCaseIds.add(caseId);
+    });
+
+    try {
+      await ApiService().post(
+        '$baseUrl/itsso/cases/$caseId/action/',
+        body: {},
+      );
+      if (mounted) {
+        setState(() {
+          _sendingCaseIds.remove(caseId);
+          _remindedCaseIds.add(caseId);
+        });
+        AppSuccessPopup.show(
+          context,
+          title: 'Reminder Sent',
+          message: "Reminder sent to IO for case $crNo",
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _sendingCaseIds.remove(caseId);
+        });
+        AppErrorPopup.show(
+          context,
+          title: 'Error',
+          message: 'Failed to send reminder: $e',
+        );
+      }
+    }
+  }
+
   Widget _buildCaseWiseTab() {
     if (caseWiseData.isEmpty) {
       return _buildEmptyState(
@@ -150,303 +434,315 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
       );
     }
 
+    final Set<String> remindedSet = _remindedCaseIds;
+    final Set<String> sendingSet = _sendingCaseIds;
+
     return RefreshIndicator(
       onRefresh: fetchAllData,
       color: AppColors.navyMid,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        padding: const EdgeInsets.all(16),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(10),
-          child: Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                const minWidth = 850.0;
-                final tableWidth = constraints.maxWidth > minWidth
-                    ? constraints.maxWidth
-                    : minWidth;
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          const double cellFontSize = 11.5;
+          const double headerFontSize = 11.5;
 
-                const columnWidths = <int, TableColumnWidth>{
-                  0: FixedColumnWidth(60),
-                  1: FlexColumnWidth(1.2),
-                  2: FlexColumnWidth(1.8),
-                  3: FixedColumnWidth(130),
-                  4: FlexColumnWidth(1.4),
-                  5: FixedColumnWidth(100),
-                  6: FixedColumnWidth(110),
-                };
+          final isNarrow = constraints.maxWidth < 750;
+          final cardPadding = isNarrow ? 10.0 : 16.0;
+          final availableWidth = constraints.maxWidth - (cardPadding * 2);
+          final double tableWidth;
+          final Map<int, TableColumnWidth> columnWidths;
 
-                Widget headerCell(String text,
-                    {Alignment align = Alignment.centerLeft}) {
-                  return Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 12),
-                    alignment: align,
-                    child: Text(
-                      text,
+          if (isNarrow) {
+            tableWidth = math.max(availableWidth, 810.0);
+            columnWidths = const <int, TableColumnWidth>{
+              0: FixedColumnWidth(50),
+              1: FixedColumnWidth(100),
+              2: FixedColumnWidth(120),
+              3: FixedColumnWidth(135),
+              4: FixedColumnWidth(140),
+              5: FixedColumnWidth(135),
+              6: FixedColumnWidth(130),
+            };
+          } else {
+            tableWidth = math.max(availableWidth, 900.0);
+            columnWidths = const <int, TableColumnWidth>{
+              0: FixedColumnWidth(65),
+              1: FlexColumnWidth(1.1),
+              2: FlexColumnWidth(1.3),
+              3: FlexColumnWidth(1.4),
+              4: FlexColumnWidth(1.5),
+              5: FlexColumnWidth(1.2),
+              6: FlexColumnWidth(1.3),
+            };
+          }
+
+          Widget headerCell(String s) => Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                color: AppColors.navyDark,
+                alignment: Alignment.center,
+                child: Text(
+                  s,
+                  textAlign: TextAlign.center,
+                  softWrap: true,
+                  style: GoogleFonts.poppins(
+                    fontSize: headerFontSize,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    height: 1.15,
+                  ),
+                ),
+              );
+
+          Widget dataCell(Widget child, {Alignment align = Alignment.center}) =>
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                alignment: align,
+                child: child,
+              );
+
+          Widget textCell(String s, {Alignment align = Alignment.center}) =>
+              dataCell(
+                Text(
+                  s.isEmpty ? '—' : s,
+                  textAlign: align == Alignment.center
+                      ? TextAlign.center
+                      : TextAlign.left,
+                  softWrap: true,
+                  overflow: TextOverflow.visible,
+                  style: GoogleFonts.poppins(
+                    fontSize: cellFontSize,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.lightText,
+                    height: 1.15,
+                  ),
+                ),
+                align: align,
+              );
+
+          final headers = <Widget>[
+            headerCell('Sr. No.'),
+            headerCell('CR No.'),
+            headerCell('Section/Act'),
+            headerCell('Charge Sheet / CC No.'),
+            headerCell('IO Name'),
+            headerCell('Status'),
+            headerCell('Action'),
+          ];
+
+          TableRow rowFor(int idx, Map<String, dynamic> c) {
+            final bg = idx.isEven ? Colors.white : const Color(0xFFF8FAFD);
+            final caseId = (c['id'] ?? '').toString();
+            final srNo = c['sr_no']?.toString() ?? '${idx + 1}';
+            final crNo = (c['case_number'] ?? '—').toString();
+            final secAct = _getSectionAct(c);
+            final csInfo = _getChargeSheetInfo(c);
+            final io = (c['assigned_officer'] ?? 'Unassigned').toString();
+            final isGreen = c['itsso_status_color']?.toString().toLowerCase() ==
+                    'green' ||
+                c['itsso_status']?.toString().toLowerCase() == 'chargesheeted';
+            final statusText = c['itsso_status']?.toString() ??
+                (isGreen ? 'Chargesheeted' : 'Pending');
+
+            final isReminded = remindedSet.contains(caseId);
+            final isSending = sendingSet.contains(caseId);
+            final actionRequired = (c['action_required'] == true) && !isGreen;
+
+            Widget actionWidget;
+            if (isGreen) {
+              actionWidget = textCell('—');
+            } else if (isReminded) {
+              actionWidget = Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFDEF7EC),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFF31C48D)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.check_circle_rounded,
+                        size: 13, color: Color(0xFF0E9F6E)),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Reminded',
                       style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                        fontSize: 11.5,
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF0E9F6E),
                       ),
                     ),
-                  );
-                }
-
-                Widget dataCell(Widget child,
-                    {Alignment align = Alignment.centerLeft}) {
-                  return Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 10),
-                    alignment: align,
-                    child: child,
-                  );
-                }
-
-                return SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: SizedBox(
-                    width: tableWidth,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // ── Sticky Fixed Blue Header ──
-                        Container(
-                          color: AppColors.navyDark,
-                          child: Table(
-                            columnWidths: columnWidths,
-                            defaultVerticalAlignment:
-                                TableCellVerticalAlignment.middle,
-                            children: [
-                              TableRow(
-                                decoration: const BoxDecoration(
-                                    color: AppColors.navyDark),
-                                children: [
-                                  headerCell('Sr. No.'),
-                                  headerCell('CR No.'),
-                                  headerCell('Section/Act'),
-                                  headerCell('Charge Sheet Date'),
-                                  headerCell('IO Name'),
-                                  headerCell('Status', align: Alignment.center),
-                                  headerCell('Action', align: Alignment.center),
-                                ],
-                              ),
-                            ],
-                          ),
+                  ],
+                ),
+              );
+            } else if (actionRequired) {
+              actionWidget = ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFEF4444),
+                  foregroundColor: Colors.white,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  minimumSize: const Size(85, 28),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 0,
+                ),
+                icon: isSending
+                    ? const SizedBox(
+                        width: 12,
+                        height: 12,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
                         ),
+                      )
+                    : const Icon(
+                        Icons.notifications_active_rounded,
+                        size: 13,
+                        color: Colors.white,
+                      ),
+                label: Text(
+                  isSending ? 'Sending...' : 'Remind to IO',
+                  style: GoogleFonts.poppins(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+                onPressed: isSending ? null : () => _sendReminder(c, crNo, io),
+              );
+            } else {
+              actionWidget = textCell('—');
+            }
 
-                        // ── Scrollable Case List ──
-                        Expanded(
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.vertical,
-                            child: Table(
-                              columnWidths: columnWidths,
-                              defaultVerticalAlignment:
-                                  TableCellVerticalAlignment.middle,
-                              border: const TableBorder(
-                                horizontalInside: BorderSide(
-                                  color: Color(0xFFEDF2F7),
-                                  width: 1,
-                                ),
-                              ),
-                              children: List<TableRow>.generate(
-                                caseWiseData.length,
-                                (index) {
-                                  final caseItem = caseWiseData[index];
-                                  final isGreen = caseItem['itsso_status_color']
-                                          ?.toString()
-                                          .toLowerCase() ==
-                                      'green';
-                                  final bg = index % 2 == 0
-                                      ? Colors.white
-                                      : const Color(0xFFF8FAFD);
+            final statusWidget = Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: isGreen
+                    ? const Color(0xFF10B981).withValues(alpha: 0.15)
+                    : const Color(0xFFEF4444).withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isGreen
+                      ? const Color(0xFF10B981).withValues(alpha: 0.4)
+                      : const Color(0xFFEF4444).withValues(alpha: 0.4),
+                ),
+              ),
+              child: Text(
+                statusText,
+                maxLines: 1,
+                softWrap: false,
+                style: GoogleFonts.poppins(
+                  color: isGreen
+                      ? const Color(0xFF047857)
+                      : const Color(0xFFB91C1C),
+                  fontWeight: FontWeight.w700,
+                  fontSize: 11,
+                ),
+              ),
+            );
 
-                                  return TableRow(
-                                    decoration: BoxDecoration(color: bg),
-                                    children: [
-                                      dataCell(
-                                        Text(
-                                          caseItem['sr_no']?.toString() ??
-                                              '${index + 1}',
-                                          style: GoogleFonts.poppins(
-                                            fontWeight: FontWeight.w500,
-                                            color: AppColors.lightText,
-                                            fontSize: 11.5,
-                                          ),
-                                        ),
-                                      ),
-                                      dataCell(
-                                        Text(
-                                          caseItem['case_number']?.toString() ??
-                                              '—',
-                                          style: GoogleFonts.poppins(
-                                            fontWeight: FontWeight.w500,
-                                            color: AppColors.lightText,
-                                            fontSize: 11.5,
-                                          ),
-                                        ),
-                                      ),
-                                      dataCell(
-                                        Text(
-                                          caseItem['section_act']?.toString() ??
-                                              '—',
-                                          style: GoogleFonts.poppins(
-                                            fontWeight: FontWeight.w500,
-                                            color: AppColors.lightText,
-                                            fontSize: 11.5,
-                                          ),
-                                        ),
-                                      ),
-                                      dataCell(
-                                        Text(
-                                          caseItem['charge_sheet_date']
-                                                  ?.toString() ??
-                                              'Pending',
-                                          style: GoogleFonts.poppins(
-                                            fontWeight: FontWeight.w500,
-                                            color: AppColors.lightText,
-                                            fontSize: 11.5,
-                                          ),
-                                        ),
-                                      ),
-                                      dataCell(
-                                        Text(
-                                          caseItem['assigned_officer']
-                                                  ?.toString() ??
-                                              'Unassigned',
-                                          style: GoogleFonts.poppins(
-                                            fontWeight: FontWeight.w500,
-                                            color: AppColors.lightText,
-                                            fontSize: 11.5,
-                                          ),
-                                        ),
-                                      ),
-                                      dataCell(
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 10, vertical: 4),
-                                          decoration: BoxDecoration(
-                                            color: isGreen
-                                                ? const Color(0xFF10B981)
-                                                    .withValues(alpha: 0.15)
-                                                : const Color(0xFFEF4444)
-                                                    .withValues(alpha: 0.15),
-                                            borderRadius:
-                                                BorderRadius.circular(20),
-                                            border: Border.all(
-                                              color: isGreen
-                                                  ? const Color(0xFF10B981)
-                                                      .withValues(alpha: 0.4)
-                                                  : const Color(0xFFEF4444)
-                                                      .withValues(alpha: 0.4),
-                                            ),
-                                          ),
-                                          child: Text(
-                                            caseItem['itsso_status']
-                                                    ?.toString() ??
-                                                'Pending',
-                                            style: GoogleFonts.poppins(
-                                              color: isGreen
-                                                  ? const Color(0xFF047857)
-                                                  : const Color(0xFFB91C1C),
-                                              fontWeight: FontWeight.w700,
-                                              fontSize: 11,
-                                            ),
-                                          ),
-                                        ),
-                                        align: Alignment.center,
-                                      ),
-                                      dataCell(
-                                        (caseItem['action_required'] == true)
-                                            ? ElevatedButton(
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      const Color(0xFFDC2626),
-                                                  foregroundColor: Colors.white,
-                                                  padding: const EdgeInsets
-                                                      .symmetric(
-                                                      horizontal: 10,
-                                                      vertical: 4),
-                                                  minimumSize:
-                                                      const Size(70, 28),
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            6),
-                                                  ),
-                                                ),
-                                                onPressed: () async {
-                                                  final caseNumber =
-                                                      caseItem['case_number'];
-                                                  try {
-                                                    await ApiService().post(
-                                                      '$baseUrl/itsso/cases/${caseItem['id']}/action/',
-                                                      body: {},
-                                                    );
-                                                    if (!context.mounted) {
-                                                      return;
-                                                    }
-                                                    AppSuccessPopup.show(
-                                                      context,
-                                                      title: 'Reminder Sent',
-                                                      message:
-                                                          "Reminder sent to IO for case $caseNumber",
-                                                    );
-                                                  } catch (e) {
-                                                    if (!context.mounted) {
-                                                      return;
-                                                    }
-                                                    AppErrorPopup.show(
-                                                      context,
-                                                      title: 'Error',
-                                                      message:
-                                                          'Failed to send reminder: $e',
-                                                    );
-                                                  }
-                                                },
-                                                child: Text(
-                                                  'Remind IO',
-                                                  style: GoogleFonts.poppins(
-                                                    fontSize: 11,
-                                                    fontWeight: FontWeight.w700,
-                                                  ),
-                                                ),
-                                              )
-                                            : const Text('—'),
-                                        align: Alignment.center,
-                                      ),
-                                    ],
-                                  );
-                                },
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+            return TableRow(
+              decoration: BoxDecoration(color: bg),
+              children: [
+                textCell(srNo),
+                textCell(crNo),
+                textCell(secAct),
+                textCell(csInfo),
+                textCell(io),
+                dataCell(statusWidget),
+                dataCell(actionWidget),
+              ],
+            );
+          }
+
+          final headerTable = Container(
+            decoration: const BoxDecoration(color: AppColors.navyDark),
+            child: Table(
+              columnWidths: columnWidths,
+              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+              border: const TableBorder(
+                verticalInside: BorderSide(color: Color(0xFFE2E8F0), width: 1),
+                bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1),
+              ),
+              children: [
+                TableRow(
+                  decoration: const BoxDecoration(color: AppColors.navyDark),
+                  children: headers,
+                ),
+              ],
+            ),
+          );
+
+          final bodyTable = Container(
+            decoration: const BoxDecoration(color: Colors.white),
+            child: Table(
+              columnWidths: columnWidths,
+              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+              border: const TableBorder(
+                horizontalInside:
+                    BorderSide(color: Color(0xFFEDF2F7), width: 1),
+                verticalInside: BorderSide(color: Color(0xFFEDF2F7), width: 1),
+              ),
+              children: [
+                for (var i = 0; i < caseWiseData.length; i++)
+                  rowFor(
+                    i,
+                    caseWiseData[i] is Map<String, dynamic>
+                        ? caseWiseData[i] as Map<String, dynamic>
+                        : Map<String, dynamic>.from(caseWiseData[i] as Map),
+                  ),
+              ],
+            ),
+          );
+
+          return SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            padding: const EdgeInsets.only(bottom: 24),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              padding: EdgeInsets.all(cardPadding),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: SizedBox(
+                      width: tableWidth,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          headerTable,
+                          bodyTable,
+                        ],
+                      ),
                     ),
                   ),
-                );
-              },
+                ),
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
@@ -515,8 +811,8 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
                     context,
                     AppTheme.fadeSlideRoute(
                       page: FilteredPendingScreen(
-                        title: 'ITSSO - $p',
-                        category: 'itsso',
+                        title: 'ITSSO (POCSO) - $p',
+                        category: 'pocso',
                         startDate: start?.toIso8601String().split('T')[0],
                         endDate: end?.toIso8601String().split('T')[0],
                         isVictim: true,
@@ -593,7 +889,7 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
       return _buildEmptyState(
         title: "No Officers Found",
         subtitle:
-            "ITSSO cases mapped to investigating officers will appear here",
+            "POCSO cases mapped to investigating officers will appear here",
         icon: Icons.badge_outlined,
       );
     }
@@ -636,8 +932,8 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
                     context,
                     AppTheme.fadeSlideRoute(
                       page: FilteredPendingScreen(
-                        title: 'ITSSO - $ioName',
-                        category: 'itsso',
+                        title: 'ITSSO (POCSO) - $ioName',
+                        category: 'pocso',
                         ioUid: item['io_uid']?.toString() ?? ioName,
                         isVictim: true,
                       ),
@@ -740,11 +1036,87 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
             fontSize: 16,
           ),
         ),
+        actions: [
+          if (_tabController.index == 0 && caseWiseData.isNotEmpty) ...[
+            GestureDetector(
+              onTap: _exportExcel,
+              child: Container(
+                margin: const EdgeInsets.symmetric(vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF107C41),
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF107C41).withValues(alpha: 0.25),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.table_chart_rounded,
+                        color: Colors.white, size: 15),
+                    const SizedBox(width: 5),
+                    Text(
+                      'Excel',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: _exportPdf,
+              child: Container(
+                margin: const EdgeInsets.symmetric(vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.navyMid,
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.navyMid.withValues(alpha: 0.25),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.picture_as_pdf_rounded,
+                        color: Colors.white, size: 15),
+                    const SizedBox(width: 5),
+                    Text(
+                      'PDF',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+          ],
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
           child: Container(
             color: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
             child: TabBar(
               isScrollable: true,
               tabAlignment: TabAlignment.start,
@@ -806,17 +1178,26 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
             ? const Center(
                 child: CircularProgressIndicator(color: AppColors.navyMid),
               )
-            : Padding(
-                padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
-                child: TabBarView(
-                  controller: _tabController,
-                  physics: const NeverScrollableScrollPhysics(),
-                  children: [
-                    _buildCaseWiseTab(),
-                    _buildTimeWiseTab(),
-                    _buildIOWiseTab(),
-                  ],
-                ),
+            : LayoutBuilder(
+                builder: (context, constraints) {
+                  final isNarrow = constraints.maxWidth < 650;
+                  return Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      isNarrow ? 10 : 24,
+                      isNarrow ? 8 : 16,
+                      isNarrow ? 10 : 24,
+                      isNarrow ? 8 : 16,
+                    ),
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        _buildCaseWiseTab(),
+                        _buildTimeWiseTab(),
+                        _buildIOWiseTab(),
+                      ],
+                    ),
+                  );
+                },
               ),
       ),
     );

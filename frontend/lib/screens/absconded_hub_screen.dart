@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/backend_case_service.dart';
@@ -702,12 +703,12 @@ class _AbscondedHubScreenState extends State<AbscondedHubScreen>
                 );
               },
               icon: const Icon(
-                Icons.assessment_outlined,
+                Icons.picture_as_pdf_rounded,
                 color: Colors.white,
                 size: 16,
               ),
               label: Text(
-                'Summary',
+                'PDF',
                 style: GoogleFonts.poppins(
                   fontWeight: FontWeight.w600,
                   fontSize: 13,
@@ -790,14 +791,23 @@ class _AbscondedHubScreenState extends State<AbscondedHubScreen>
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
-          child: TabBarView(
-            controller: _tabController,
-            physics: const NeverScrollableScrollPhysics(),
-            children: [
-              _buildCaseWiseTab(),
-              _buildTimeWiseTab(),
-              _buildIOWiseTab(),
-            ],
+          child: ScrollConfiguration(
+            behavior: ScrollConfiguration.of(context).copyWith(
+              dragDevices: {
+                PointerDeviceKind.touch,
+                PointerDeviceKind.mouse,
+                PointerDeviceKind.trackpad,
+                PointerDeviceKind.stylus,
+              },
+            ),
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildCaseWiseTab(),
+                _buildTimeWiseTab(),
+                _buildIOWiseTab(),
+              ],
+            ),
           ),
         ),
       ),

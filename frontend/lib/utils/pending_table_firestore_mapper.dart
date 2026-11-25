@@ -119,7 +119,12 @@ String _sectionsLine(ModuleRecord r) {
 
   final direct = r.extraFields['sections'] ??
       r.extraFields['section_number'] ??
-      r.extraFields['section_id'];
+      r.extraFields['section_id'] ??
+      r.extraFields['section_act'] ??
+      r.extraFields['act_section'] ??
+      r.extraFields['section'] ??
+      r.extraFields['act'] ??
+      r.extraFields['acts'];
   if (direct is List) {
     for (final s in direct) {
       final st = s?.toString().trim();
@@ -149,23 +154,42 @@ String _sectionsLine(ModuleRecord r) {
     return unique.join(', ');
   }
 
+  // Fallback: If subCategory or title itself contains an Act/Section like "498 (A) IPC"
+  final sub = (r.subCategory ?? '').trim();
+  if (RegExp(r'\d+.*(IPC|BNS|BNSS|MCOCA|NDPS|POCSO|Act|CRPC)',
+          caseSensitive: false)
+      .hasMatch(sub)) {
+    return sub;
+  }
+  final title = r.title.trim();
+  if (RegExp(r'\d+.*(IPC|BNS|BNSS|MCOCA|NDPS|POCSO|Act|CRPC)',
+          caseSensitive: false)
+      .hasMatch(title)) {
+    return title;
+  }
+
   return '—';
 }
 
 String _headLine(ModuleRecord r) {
+  String normalize(String s) =>
+      s.toLowerCase() == 'normal accident' ? 'Other Accident' : s;
+
   final sub = r.subCategory?.trim();
-  if (sub != null && sub.isNotEmpty) return sub;
+  if (sub != null && sub.isNotEmpty) return normalize(sub);
   final cat = r.firestoreCategoryDisplayName.trim();
-  if (cat.isNotEmpty && cat.toLowerCase() != 'other') return cat;
+  if (cat.isNotEmpty && cat.toLowerCase() != 'other') return normalize(cat);
   final crimeTypeName = (r.extraFields['crime_type_name'] ??
           r.extraFields['head'] ??
           r.extraFields['crime_type'])
       ?.toString()
       .trim();
-  if (crimeTypeName != null && crimeTypeName.isNotEmpty) return crimeTypeName;
+  if (crimeTypeName != null && crimeTypeName.isNotEmpty) {
+    return normalize(crimeTypeName);
+  }
   final t = r.title.trim();
-  if (t.isNotEmpty) return t;
-  if (cat.isNotEmpty) return cat;
+  if (t.isNotEmpty) return normalize(t);
+  if (cat.isNotEmpty) return normalize(cat);
   return '—';
 }
 

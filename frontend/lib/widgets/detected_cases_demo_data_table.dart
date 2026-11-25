@@ -48,7 +48,7 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
         } else {
           tableWidth = math.max(constraints.maxWidth, 800.0);
           columnWidths = const <int, TableColumnWidth>{
-            0: IntrinsicColumnWidth(),
+            0: FixedColumnWidth(65),
             1: FlexColumnWidth(1.1),
             2: FlexColumnWidth(1.3),
             3: FlexColumnWidth(1.3),
@@ -59,7 +59,7 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
 
         Widget headerCell(String s) => Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-              color: AppColors.navyDark,
+              color: AppColors.navyMid,
               alignment: Alignment.center,
               child: Text(
                 s,
@@ -80,8 +80,8 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
               alignment: align,
               child: Text(
                 s,
-                softWrap: true,
-                overflow: TextOverflow.visible,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.poppins(
                   fontSize: cellFontSize,
                   fontWeight: FontWeight.w500,
@@ -94,7 +94,7 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
         final headers = <Widget>[
           headerCell('Sr. No'),
           headerCell('Cr. No.'),
-          headerCell('SEC/ACT'),
+          headerCell('Sec & Act'),
           headerCell('Head'),
           headerCell('Accused Name'),
           headerCell('IO Name'),
@@ -120,26 +120,21 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
 
         final maxH = constraints.maxHeight;
         final hasFiniteHeight = maxH.isFinite;
-        final double estHeight = 44.0 * (rows.length + 1) + 20.0;
-        final double containerHeight = hasFiniteHeight
-            ? maxH
-            : math.min(MediaQuery.of(context).size.height * 0.65, estHeight);
 
         final headerTable = Container(
           decoration: const BoxDecoration(
-            color: AppColors.navyDark,
+            color: AppColors.navyMid,
           ),
           child: Table(
             columnWidths: columnWidths,
             defaultVerticalAlignment: TableCellVerticalAlignment.middle,
             border: const TableBorder(
-              verticalInside:
-                  BorderSide(color: AppColors.lightBorder, width: 1),
-              bottom: BorderSide(color: AppColors.lightBorder, width: 1),
+              verticalInside: BorderSide(color: Color(0xFFE2E8F0), width: 1),
+              bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1),
             ),
             children: [
               TableRow(
-                decoration: const BoxDecoration(color: AppColors.navyDark),
+                decoration: const BoxDecoration(color: AppColors.navyMid),
                 children: headers,
               ),
             ],
@@ -154,10 +149,9 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
             columnWidths: columnWidths,
             defaultVerticalAlignment: TableCellVerticalAlignment.middle,
             border: const TableBorder(
-              horizontalInside:
-                  BorderSide(color: AppColors.lightBorder, width: 1),
-              verticalInside:
-                  BorderSide(color: AppColors.lightBorder, width: 1),
+              horizontalInside: BorderSide(color: Color(0xFFE2E8F0), width: 1),
+              verticalInside: BorderSide(color: Color(0xFFE2E8F0), width: 1),
+              bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1),
             ),
             children: rows.isEmpty
                 ? [
@@ -177,29 +171,39 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
 
         final inner = Container(
           width: tableWidth,
-          height: containerHeight,
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.lightBorder, width: 1),
+            border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(11),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                headerTable,
-                Expanded(
-                  child: Scrollbar(
-                    thumbVisibility: true,
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.vertical,
-                      child: bodyTable,
+            child: hasFiniteHeight
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      headerTable,
+                      Expanded(
+                        child: Scrollbar(
+                          thumbVisibility: true,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            child: bodyTable,
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                : IntrinsicHeight(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        headerTable,
+                        bodyTable,
+                      ],
                     ),
                   ),
-                ),
-              ],
-            ),
           ),
         );
 

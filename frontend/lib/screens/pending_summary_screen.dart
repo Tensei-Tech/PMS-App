@@ -5,7 +5,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:printing/printing.dart';
 import 'package:provider/provider.dart';
 import '../modules/core/models/base_record.dart';
 import '../providers/auth_provider.dart';
@@ -16,6 +15,7 @@ import '../utils/dynamic_map_pdf.dart';
 import '../utils/pdf_unicode_fonts.dart';
 import '../utils/pending_table_firestore_mapper.dart';
 import '../utils/case_visibility.dart';
+import '../widgets/custom_pdf_preview_dialog.dart';
 import '../widgets/pending_cases_demo_data_table.dart';
 import 'pending_hub_screen.dart';
 
@@ -83,15 +83,69 @@ class PendingSummaryScreen extends StatelessWidget {
       flat.addAll(_rowsForBucket(dataset, section));
     }
     if (flat.isEmpty) return;
+
+    final rows = flat.asMap().entries.map((entry) {
+      final idx = entry.key;
+      final r = entry.value;
+      final rowMap = <String, dynamic>{
+        'Sr. No.': '${idx + 1}',
+        'Cr. No.': r['cr']?.trim().isNotEmpty == true ? r['cr']!.trim() : '—',
+        'Sec & Act': r['sections']?.trim().isNotEmpty == true
+            ? r['sections']!.trim()
+            : '—',
+        'Head': r['head']?.trim().isNotEmpty == true ? r['head']!.trim() : '—',
+      };
+      if (isAbsconded) {
+        rowMap['Accused Name (फरार आरोपी)'] =
+            r['accused']?.trim().isNotEmpty == true
+                ? r['accused']!.trim()
+                : '—';
+      }
+      if (isVictim) {
+        rowMap['Name'] = r['victim_name']?.trim().isNotEmpty == true
+            ? r['victim_name']!.trim()
+            : '—';
+        rowMap['Injured/Deceased'] =
+            r['injured_deceased']?.trim().isNotEmpty == true
+                ? r['injured_deceased']!.trim()
+                : '—';
+      }
+      rowMap['IO Name'] =
+          r['io']?.trim().isNotEmpty == true ? r['io']!.trim() : '—';
+      if (!isUndetected && !isAbsconded) {
+        rowMap['Police Station'] = r['station']?.trim().isNotEmpty == true
+            ? r['station']!.trim()
+            : '—';
+      }
+      return rowMap;
+    }).toList();
+
+    final columnOrder = <String>[
+      'Sr. No.',
+      'Cr. No.',
+      'Sec & Act',
+      'Head',
+      if (isAbsconded) 'Accused Name (फरार आरोपी)',
+      if (isVictim) 'Name',
+      if (isVictim) 'Injured/Deceased',
+      'IO Name',
+      if (!isUndetected && !isAbsconded) 'Police Station',
+    ];
+
     final theme = await PdfUnicodeFonts.openSansTheme();
     final doc = DynamicMapPdf.buildLandscapeDataTableDocument(
       theme: theme,
       title: 'Pending Cases — Summary (all periods)',
-      rows: flat.map((e) => Map<String, dynamic>.from(e)).toList(),
+      rows: rows,
+      prependSerial: false,
+      columnOrder: columnOrder,
     );
-    await Printing.sharePdf(
-      bytes: await doc.save(),
-      filename: 'Pending_Summary_All_Periods.pdf',
+    if (!context.mounted) return;
+    await CustomPdfPreviewDialog.show(
+      context: context,
+      title: 'Pending Cases — Summary Report',
+      fileName: 'Pending_Summary_All_Periods.pdf',
+      buildPdf: (_) async => doc.save(),
     );
   }
 
@@ -105,17 +159,18 @@ class PendingSummaryScreen extends StatelessWidget {
 
     Widget sectionBlock(String bucketLabel) {
       final rows = _rowsForBucket(dataset, bucketLabel);
+      if (rows.isEmpty) return const SizedBox.shrink();
       return Container(
-        margin: const EdgeInsets.only(bottom: 20),
+        margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
@@ -123,7 +178,7 @@ class PendingSummaryScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: const BoxDecoration(
                 border: Border(
                   bottom: BorderSide(color: Color(0xFFF0F2F5)),
@@ -132,23 +187,23 @@ class PendingSummaryScreen extends StatelessWidget {
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(7),
+                    padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
                       color: AppColors.navyMid.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(6),
                     ),
                     child: const Icon(
                       Icons.category_outlined,
-                      size: 18,
+                      size: 16,
                       color: AppColors.navyMid,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       bucketLabel,
                       style: GoogleFonts.poppins(
-                        fontSize: 15,
+                        fontSize: 14.5,
                         fontWeight: FontWeight.w700,
                         color: AppColors.navyDark,
                       ),
@@ -156,7 +211,7 @@ class PendingSummaryScreen extends StatelessWidget {
                   ),
                   Container(
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                     decoration: BoxDecoration(
                       color: AppColors.navyMid.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(20),
@@ -164,7 +219,7 @@ class PendingSummaryScreen extends StatelessWidget {
                     child: Text(
                       '${rows.length} ${rows.length == 1 ? 'Case' : 'Cases'}',
                       style: GoogleFonts.poppins(
-                        fontSize: 12,
+                        fontSize: 11.5,
                         fontWeight: FontWeight.w700,
                         color: AppColors.navyMid,
                       ),
@@ -173,31 +228,16 @@ class PendingSummaryScreen extends StatelessWidget {
                 ],
               ),
             ),
-            if (rows.isEmpty)
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Center(
-                  child: Text(
-                    'No cases in this category',
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.lightSubText,
-                    ),
-                  ),
-                ),
-              )
-            else
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: PendingCasesDemoDataTable(
-                  isAd: false,
-                  realDataRows: rows,
-                  isAbsconded: isAbsconded,
-                  isVictim: isVictim,
-                  isUndetected: isUndetected,
-                ),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: PendingCasesDemoDataTable(
+                isAd: false,
+                realDataRows: rows,
+                isAbsconded: isAbsconded,
+                isVictim: isVictim,
+                isUndetected: isUndetected,
               ),
+            ),
           ],
         ),
       );
@@ -271,30 +311,6 @@ class PendingSummaryScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  ElevatedButton.icon(
-                    onPressed:
-                        !anyRows ? null : () => _exportPdf(context, dataset),
-                    icon: const Icon(Icons.download_rounded,
-                        size: 18, color: Colors.white),
-                    label: Text(
-                      'Export PDF',
-                      style: GoogleFonts.poppins(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.navyDark,
-                      disabledBackgroundColor: Colors.grey.shade300,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                      elevation: 1,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
                   GestureDetector(
                     onTap: !anyRows
                         ? null
@@ -316,23 +332,73 @@ class PendingSummaryScreen extends StatelessWidget {
                           },
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 10),
+                          horizontal: 14, vertical: 8),
                       decoration: BoxDecoration(
                         color: !anyRows
                             ? Colors.grey.shade400
                             : const Color(0xFF107C41),
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: !anyRows
+                            ? []
+                            : [
+                                BoxShadow(
+                                  color: const Color(0xFF107C41)
+                                      .withValues(alpha: 0.25),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
                       ),
                       child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           const Icon(Icons.table_chart_rounded,
-                              color: Colors.white, size: 18),
+                              color: Colors.white, size: 16),
                           const SizedBox(width: 6),
                           Text(
-                            'Export Excel',
+                            'Excel',
                             style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: !anyRows ? null : () => _exportPdf(context, dataset),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 8),
+                      decoration: BoxDecoration(
+                        color:
+                            !anyRows ? Colors.grey.shade400 : AppColors.navyMid,
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: !anyRows
+                            ? []
+                            : [
+                                BoxShadow(
+                                  color:
+                                      AppColors.navyMid.withValues(alpha: 0.25),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.picture_as_pdf_rounded,
+                              color: Colors.white, size: 16),
+                          const SizedBox(width: 6),
+                          Text(
+                            'PDF',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w600,
                               color: Colors.white,
                             ),
                           ),
@@ -387,18 +453,7 @@ class PendingSummaryScreen extends StatelessWidget {
                         children: [
                           for (final label in _getUniqueCategories(dataset))
                             sectionBlock(label),
-                          if (showDemoNote)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8),
-                              child: Text(
-                                '* Demo Data — Will be replaced with live data',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w500,
-                                  color: AppColors.lightSubText,
-                                ),
-                              ),
-                            ),
+                          // Clean live data only
                         ],
                       ),
               ),

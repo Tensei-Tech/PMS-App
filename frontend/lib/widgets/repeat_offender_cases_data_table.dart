@@ -147,7 +147,7 @@ class _RepeatOffenderCasesDataTableState
 
         Widget headerCell(String s) => Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-              color: AppColors.navyDark,
+              color: AppColors.navyMid,
               alignment: Alignment.center,
               child: Text(
                 s,
@@ -220,7 +220,7 @@ class _RepeatOffenderCasesDataTableState
 
         final headerTable = Container(
           decoration: const BoxDecoration(
-            color: AppColors.navyDark,
+            color: AppColors.navyMid,
           ),
           child: Table(
             columnWidths: columnWidths,
@@ -231,7 +231,7 @@ class _RepeatOffenderCasesDataTableState
             ),
             children: [
               TableRow(
-                decoration: const BoxDecoration(color: AppColors.navyDark),
+                decoration: const BoxDecoration(color: AppColors.navyMid),
                 children: headers,
               ),
             ],

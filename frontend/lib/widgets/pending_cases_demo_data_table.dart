@@ -104,7 +104,7 @@ class PendingCasesDemoDataTable extends StatelessWidget {
           tableWidth = math.max(constraints.maxWidth, 900.0);
           columnWidths = isVictim
               ? const <int, TableColumnWidth>{
-                  0: IntrinsicColumnWidth(),
+                  0: FixedColumnWidth(65),
                   1: FlexColumnWidth(1.0),
                   2: FlexColumnWidth(1.2),
                   3: FlexColumnWidth(1.2),
@@ -115,7 +115,7 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                 }
               : isAbsconded
                   ? const <int, TableColumnWidth>{
-                      0: IntrinsicColumnWidth(),
+                      0: FixedColumnWidth(65),
                       1: FlexColumnWidth(1.2),
                       2: FlexColumnWidth(1.4),
                       3: FlexColumnWidth(1.4),
@@ -124,14 +124,14 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                     }
                   : isUndetected
                       ? const <int, TableColumnWidth>{
-                          0: IntrinsicColumnWidth(),
+                          0: FixedColumnWidth(65),
                           1: FlexColumnWidth(1.2),
                           2: FlexColumnWidth(1.5),
                           3: FlexColumnWidth(1.5),
                           4: FlexColumnWidth(1.8),
                         }
                       : const <int, TableColumnWidth>{
-                          0: IntrinsicColumnWidth(),
+                          0: FixedColumnWidth(65),
                           1: FlexColumnWidth(1.3),
                           2: FlexColumnWidth(1.2),
                           3: FlexColumnWidth(1.3),
@@ -142,7 +142,7 @@ class PendingCasesDemoDataTable extends StatelessWidget {
 
         Widget headerCell(String s) => Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-              color: AppColors.navyDark,
+              color: AppColors.navyMid,
               alignment: Alignment.center,
               child: Text(
                 s,
@@ -221,16 +221,16 @@ class PendingCasesDemoDataTable extends StatelessWidget {
         }
 
         final headers = <Widget>[
-          headerCell('Sr. No'),
+          headerCell('Sr. No.'),
           headerCell('Cr. No.'),
-          headerCell('SEC & ACT'),
+          headerCell('Sec & Act'),
           if (!isVictim) headerCell('Head'),
           if (isAbsconded) headerCell('Accused Name (फरार आरोपी)'),
           if (isVictim) headerCell('Head'),
           if (isVictim) headerCell('Name'),
           if (isVictim) headerCell('Injured/Deceased'),
           headerCell('IO Name'),
-          if (!isUndetected && !isAbsconded) headerCell('Police station name'),
+          if (!isUndetected && !isAbsconded) headerCell('Police Station'),
         ];
 
         TableRow rowFor(int idx, Map<String, String> r) {
@@ -286,7 +286,7 @@ class PendingCasesDemoDataTable extends StatelessWidget {
 
         final headerTable = Container(
           decoration: const BoxDecoration(
-            color: AppColors.navyDark,
+            color: AppColors.navyMid,
           ),
           child: Table(
             columnWidths: columnWidths,
@@ -297,7 +297,7 @@ class PendingCasesDemoDataTable extends StatelessWidget {
             ),
             children: [
               TableRow(
-                decoration: const BoxDecoration(color: AppColors.navyDark),
+                decoration: const BoxDecoration(color: AppColors.navyMid),
                 children: headers,
               ),
             ],
@@ -313,8 +313,9 @@ class PendingCasesDemoDataTable extends StatelessWidget {
             columnWidths: columnWidths,
             defaultVerticalAlignment: TableCellVerticalAlignment.middle,
             border: const TableBorder(
-              horizontalInside: BorderSide(color: Color(0xFFEDF2F7), width: 1),
-              verticalInside: BorderSide(color: Color(0xFFEDF2F7), width: 1),
+              horizontalInside: BorderSide(color: Color(0xFFE2E8F0), width: 1),
+              verticalInside: BorderSide(color: Color(0xFFE2E8F0), width: 1),
+              bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1),
             ),
             children: rows.isEmpty
                 ? [
@@ -334,29 +335,38 @@ class PendingCasesDemoDataTable extends StatelessWidget {
 
         final inner = Container(
           width: tableWidth,
-          height: containerHeight,
+          height: hasFiniteHeight ? containerHeight : null,
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
+            border: Border.all(color: const Color(0xFFCBD5E1)),
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(9),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                headerTable,
-                Expanded(
-                  child: Scrollbar(
-                    thumbVisibility: true,
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.vertical,
-                      child: bodyTable,
-                    ),
+            child: hasFiniteHeight
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      headerTable,
+                      Expanded(
+                        child: Scrollbar(
+                          thumbVisibility: true,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            child: bodyTable,
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      headerTable,
+                      bodyTable,
+                    ],
                   ),
-                ),
-              ],
-            ),
           ),
         );
 

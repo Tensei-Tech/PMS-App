@@ -661,12 +661,12 @@ class _DetectedHubScreenState extends State<DetectedHubScreen>
                 );
               },
               icon: const Icon(
-                Icons.assessment_outlined,
+                Icons.picture_as_pdf_rounded,
                 color: Colors.white,
                 size: 16,
               ),
               label: Text(
-                'Summary',
+                'PDF',
                 style: GoogleFonts.poppins(
                   fontWeight: FontWeight.w600,
                   fontSize: 13,
@@ -752,7 +752,6 @@ class _DetectedHubScreenState extends State<DetectedHubScreen>
           padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
           child: TabBarView(
             controller: _tabController,
-            physics: const NeverScrollableScrollPhysics(),
             children: [
               _buildCaseWiseTab(),
               _buildTimeWiseTab(),

@@ -17,6 +17,10 @@ import '../widgets/form_vi_category_button.dart';
 import '../widgets/module_hub_screen_app_bar.dart';
 import '../widgets/dynamic_form/dynamic_form_screen.dart';
 import '../utils/category_icon_helper.dart';
+import '../utils/dynamic_map_pdf.dart';
+import '../utils/pdf_unicode_fonts.dart';
+import '../widgets/modern_date_filter_calendar.dart';
+import '../widgets/custom_pdf_preview_dialog.dart';
 
 /// Controls where a Form VI category tap navigates.
 enum FormVISelectionMode {
@@ -1156,86 +1160,137 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
     );
   }
 
-  Widget _buildDateAndSortControls() {
-    final hasDateFilter = _selectedDateRange != null;
-    final dateText = hasDateFilter
-        ? (_datePresetLabel ?? _formatDateRangeShort(_selectedDateRange!))
-        : TranslationHelper.translate(context, 'Date Filter');
+  Future<void> _exportPdf(List<ModuleRecord> dataset) async {
+    if (dataset.isEmpty) return;
+    final theme = await PdfUnicodeFonts.openSansTheme();
 
+    final catLabel = _selectedCategory != null && _selectedCategory!.isNotEmpty
+        ? _selectedCategory!
+        : 'Form VI';
+
+    final rows = dataset.asMap().entries.map((entry) {
+      final i = entry.key + 1;
+      final r = entry.value;
+      final cr = r.caseNumber.trim().isNotEmpty ? r.caseNumber.trim() : r.title;
+      final category =
+          r.subCategory?.isNotEmpty == true ? r.subCategory! : catLabel;
+
+      final doc = r.extraFields[kCommonFormExtraFieldsKey] is Map
+          ? Map<String, dynamic>.from(
+              r.extraFields[kCommonFormExtraFieldsKey] as Map)
+          : r.extraFields;
+      String sectionAct = '';
+      final charges = doc['charges'] ?? r.extraFields['charges'];
+      if (charges is Map && charges.isNotEmpty) {
+        final parts = <String>[];
+        for (final val in charges.values) {
+          if (val is Map) {
+            final act = val['act']?.toString().trim() ?? '';
+            final sections = val['sections'];
+            String secStr = '';
+            if (sections is List && sections.isNotEmpty) {
+              secStr = sections
+                  .map((s) => s.toString().trim())
+                  .where((s) => s.isNotEmpty && s != '{}' && s != '[]')
+                  .join(', ');
+            }
+            if (secStr.isNotEmpty && act.isNotEmpty) {
+              parts.add('$act $secStr');
+            } else if (secStr.isNotEmpty) {
+              parts.add(secStr);
+            } else if (act.isNotEmpty) {
+              parts.add(act);
+            }
+          }
+        }
+        sectionAct = parts.join(', ');
+      }
+
+      final accused =
+          (r.accused.isNotEmpty && r.accused != '-' && r.accused != '—')
+              ? r.accused
+              : (doc['accused_name']?.toString() ?? '—');
+
+      final officerLoc = [
+        r.assignedOfficer.trim(),
+        r.stationName.trim(),
+      ].where((s) => s.isNotEmpty && s != '-' && s != '—').join(' / ');
+
+      final crimeDate = DateFormat('dd/MM/yyyy').format(r.incidentDate);
+
+      final status = r.status.trim().isNotEmpty ? r.status.trim() : 'Pending';
+
+      return {
+        'Sr. No.': '$i',
+        'CR No.': cr.isNotEmpty ? cr : '—',
+        'Category': category,
+        'Section / Act': sectionAct.isNotEmpty ? sectionAct : '—',
+        'Accused Name': accused.isNotEmpty ? accused : '—',
+        'Officer / Location': officerLoc.isNotEmpty ? officerLoc : '—',
+        'Crime Date': crimeDate,
+        'Status': status,
+      };
+    }).toList();
+
+    final statusTitle = _selectedStatusTab == FormVIStatusTab.total
+        ? 'Total Cases'
+        : _selectedStatusTab == FormVIStatusTab.pending
+            ? 'Pending Cases'
+            : 'Disposal Cases';
+
+    final doc = DynamicMapPdf.buildLandscapeDataTableDocument(
+      theme: theme,
+      title: '$catLabel Cases Report — $statusTitle',
+      rows: rows,
+      prependSerial: false,
+      columnOrder: const [
+        'Sr. No.',
+        'CR No.',
+        'Category',
+        'Section / Act',
+        'Accused Name',
+        'Officer / Location',
+        'Crime Date',
+        'Status',
+      ],
+    );
+
+    await CustomPdfPreviewDialog.show(
+      context: context,
+      title: '$catLabel Cases Report',
+      fileName:
+          '${catLabel.replaceAll(RegExp(r'[^A-Za-z0-9]+'), '_')}_Cases_${DateTime.now().millisecondsSinceEpoch}.pdf',
+      buildPdf: (_) async => doc.save(),
+    );
+  }
+
+  Widget _buildDateAndSortControls([List<ModuleRecord>? visibleRecords]) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Calendar Date Picker Button
-        InkWell(
-          onTap: _showDateFilterDialog,
-          borderRadius: BorderRadius.circular(8),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            padding: EdgeInsets.fromLTRB(
-              hasDateFilter ? 8 : 10,
-              6,
-              hasDateFilter ? 4 : 10,
-              6,
-            ),
-            decoration: BoxDecoration(
-              color: hasDateFilter ? const Color(0xFFE8F1FC) : Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: hasDateFilter
-                    ? const Color(0xFF1976D2)
-                    : const Color(0xFFCBD5E1),
-                width: hasDateFilter ? 1.3 : 1.0,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: hasDateFilter
-                      ? const Color(0xFF1976D2).withValues(alpha: 0.12)
-                      : Colors.black.withValues(alpha: 0.02),
-                  blurRadius: 4,
-                  offset: const Offset(0, 1),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.calendar_month_rounded,
-                  size: 15,
-                  color: hasDateFilter
-                      ? const Color(0xFF1976D2)
-                      : AppColors.navyMid,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  dateText,
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight:
-                        hasDateFilter ? FontWeight.w600 : FontWeight.w500,
-                    color: hasDateFilter
-                        ? const Color(0xFF1976D2)
-                        : AppColors.navyDark,
-                  ),
-                ),
-                if (hasDateFilter) ...[
-                  const SizedBox(width: 4),
-                  InkWell(
-                    onTap: _clearDateFilter,
-                    borderRadius: BorderRadius.circular(12),
-                    child: Padding(
-                      padding: const EdgeInsets.all(2),
-                      child: Icon(
-                        Icons.close_rounded,
-                        size: 14,
-                        color: Colors.red.shade700,
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
+        // Modern Calendar Date Filter Popover (Today, Range, Custom)
+        ModernDateFilterCalendar(
+          selectedDateRange: _selectedDateRange,
+          datePresetLabel: _datePresetLabel,
+          onDateRangeChanged: (range) {
+            setState(() {
+              _selectedDateRange = range;
+              if (range == null) _datePresetLabel = null;
+            });
+          },
+          onPresetLabelChanged: (preset) {
+            setState(() {
+              _datePresetLabel = preset;
+            });
+          },
+          isNewestFirst: _dateSortOrder == FormVIDateSortOrder.newestFirst,
+          onSortOrderChanged: (newest) {
+            setState(() {
+              _dateSortOrder = newest
+                  ? FormVIDateSortOrder.newestFirst
+                  : FormVIDateSortOrder.oldestFirst;
+            });
+          },
         ),
         const SizedBox(width: 8),
 
@@ -1392,6 +1447,57 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
             ),
           ),
         ),
+        if (visibleRecords != null) ...[
+          const SizedBox(width: 8),
+          InkWell(
+            onTap: visibleRecords.isNotEmpty
+                ? () => _exportPdf(visibleRecords)
+                : null,
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: visibleRecords.isNotEmpty
+                      ? const Color(0xFFCBD5E1)
+                      : const Color(0xFFE2E8F0),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.02),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.picture_as_pdf_outlined,
+                    size: 15,
+                    color: visibleRecords.isNotEmpty
+                        ? const Color(0xFFDC2626)
+                        : Colors.grey.shade400,
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    TranslationHelper.translate(context, 'PDF'),
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: visibleRecords.isNotEmpty
+                          ? AppColors.navyDark
+                          : Colors.grey.shade400,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -1422,7 +1528,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
           const SizedBox(width: 6),
           Expanded(
             child: Text(
-              'Filtered by $fieldName: $label ($count cases found)',
+              'Filtered by date: $label ($count cases found)',
               style: GoogleFonts.poppins(
                 fontSize: 11.5,
                 fontWeight: FontWeight.w500,
@@ -1602,180 +1708,45 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
             if (_isLoadingApiCategories && _apiCategories.isEmpty)
               const LinearProgressIndicator(minHeight: 2),
             if (_selectedCategory == null) ...[
-              if (_categoryBreadcrumb.isNotEmpty)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    border:
-                        Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
-                  ),
-                  width: double.infinity,
+              if (_isLoadingCategory)
+                const LinearProgressIndicator(minHeight: 2),
+              if (_categoryBreadcrumb.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
                   child: Row(
                     children: [
-                      InkWell(
-                        onTap: _handleBackNavigation,
-                        borderRadius: BorderRadius.circular(8),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF1F5F9),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: const Color(0xFFCBD5E1)),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.arrow_back_rounded,
-                                size: 14,
-                                color: AppColors.navyDark,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                TranslationHelper.translate(
-                                  context,
-                                  _categoryBreadcrumb.length > 1
-                                      ? _categoryBreadcrumb[
-                                          _categoryBreadcrumb.length - 2]
-                                      : 'All Categories',
-                                ),
-                                style: GoogleFonts.poppins(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.navyDark,
-                                ),
-                              ),
-                            ],
-                          ),
+                      const Icon(
+                        Icons.grid_view_rounded,
+                        size: 16,
+                        color: AppColors.navyMid,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        TranslationHelper.translate(
+                          context,
+                          'Filter by Case Type',
+                        ),
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.navyDark,
+                          letterSpacing: 0.2,
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: [
-                              InkWell(
-                                onTap: () {
-                                  setState(() {
-                                    _categoryBreadcrumb.clear();
-                                    _selectedCategory = null;
-                                  });
-                                },
-                                child: Text(
-                                  TranslationHelper.translate(
-                                    context,
-                                    'Form VI Cases',
-                                  ),
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 12.5,
-                                    color: const Color(0xFF1976D2),
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                              for (int i = 0;
-                                  i < _categoryBreadcrumb.length;
-                                  i++) ...[
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(horizontal: 6),
-                                  child: Text(
-                                    '/',
-                                    style: GoogleFonts.poppins(
-                                      color: AppColors.lightSubText,
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                ),
-                                if (i == _categoryBreadcrumb.length - 1)
-                                  Text(
-                                    TranslationHelper.translate(
-                                      context,
-                                      _categoryBreadcrumb[i],
-                                    ),
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.navyDark,
-                                    ),
-                                  )
-                                else
-                                  InkWell(
-                                    onTap: () {
-                                      setState(() {
-                                        _categoryBreadcrumb.removeRange(
-                                          i + 1,
-                                          _categoryBreadcrumb.length,
-                                        );
-                                        _selectedCategory = null;
-                                      });
-                                    },
-                                    child: Text(
-                                      TranslationHelper.translate(
-                                        context,
-                                        _categoryBreadcrumb[i],
-                                      ),
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 12.5,
-                                        color: const Color(0xFF1976D2),
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ],
+                      if (_isLoadingCategory) ...[
+                        const SizedBox(width: 12),
+                        const SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Color(0xFF1976D2),
                           ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.grid_view_rounded,
-                      size: 16,
-                      color: AppColors.navyMid,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      TranslationHelper.translate(
-                        context,
-                        _categoryBreadcrumb.isNotEmpty
-                            ? 'Filter by ${_categoryBreadcrumb.last}'
-                            : 'Filter by Case Type',
-                      ),
-                      style: GoogleFonts.poppins(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.navyDark,
-                        letterSpacing: 0.2,
-                      ),
-                    ),
-                    if (_isLoadingCategory) ...[
-                      const SizedBox(width: 12),
-                      const SizedBox(
-                        width: 14,
-                        height: 14,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Color(0xFF1976D2),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
               Expanded(
                 child: _CategoryGridView(
                   categories: _currentDisplayCategories,
@@ -1850,7 +1821,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
                         const SizedBox(width: 8),
                         FittedBox(
                           fit: BoxFit.scaleDown,
-                          child: _buildDateAndSortControls(),
+                          child: _buildDateAndSortControls(visibleRecords),
                         ),
                       ],
                     ),

@@ -1,3 +1,5 @@
+// ignore_for_file: unused_element, unused_local_variable
+import '../widgets/modern_date_filter_calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -12,6 +14,10 @@ import 'common_form_screen.dart';
 import 'form_i_v_selection_screen.dart';
 import 'module_record_detail_screen.dart';
 import '../utils/ad_disposal_helper.dart';
+import '../utils/common_form_module.dart';
+import '../utils/dynamic_map_pdf.dart';
+import '../utils/pdf_unicode_fonts.dart';
+import '../widgets/custom_pdf_preview_dialog.dart';
 
 class HurtCasesScreen extends StatefulWidget {
   final bool readOnly;
@@ -754,86 +760,134 @@ class _HurtCasesScreenState extends State<HurtCasesScreen> {
     _openForm();
   }
 
-  Widget _buildDateAndSortControls() {
-    final hasDateFilter = _selectedDateRange != null;
-    final dateText = hasDateFilter
-        ? (_datePresetLabel ?? _formatDateRangeShort(_selectedDateRange!))
-        : TranslationHelper.translate(context, 'Date Filter');
+  Future<void> _exportPdf(List<ModuleRecord> dataset) async {
+    if (dataset.isEmpty) return;
+    final theme = await PdfUnicodeFonts.openSansTheme();
 
+    final rows = dataset.asMap().entries.map((entry) {
+      final i = entry.key + 1;
+      final r = entry.value;
+      final cr = r.caseNumber.trim().isNotEmpty ? r.caseNumber.trim() : r.title;
+      final category =
+          r.subCategory?.isNotEmpty == true ? r.subCategory! : 'Hurt';
+
+      final doc = r.extraFields[kCommonFormExtraFieldsKey] is Map
+          ? Map<String, dynamic>.from(
+              r.extraFields[kCommonFormExtraFieldsKey] as Map)
+          : r.extraFields;
+      String sectionAct = '';
+      final charges = doc['charges'] ?? r.extraFields['charges'];
+      if (charges is Map && charges.isNotEmpty) {
+        final parts = <String>[];
+        for (final val in charges.values) {
+          if (val is Map) {
+            final act = val['act']?.toString().trim() ?? '';
+            final sections = val['sections'];
+            String secStr = '';
+            if (sections is List && sections.isNotEmpty) {
+              secStr = sections
+                  .map((s) => s.toString().trim())
+                  .where((s) => s.isNotEmpty && s != '{}' && s != '[]')
+                  .join(', ');
+            }
+            if (secStr.isNotEmpty && act.isNotEmpty) {
+              parts.add('$act $secStr');
+            } else if (secStr.isNotEmpty) {
+              parts.add(secStr);
+            } else if (act.isNotEmpty) {
+              parts.add(act);
+            }
+          }
+        }
+        sectionAct = parts.join(', ');
+      }
+
+      final accused =
+          (r.accused.isNotEmpty && r.accused != '-' && r.accused != '—')
+              ? r.accused
+              : (doc['accused_name']?.toString() ?? '—');
+
+      final officerLoc = [
+        r.assignedOfficer.trim(),
+        r.stationName.trim(),
+      ].where((s) => s.isNotEmpty && s != '-' && s != '—').join(' / ');
+
+      final crimeDate = DateFormat('dd/MM/yyyy').format(r.incidentDate);
+
+      final status = r.status.trim().isNotEmpty ? r.status.trim() : 'Pending';
+
+      return {
+        'Sr. No.': '$i',
+        'CR No.': cr.isNotEmpty ? cr : '—',
+        'Category': category,
+        'Section / Act': sectionAct.isNotEmpty ? sectionAct : '—',
+        'Accused Name': accused.isNotEmpty ? accused : '—',
+        'Officer / Location': officerLoc.isNotEmpty ? officerLoc : '—',
+        'Crime Date': crimeDate,
+        'Status': status,
+      };
+    }).toList();
+
+    final statusTitle = _selectedStatusTab == FormIVStatusTab.total
+        ? 'Total Cases'
+        : _selectedStatusTab == FormIVStatusTab.pending
+            ? 'Pending Cases'
+            : 'Disposal Cases';
+
+    final doc = DynamicMapPdf.buildLandscapeDataTableDocument(
+      theme: theme,
+      title: 'Hurt Cases Report — $statusTitle',
+      rows: rows,
+      prependSerial: false,
+      columnOrder: const [
+        'Sr. No.',
+        'CR No.',
+        'Category',
+        'Section / Act',
+        'Accused Name',
+        'Officer / Location',
+        'Crime Date',
+        'Status',
+      ],
+    );
+
+    if (!mounted) return;
+
+    await CustomPdfPreviewDialog.show(
+      context: context,
+      title: 'Hurt Cases Report',
+      fileName: 'Hurt_Cases_${DateTime.now().millisecondsSinceEpoch}.pdf',
+      buildPdf: (_) async => doc.save(),
+    );
+  }
+
+  Widget _buildDateAndSortControls(List<ModuleRecord> visibleRecords) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Calendar Date Picker Button
-        InkWell(
-          onTap: _showDateFilterDialog,
-          borderRadius: BorderRadius.circular(8),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            padding: EdgeInsets.fromLTRB(
-              hasDateFilter ? 8 : 10,
-              6,
-              hasDateFilter ? 4 : 10,
-              6,
-            ),
-            decoration: BoxDecoration(
-              color: hasDateFilter ? const Color(0xFFE8F1FC) : Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: hasDateFilter
-                    ? const Color(0xFF1976D2)
-                    : const Color(0xFFCBD5E1),
-                width: hasDateFilter ? 1.3 : 1.0,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: hasDateFilter
-                      ? const Color(0xFF1976D2).withValues(alpha: 0.12)
-                      : Colors.black.withValues(alpha: 0.02),
-                  blurRadius: 4,
-                  offset: const Offset(0, 1),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.calendar_month_rounded,
-                  size: 15,
-                  color: hasDateFilter
-                      ? const Color(0xFF1976D2)
-                      : AppColors.navyMid,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  dateText,
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight:
-                        hasDateFilter ? FontWeight.w600 : FontWeight.w500,
-                    color: hasDateFilter
-                        ? const Color(0xFF1976D2)
-                        : AppColors.navyDark,
-                  ),
-                ),
-                if (hasDateFilter) ...[
-                  const SizedBox(width: 4),
-                  InkWell(
-                    onTap: _clearDateFilter,
-                    borderRadius: BorderRadius.circular(12),
-                    child: Padding(
-                      padding: const EdgeInsets.all(2),
-                      child: Icon(
-                        Icons.close_rounded,
-                        size: 14,
-                        color: Colors.red.shade700,
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
+        // Modern Calendar Date Filter Popover (Today, Range, Custom)
+        ModernDateFilterCalendar(
+          selectedDateRange: _selectedDateRange,
+          datePresetLabel: _datePresetLabel,
+          onDateRangeChanged: (range) {
+            setState(() {
+              _selectedDateRange = range;
+              if (range == null) _datePresetLabel = null;
+            });
+          },
+          onPresetLabelChanged: (preset) {
+            setState(() {
+              _datePresetLabel = preset;
+            });
+          },
+          isNewestFirst: _dateSortOrder == FormIVDateSortOrder.newestFirst,
+          onSortOrderChanged: (newest) {
+            setState(() {
+              _dateSortOrder = newest
+                  ? FormIVDateSortOrder.newestFirst
+                  : FormIVDateSortOrder.oldestFirst;
+            });
+          },
         ),
         const SizedBox(width: 8),
 
@@ -990,15 +1044,64 @@ class _HurtCasesScreenState extends State<HurtCasesScreen> {
             ),
           ),
         ),
+        const SizedBox(width: 8),
+
+        // PDF Export Button
+        InkWell(
+          onTap: visibleRecords.isNotEmpty
+              ? () => _exportPdf(visibleRecords)
+              : null,
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: visibleRecords.isNotEmpty
+                    ? const Color(0xFFCBD5E1)
+                    : const Color(0xFFE2E8F0),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.02),
+                  blurRadius: 4,
+                  offset: const Offset(0, 1),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.picture_as_pdf_outlined,
+                  size: 15,
+                  color: visibleRecords.isNotEmpty
+                      ? const Color(0xFFDC2626)
+                      : Colors.grey.shade400,
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  TranslationHelper.translate(context, 'PDF'),
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: visibleRecords.isNotEmpty
+                        ? AppColors.navyDark
+                        : Colors.grey.shade400,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ],
     );
   }
 
   Widget _buildActiveDateFilterBanner(int count) {
     if (_selectedDateRange == null) return const SizedBox.shrink();
-    final fieldName = _dateField == FormIVDateField.incidentDate
-        ? TranslationHelper.translate(context, 'incident date')
-        : TranslationHelper.translate(context, 'registration date');
+
     final label =
         _datePresetLabel ?? _formatDateRangeShort(_selectedDateRange!);
 
@@ -1020,7 +1123,7 @@ class _HurtCasesScreenState extends State<HurtCasesScreen> {
           const SizedBox(width: 6),
           Expanded(
             child: Text(
-              'Filtered by $fieldName: $label ($count cases found)',
+              'Filtered by date: $label ($count cases found)',
               style: GoogleFonts.poppins(
                 fontSize: 11.5,
                 fontWeight: FontWeight.w500,
@@ -1152,7 +1255,7 @@ class _HurtCasesScreenState extends State<HurtCasesScreen> {
                   ),
                 ),
                 const Spacer(),
-                _buildDateAndSortControls(),
+                _buildDateAndSortControls(visibleRecords),
               ],
             ),
           ),

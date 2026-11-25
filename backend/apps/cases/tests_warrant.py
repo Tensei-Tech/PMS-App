@@ -235,3 +235,82 @@ class SummonsWarrantReportTests(TestCase):
         alias_url = reverse('sam-warrant-report')
         alias_resp = self.client.get(f"{alias_url}?year=2026&month=9", HTTP_X_STATE_CODE='MH')
         self.assertEqual(alias_resp.status_code, status.HTTP_200_OK)
+
+    def test_rbac_access_paths(self):
+        from apps.stations.models import PoliceStation
+
+        # Seed stations across districts & divisions
+        PoliceStation.objects.get_or_create(
+            station_id='ST_TUMSAR',
+            defaults={'station_name': 'TUMSAR', 'district_name': 'Bhandara', 'zone': 'Tumsar Div'}
+        )
+        PoliceStation.objects.get_or_create(
+            station_id='ST_BHANDARA',
+            defaults={'station_name': 'BHANDARA', 'district_name': 'Bhandara', 'zone': 'Bhandara Div'}
+        )
+        PoliceStation.objects.get_or_create(
+            station_id='ST_NAGPUR',
+            defaults={'station_name': 'SITABULDI', 'district_name': 'Nagpur', 'zone': 'Nagpur Div'}
+        )
+
+        url = reverse('summons-warrant-report')
+
+        # 1. Station user (TUMSAR) - cannot access SITABULDI
+        self.user.station_name = 'TUMSAR'
+        self.user.designation = 'PSI'
+        self.user.role_id = 'station_user'
+        self.user.save()
+        self.client.force_authenticate(user=self.user)
+        resp_forbidden = self.client.get(f"{url}?year=2026&month=9&station_name=SITABULDI", HTTP_X_STATE_CODE='MH')
+        self.assertEqual(resp_forbidden.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Station user - can access TUMSAR
+        resp_allowed = self.client.get(f"{url}?year=2026&month=9&station_name=TUMSAR", HTTP_X_STATE_CODE='MH')
+        self.assertEqual(resp_allowed.status_code, status.HTTP_200_OK)
+
+        # 2. Division user (SDPO / ACP in Tumsar Div)
+        sdpo = User.objects.create_user(username='sdpo_user', password='password123', email='sdpo@example.com')
+        sdpo.role = self.role
+        sdpo.designation = 'SDPO'
+        sdpo.zone = 'Tumsar Div'
+        sdpo.district = 'Bhandara'
+        sdpo.state_code = 'MH'
+        sdpo.save()
+        self.client.force_authenticate(user=sdpo)
+
+        # SDPO can access TUMSAR in their division
+        resp_sdpo = self.client.get(f"{url}?year=2026&month=9&station_name=TUMSAR", HTTP_X_STATE_CODE='MH')
+        self.assertEqual(resp_sdpo.status_code, status.HTTP_200_OK)
+
+        # SDPO cannot access SITABULDI (in Nagpur Div)
+        resp_sdpo_forbid = self.client.get(f"{url}?year=2026&month=9&station_name=SITABULDI", HTTP_X_STATE_CODE='MH')
+        self.assertEqual(resp_sdpo_forbid.status_code, status.HTTP_403_FORBIDDEN)
+
+        # 3. District user (SP in Bhandara)
+        sp = User.objects.create_user(username='sp_user', password='password123', email='sp@example.com')
+        sp.role = self.role
+        sp.designation = 'SP'
+        sp.district = 'Bhandara'
+        sp.state_code = 'MH'
+        sp.save()
+        self.client.force_authenticate(user=sp)
+
+        # SP can access TUMSAR and BHANDARA
+        resp_sp_tum = self.client.get(f"{url}?year=2026&month=9&station_name=TUMSAR", HTTP_X_STATE_CODE='MH')
+        self.assertEqual(resp_sp_tum.status_code, status.HTTP_200_OK)
+
+        # SP cannot access SITABULDI (outside Bhandara district)
+        resp_sp_forbid = self.client.get(f"{url}?year=2026&month=9&station_name=SITABULDI", HTTP_X_STATE_CODE='MH')
+        self.assertEqual(resp_sp_forbid.status_code, status.HTTP_403_FORBIDDEN)
+
+        # 4. State user (DGP / SuperAdmin)
+        admin = User.objects.create_user(username='dgp_user', password='password123', email='dgp@example.com')
+        admin.role = self.role
+        admin.designation = 'DGP'
+        admin.state_code = 'MH'
+        admin.save()
+        self.client.force_authenticate(user=admin)
+
+        # State leadership can access any station
+        resp_admin = self.client.get(f"{url}?year=2026&month=9&station_name=SITABULDI", HTTP_X_STATE_CODE='MH')
+        self.assertEqual(resp_admin.status_code, status.HTTP_200_OK)
