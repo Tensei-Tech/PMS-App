@@ -750,7 +750,6 @@ class _ArrestedHubScreenState extends State<ArrestedHubScreen>
           padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
           child: TabBarView(
             controller: _tabController,
-            physics: const NeverScrollableScrollPhysics(),
             children: [
               _buildCaseWiseTab(),
               _buildTimeWiseTab(),

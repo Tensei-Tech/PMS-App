@@ -29,3 +29,15 @@ class CommonFormPreventiveNumberTests(TestCase):
 
     def test_blank_preventive_number_is_null(self):
         self.assertIsNone(self._save({'preventive_number': '  '}).preventive_number)
+
+
+class CommonFormPreventiveOtherTypeTests(CommonFormPreventiveNumberTests):
+    """The form's "Other" lets the officer type a provision that is not listed."""
+
+    def test_typed_provision_is_saved_trimmed(self):
+        self.assertEqual(self._save({'action_type': '  TEST 129 BNSS r/w 3  '}).action_type,
+                         'TEST 129 BNSS r/w 3')
+
+    def test_too_long_provision_is_rejected(self):
+        with self.assertRaises(ValueError):
+            self._save({'action_type': 'X' * 101})

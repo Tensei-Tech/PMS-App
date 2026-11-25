@@ -83,6 +83,16 @@ class DynamicSectionCard extends StatefulWidget {
 }
 
 class _DynamicSectionCardState extends State<DynamicSectionCard> {
+  /// Court Filing and Final Summary numbers: a case gets only one of them.
+  static const _oneNumberKeys = {
+    'charge_sheet_no',
+    'a_final_number',
+    'b_final_number',
+    'c_final_number',
+    'nc_final_number',
+    'abeted_summary_no',
+  };
+
   bool _expanded = false;
 
   bool get _isExpanded => widget.isExpanded ?? _expanded;
@@ -483,8 +493,53 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                         // Two fields per line once a card is wide enough,
                         // so cards in a 3-column row still pair fields
                         final isWide = constraints.maxWidth > 340;
+                        // Date (and short text, e.g. a Reason) fields that
+                        // open when a checkbox is ticked (depends_on_field_key
+                        // = the checkbox) are drawn inside the checkbox's
+                        // card, side by side, not as separate cells
+                        const dateTypes = {'date', 'datetime', 'time'};
+                        bool nestable(DynamicFieldDef f) =>
+                            dateTypes.contains(f.fieldType) ||
+                            (f.fieldType == 'text' &&
+                                f.fieldKey.endsWith('_reason'));
+                        final checkboxKeys = {
+                          for (final f in visibleFields)
+                            if (f.fieldType == 'checkbox') f.fieldKey
+                        };
+                        final nestedDates = <String, List<DynamicFieldDef>>{};
+                        for (final f in visibleFields) {
+                          final parent = f.dependsOnFieldKey?.trim() ?? '';
+                          if (nestable(f) && checkboxKeys.contains(parent)) {
+                            nestedDates.putIfAbsent(parent, () => []).add(f);
+                          }
+                        }
+                        final nestedKeys = {
+                          for (final l in nestedDates.values)
+                            for (final f in l) f.fieldKey
+                        };
+                        // Court Filing numbers: only one of them can be
+                        // entered; once one is filled the empty others lock
+                        // (a case saved earlier with several keeps them
+                        // editable so they can be cleared)
+                        String? groupLockHint(DynamicFieldDef f) {
+                          if (!_oneNumberKeys.contains(f.fieldKey)) return null;
+                          String text(String k) =>
+                              (widget.values[k] ?? '').toString().trim();
+                          if (text(f.fieldKey).isNotEmpty) return null;
+                          for (final other in visibleFields) {
+                            if (other.fieldKey != f.fieldKey &&
+                                _oneNumberKeys.contains(other.fieldKey) &&
+                                text(other.fieldKey).isNotEmpty) {
+                              return 'Clear ${other.fieldLabel} to use this';
+                            }
+                          }
+                          return null;
+                        }
+
                         Widget buildControl(DynamicFieldDef f,
-                            {bool oneLine = false}) {
+                            {bool oneLine = false,
+                            bool hideLabel = false,
+                            double? checkboxBoxHeight}) {
                           final dateKey = '${f.fieldKey}_date';
                           TextEditingController? dateCtrl =
                               widget.controllers[dateKey];
@@ -541,9 +596,53 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                             fieldCtrl.text = f.defaultValue!;
                           }
 
+                          final inner = nestedDates[f.fieldKey];
                           return DynamicControlFactory(
                             fieldDef: f,
                             oneLineTextArea: oneLine,
+                            hideLabel: hideLabel,
+                            checkboxBoxHeight: checkboxBoxHeight,
+                            lockedHint: groupLockHint(f),
+                            checkboxChild: inner == null
+                                ? null
+                                : LayoutBuilder(
+                                    builder: (context, box) {
+                                      final controls = [
+                                        for (final d in inner)
+                                          buildControl(d, hideLabel: true),
+                                      ];
+                                      if (controls.length > 1 &&
+                                          box.maxWidth >= 420) {
+                                        return Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            for (var i = 0;
+                                                i < controls.length;
+                                                i++) ...[
+                                              if (i > 0)
+                                                const SizedBox(width: 10),
+                                              Expanded(child: controls[i]),
+                                            ],
+                                          ],
+                                        );
+                                      }
+                                      return Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.stretch,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          for (var i = 0;
+                                              i < controls.length;
+                                              i++) ...[
+                                            if (i > 0)
+                                              const SizedBox(height: 8),
+                                            controls[i],
+                                          ],
+                                        ],
+                                      );
+                                    },
+                                  ),
                             controller: fieldCtrl,
                             value: widget.values[f.fieldKey],
                             onChanged: (val) {
@@ -602,7 +701,10 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
 
                         final rowSpacing = isCompact ? 8.0 : 10.0;
 
-                        Widget layoutFields(List<DynamicFieldDef> fields) {
+                        Widget layoutFields(List<DynamicFieldDef> all) {
+                          final fields = all
+                              .where((f) => !nestedKeys.contains(f.fieldKey))
+                              .toList();
                           if (!isWide) {
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -621,22 +723,23 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                             return Padding(
                               padding: EdgeInsets.only(bottom: rowSpacing),
                               child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
+                                // Bottom-aligned: the checkbox card has no
+                                // label above it, the two dates do, so the
+                                // card lines up with the date boxes
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                // In display order; the checkbox box is
+                                // narrower and as tall as the date boxes
                                 children: [
-                                  Expanded(
-                                    flex: 3,
-                                    child: buildControl(fields[0]),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    flex: 4,
-                                    child: buildControl(fields[1]),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    flex: 4,
-                                    child: buildControl(fields[2]),
-                                  ),
+                                  for (var i = 0; i < 3; i++) ...[
+                                    if (i > 0) const SizedBox(width: 16),
+                                    Expanded(
+                                      flex: fields[i].fieldType == 'checkbox'
+                                          ? 3
+                                          : 4,
+                                      child: buildControl(fields[i],
+                                          checkboxBoxHeight: 44),
+                                    ),
+                                  ],
                                 ],
                               ),
                             );

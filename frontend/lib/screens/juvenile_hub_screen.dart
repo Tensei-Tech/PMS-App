@@ -84,11 +84,11 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
         final mappedRows = arrestedTableRowsAll(records, DateTime.now());
 
         for (var r in mappedRows) {
-          if (r['accused_name'] == null) {
-            r['accused_name'] = 'Unknown Offender';
+          if (r['accused_name'] == null || r['accused_name']!.isEmpty) {
+            r['accused_name'] = '—';
           }
           if (r['multiple_cr'] == null) {
-            r['multiple_cr'] = 'Pending';
+            r['multiple_cr'] = '—';
           }
         }
 
@@ -760,7 +760,6 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
           padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
           child: TabBarView(
             controller: _tabController,
-            physics: const NeverScrollableScrollPhysics(),
             children: [
               _buildCaseWiseTab(),
               _buildTimeWiseTab(),

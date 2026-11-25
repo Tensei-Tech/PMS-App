@@ -2197,7 +2197,6 @@ class _VictimHubScreenState extends State<VictimHubScreen>
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
                 child: TabBarView(
                   controller: _tabController,
-                  physics: const NeverScrollableScrollPhysics(),
                   children: [
                     _buildCaseWiseTab(),
                     _buildTimeWiseTab(),

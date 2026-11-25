@@ -27,8 +27,25 @@ class PoliceRbacHelper {
 
   /// Returns the matching [PoliceRoleTier] for the logged-in officer.
   static PoliceRoleTier getTier(AuthProvider auth) {
-    if (auth.isAdmin) {
+    final role = auth.role.trim().toLowerCase();
+    if (auth.isAdmin ||
+        role == 'master_admin' ||
+        role == 'state_super_admin' ||
+        role == 'super_admin' ||
+        role == 'admin') {
       return PoliceRoleTier.superAdmin;
+    }
+
+    if (role == 'district_admin' ||
+        role == 'city_admin' ||
+        role == 'sp' ||
+        role == 'cp' ||
+        role == 'dcp') {
+      return PoliceRoleTier.districtLeadership;
+    }
+
+    if (role == 'division_admin') {
+      return PoliceRoleTier.divisionHead;
     }
 
     final designation = auth.designation.trim().toLowerCase();
@@ -38,6 +55,8 @@ class PoliceRbacHelper {
         SeniorOfficerRoles.isSpLevel(auth.designation)) {
       if (designation != 'acp' &&
           designation != 'dy. sp' &&
+          designation != 'dysp' &&
+          designation != 'sdpo' &&
           designation != 'asp') {
         return PoliceRoleTier.districtLeadership;
       }
@@ -47,6 +66,7 @@ class PoliceRbacHelper {
     if (designation == 'acp' ||
         designation.contains('assistant commissioner') ||
         designation == 'dy. sp' ||
+        designation == 'dysp' ||
         designation == 'sdpo' ||
         designation == 'asp' ||
         designation.contains('deputy superintendent') ||
@@ -58,14 +78,27 @@ class PoliceRbacHelper {
     if (designation == 'sr. pi' ||
         designation == 'senior police inspector' ||
         designation == 'senior pi' ||
+        designation == 'pi' ||
+        designation == 'police inspector' ||
         designation.contains('incharge') ||
         designation.contains('sho') ||
+        role == 'station_admin' ||
+        role == 'station_head' ||
         auth.isSupervisor) {
       return PoliceRoleTier.stationIncharge;
     }
 
     // Tier 1: Regular field officer / investigating officer
     return PoliceRoleTier.regularOfficer;
+  }
+
+  /// Returns true if the officer is above Police Station / Police Inspector (PL) level.
+  /// (i.e. Division Heads: ACP/SDPO/Dy.SP, District Leadership: SP/DCP/CP, and Admins).
+  static bool isAbovePlLevel(AuthProvider auth) {
+    final tier = getTier(auth);
+    return tier == PoliceRoleTier.divisionHead ||
+        tier == PoliceRoleTier.districtLeadership ||
+        tier == PoliceRoleTier.superAdmin;
   }
 
   /// 🛡️ CORE RULE: Whether [auth] officer is allowed to EDIT [record].

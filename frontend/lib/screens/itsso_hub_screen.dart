@@ -1190,7 +1190,6 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
                     ),
                     child: TabBarView(
                       controller: _tabController,
-                      physics: const NeverScrollableScrollPhysics(),
                       children: [
                         _buildCaseWiseTab(),
                         _buildTimeWiseTab(),
