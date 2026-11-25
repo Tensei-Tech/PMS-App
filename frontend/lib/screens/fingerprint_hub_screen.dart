@@ -563,19 +563,65 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
         // NAFIS/Fingerprint dashboard tile.
         bottom: SubTabHost.appBarBottomAbove(
           context,
-          TabBar(
-            controller: _tabController,
-            labelColor: AppColors.navyMid,
-            unselectedLabelColor: AppColors.lightSubText,
-            indicatorColor: AppColors.navyMid,
-            indicatorWeight: 3,
-            labelStyle:
-                GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 13),
-            tabs: const [
-              Tab(text: "Case Wise"),
-              Tab(text: "Time Wise"),
-              Tab(text: "IO Wise"),
-            ],
+          PreferredSize(
+            preferredSize: const Size.fromHeight(48),
+            child: Container(
+              color: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: TabBar(
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
+                controller: _tabController,
+                labelColor: AppColors.navyMid,
+                unselectedLabelColor: AppColors.lightSubText,
+                indicatorColor: AppColors.navyMid,
+                indicatorWeight: 3,
+                indicatorSize: TabBarIndicatorSize.label,
+                labelStyle: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                ),
+                unselectedLabelStyle: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 13,
+                ),
+                tabs: const [
+                  Tab(
+                    iconMargin: EdgeInsets.zero,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.category_outlined, size: 16),
+                        SizedBox(width: 8),
+                        Text('Case Wise'),
+                      ],
+                    ),
+                  ),
+                  Tab(
+                    iconMargin: EdgeInsets.zero,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.schedule_rounded, size: 16),
+                        SizedBox(width: 8),
+                        Text('Time Wise'),
+                      ],
+                    ),
+                  ),
+                  Tab(
+                    iconMargin: EdgeInsets.zero,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.badge_outlined, size: 16),
+                        SizedBox(width: 8),
+                        Text('IO Wise'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
