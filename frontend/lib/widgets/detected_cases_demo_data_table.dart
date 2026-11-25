@@ -59,13 +59,16 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
           };
         }
 
-        Widget headerCell(String s) => Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 9),
+        Widget headerCell(String s, {Alignment align = Alignment.center}) =>
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 9),
               color: const Color(0xFFF8FAFC),
-              alignment: Alignment.center,
+              alignment: align,
               child: Text(
                 s,
-                textAlign: TextAlign.center,
+                textAlign: align == Alignment.center
+                    ? TextAlign.center
+                    : TextAlign.left,
                 softWrap: true,
                 style: GoogleFonts.poppins(
                   fontSize: headerFontSize,
@@ -76,30 +79,32 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
               ),
             );
 
-        Widget dataCell(String s, {Alignment align = Alignment.center}) =>
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-              alignment: align,
-              child: Text(
-                s,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.poppins(
-                  fontSize: cellFontSize,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.lightText,
-                  height: 1.15,
-                ),
+        Widget dataCell(String s, {Alignment align = Alignment.center}) {
+          final isDash = s.trim() == '—' || s.trim() == '-' || s.trim().isEmpty;
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            alignment: align,
+            child: Text(
+              s.isEmpty ? '—' : s,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.poppins(
+                fontSize: cellFontSize,
+                fontWeight: isDash ? FontWeight.w400 : FontWeight.w500,
+                color: isDash ? const Color(0xFF94A3B8) : AppColors.navyDark,
+                height: 1.15,
               ),
-            );
+            ),
+          );
+        }
 
         final headers = <Widget>[
           headerCell('Sr. No'),
           headerCell('Cr. No.'),
-          headerCell('Sec & Act'),
-          headerCell('Head'),
-          headerCell('Accused Name'),
-          headerCell('IO Name'),
+          headerCell('Sec & Act', align: Alignment.centerLeft),
+          headerCell('Head', align: Alignment.centerLeft),
+          headerCell('Accused Name', align: Alignment.centerLeft),
+          headerCell('IO Name', align: Alignment.centerLeft),
         ];
 
         TableRow rowFor(int idx, Map<String, String> r, [int? customSerial]) {
@@ -110,13 +115,14 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
             decoration: BoxDecoration(color: bg),
             children: [
               dataCell('${customSerial ?? (serialOffset + idx + 1)}'),
-              dataCell(r['cr']?.isNotEmpty == true ? r['cr']! : '-'),
-              dataCell(
-                  r['sections']?.isNotEmpty == true ? r['sections']! : '-'),
-              dataCell(r['head']?.isNotEmpty == true ? r['head']! : '-'),
-              dataCell(r['accused']?.isNotEmpty == true ? r['accused']! : '-',
+              dataCell(r['cr']?.isNotEmpty == true ? r['cr']! : '—'),
+              dataCell(r['sections']?.isNotEmpty == true ? r['sections']! : '—',
                   align: Alignment.centerLeft),
-              dataCell(r['io']?.isNotEmpty == true ? r['io']! : '-',
+              dataCell(r['head']?.isNotEmpty == true ? r['head']! : '—',
+                  align: Alignment.centerLeft),
+              dataCell(r['accused']?.isNotEmpty == true ? r['accused']! : '—',
+                  align: Alignment.centerLeft),
+              dataCell(r['io']?.isNotEmpty == true ? r['io']! : '—',
                   align: Alignment.centerLeft),
             ],
           );
@@ -276,6 +282,13 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: const Color(0xFFCBD5E1), width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.02),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(11),

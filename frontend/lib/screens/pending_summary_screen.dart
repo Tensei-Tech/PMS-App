@@ -54,6 +54,14 @@ class PendingSummaryScreen extends StatefulWidget {
 
 class _PendingSummaryScreenState extends State<PendingSummaryScreen> {
   String _selectedCategory = 'All';
+  final TextEditingController _searchCtrl = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
 
   static bool _usingExplicitLive(List<Map<String, String>>? live) =>
       live != null && live.isNotEmpty;
@@ -78,6 +86,30 @@ class _PendingSummaryScreenState extends State<PendingSummaryScreen> {
     }
     final list = categories.toList()..sort();
     return list;
+  }
+
+  List<Map<String, String>> _filterBySearch(
+    List<Map<String, String>> list,
+    String query,
+  ) {
+    if (query.trim().isEmpty) return list;
+    final q = query.trim().toLowerCase();
+    return list.where((r) {
+      final cr = (r['cr'] ?? '').toLowerCase();
+      final head = (r['head'] ?? '').toLowerCase();
+      final sections = (r['sections'] ?? '').toLowerCase();
+      final accused = (r['accused'] ?? '').toLowerCase();
+      final victimName = (r['victim_name'] ?? '').toLowerCase();
+      final io = (r['io'] ?? '').toLowerCase();
+      final station = (r['station'] ?? '').toLowerCase();
+      return cr.contains(q) ||
+          head.contains(q) ||
+          sections.contains(q) ||
+          accused.contains(q) ||
+          victimName.contains(q) ||
+          io.contains(q) ||
+          station.contains(q);
+    }).toList();
   }
 
   Future<void> _exportPdf(
@@ -256,23 +288,95 @@ class _PendingSummaryScreenState extends State<PendingSummaryScreen> {
     );
   }
 
+  Widget _buildSearchAndFilterBar(
+      List<Map<String, String>> dataset, bool isMobile) {
+    final searchWidget = Container(
+      height: 38,
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFCBD5E1)),
+      ),
+      child: TextField(
+        controller: _searchCtrl,
+        onChanged: (val) {
+          setState(() {
+            _searchQuery = val;
+          });
+        },
+        style: GoogleFonts.poppins(
+          fontSize: 12.5,
+          color: AppColors.navyDark,
+          fontWeight: FontWeight.w500,
+        ),
+        decoration: InputDecoration(
+          isDense: true,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+          border: InputBorder.none,
+          hintText: 'Search by Cr. No., accused, head, section, IO...',
+          hintStyle: GoogleFonts.poppins(
+            fontSize: 12,
+            color: const Color(0xFF94A3B8),
+          ),
+          prefixIcon: const Icon(
+            Icons.search_rounded,
+            size: 18,
+            color: Color(0xFF64748B),
+          ),
+          prefixIconConstraints:
+              const BoxConstraints(minWidth: 34, minHeight: 34),
+          suffixIcon: _searchQuery.isNotEmpty
+              ? MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: GestureDetector(
+                    onTap: () {
+                      _searchCtrl.clear();
+                      setState(() => _searchQuery = '');
+                    },
+                    child: const Icon(
+                      Icons.close_rounded,
+                      size: 16,
+                      color: Color(0xFF64748B),
+                    ),
+                  ),
+                )
+              : null,
+          suffixIconConstraints:
+              const BoxConstraints(minWidth: 32, minHeight: 32),
+        ),
+      ),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        searchWidget,
+        _buildCategoryFilterBar(dataset),
+      ],
+    );
+  }
+
   Widget _builtContent(
     BuildContext context, {
     required List<Map<String, String>> dataset,
     required bool firedFromFirestoreExclusive,
     required bool showDemoNote,
   }) {
-    final categories = _getUniqueCategories(dataset);
+    final searchedDataset = _filterBySearch(dataset, _searchQuery);
+    final categories = _getUniqueCategories(searchedDataset);
     final isFiltered =
         _selectedCategory != 'All' && categories.contains(_selectedCategory);
-    final visibleDataset =
-        isFiltered ? _rowsForBucket(dataset, _selectedCategory) : dataset;
+    final visibleDataset = isFiltered
+        ? _rowsForBucket(searchedDataset, _selectedCategory)
+        : searchedDataset;
     final anyRows = visibleDataset.isNotEmpty;
 
     final Map<String, List<Map<String, String>>> groupedMap = {};
     if (!isFiltered) {
       for (final cat in categories) {
-        final catRows = _rowsForBucket(dataset, cat);
+        final catRows = _rowsForBucket(searchedDataset, cat);
         if (catRows.isNotEmpty) {
           groupedMap[cat] = catRows;
         }
@@ -317,9 +421,11 @@ class _PendingSummaryScreenState extends State<PendingSummaryScreen> {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                isFiltered
-                    ? '${visibleDataset.length} of ${dataset.length}'
-                    : '${dataset.length} Total',
+                _searchQuery.isNotEmpty
+                    ? '${visibleDataset.length} of ${dataset.length} Matches'
+                    : (isFiltered
+                        ? '${visibleDataset.length} of ${dataset.length}'
+                        : '${dataset.length} Total'),
                 style: GoogleFonts.poppins(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
@@ -493,7 +599,7 @@ class _PendingSummaryScreenState extends State<PendingSummaryScreen> {
                 children: [
                   headerWidget,
                   const SizedBox(height: 14),
-                  _buildCategoryFilterBar(dataset),
+                  _buildSearchAndFilterBar(searchedDataset, isMobile),
                   Expanded(
                     child: !anyRows
                         ? Center(
@@ -515,7 +621,9 @@ class _PendingSummaryScreenState extends State<PendingSummaryScreen> {
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
-                                  'No Cases Found',
+                                  _searchQuery.isNotEmpty
+                                      ? 'No Matching Cases Found'
+                                      : 'No Cases Found',
                                   style: GoogleFonts.poppins(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w700,
@@ -524,13 +632,26 @@ class _PendingSummaryScreenState extends State<PendingSummaryScreen> {
                                 ),
                                 const SizedBox(height: 6),
                                 Text(
-                                  'There are currently no cases matching this category.',
+                                  _searchQuery.isNotEmpty
+                                      ? 'No cases match "$_searchQuery".'
+                                      : 'There are currently no cases matching this category.',
                                   style: GoogleFonts.poppins(
                                     fontSize: 13,
                                     color: AppColors.lightSubText,
                                   ),
                                 ),
-                                if (isFiltered) ...[
+                                if (_searchQuery.isNotEmpty) ...[
+                                  const SizedBox(height: 14),
+                                  TextButton.icon(
+                                    onPressed: () {
+                                      _searchCtrl.clear();
+                                      setState(() => _searchQuery = '');
+                                    },
+                                    icon: const Icon(Icons.clear_rounded,
+                                        size: 16),
+                                    label: const Text('Clear Search'),
+                                  ),
+                                ] else if (isFiltered) ...[
                                   const SizedBox(height: 14),
                                   TextButton.icon(
                                     onPressed: () => setState(
@@ -543,29 +664,13 @@ class _PendingSummaryScreenState extends State<PendingSummaryScreen> {
                               ],
                             ),
                           )
-                        : Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              border:
-                                  Border.all(color: const Color(0xFFCBD5E1)),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.02),
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            padding: const EdgeInsets.all(12),
-                            child: PendingCasesDemoDataTable(
-                              isAd: false,
-                              realDataRows: isFiltered ? visibleDataset : null,
-                              groupedData: isFiltered ? null : groupedMap,
-                              isAbsconded: widget.isAbsconded,
-                              isVictim: widget.isVictim,
-                              isUndetected: widget.isUndetected,
-                            ),
+                        : PendingCasesDemoDataTable(
+                            isAd: false,
+                            realDataRows: isFiltered ? visibleDataset : null,
+                            groupedData: isFiltered ? null : groupedMap,
+                            isAbsconded: widget.isAbsconded,
+                            isVictim: widget.isVictim,
+                            isUndetected: widget.isUndetected,
                           ),
                   ),
                 ],

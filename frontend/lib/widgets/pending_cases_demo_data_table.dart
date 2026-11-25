@@ -142,13 +142,16 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                         };
         }
 
-        Widget headerCell(String s) => Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 9),
+        Widget headerCell(String s, {Alignment align = Alignment.center}) =>
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 9),
               color: const Color(0xFFF8FAFC),
-              alignment: Alignment.center,
+              alignment: align,
               child: Text(
                 s,
-                textAlign: TextAlign.center,
+                textAlign: align == Alignment.center
+                    ? TextAlign.center
+                    : TextAlign.left,
                 softWrap: true,
                 style: GoogleFonts.poppins(
                   fontSize: headerFontSize,
@@ -159,22 +162,24 @@ class PendingCasesDemoDataTable extends StatelessWidget {
               ),
             );
 
-        Widget dataCell(String s, {Alignment align = Alignment.center}) =>
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-              alignment: align,
-              child: Text(
-                s,
-                softWrap: true,
-                overflow: TextOverflow.visible,
-                style: GoogleFonts.poppins(
-                  fontSize: cellFontSize,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.lightText,
-                  height: 1.15,
-                ),
+        Widget dataCell(String s, {Alignment align = Alignment.center}) {
+          final isDash = s.trim() == '—' || s.trim() == '-' || s.trim().isEmpty;
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            alignment: align,
+            child: Text(
+              s.isEmpty ? '—' : s,
+              softWrap: true,
+              overflow: TextOverflow.visible,
+              style: GoogleFonts.poppins(
+                fontSize: cellFontSize,
+                fontWeight: isDash ? FontWeight.w400 : FontWeight.w500,
+                color: isDash ? const Color(0xFF94A3B8) : AppColors.navyDark,
+                height: 1.15,
               ),
-            );
+            ),
+          );
+        }
 
         Widget clickableCrCell(Map<String, String> r) {
           final cr = r['cr']?.trim().isNotEmpty == true ? r['cr']!.trim() : '—';
@@ -225,14 +230,18 @@ class PendingCasesDemoDataTable extends StatelessWidget {
         final headers = <Widget>[
           headerCell('Sr. No.'),
           headerCell('Cr. No.'),
-          headerCell('Sec & Act'),
-          if (!isVictim) headerCell('Head'),
-          if (isAbsconded) headerCell('Accused Name (फरार आरोपी)'),
-          if (isVictim) headerCell('Head'),
-          if (isVictim) headerCell('Name'),
-          if (isVictim) headerCell('Injured/Deceased'),
-          headerCell('IO Name'),
-          if (!isUndetected && !isAbsconded) headerCell('Police Station'),
+          headerCell('Sec & Act', align: Alignment.centerLeft),
+          if (!isVictim) headerCell('Head', align: Alignment.centerLeft),
+          if (isAbsconded)
+            headerCell('Accused Name (फरार आरोपी)',
+                align: Alignment.centerLeft),
+          if (isVictim) headerCell('Head', align: Alignment.centerLeft),
+          if (isVictim) headerCell('Name', align: Alignment.centerLeft),
+          if (isVictim)
+            headerCell('Injured/Deceased', align: Alignment.centerLeft),
+          headerCell('IO Name', align: Alignment.centerLeft),
+          if (!isUndetected && !isAbsconded)
+            headerCell('Police Station', align: Alignment.centerLeft),
         ];
 
         TableRow rowFor(int idx, Map<String, String> r, [int? customSerial]) {
@@ -244,8 +253,8 @@ class PendingCasesDemoDataTable extends StatelessWidget {
             children: [
               dataCell('${customSerial ?? (serialOffset + idx + 1)}'),
               clickableCrCell(r),
-              dataCell(
-                  r['sections']?.isNotEmpty == true ? r['sections']! : '—'),
+              dataCell(r['sections']?.isNotEmpty == true ? r['sections']! : '—',
+                  align: Alignment.centerLeft),
               if (!isVictim)
                 dataCell(
                   r['head']?.isNotEmpty == true ? r['head']! : '—',
@@ -444,11 +453,18 @@ class PendingCasesDemoDataTable extends StatelessWidget {
           height: hasFiniteHeight ? containerHeight : null,
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(12),
             border: Border.all(color: const Color(0xFFCBD5E1)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.02),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(9),
+            borderRadius: BorderRadius.circular(11),
             child: hasFiniteHeight
                 ? Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,

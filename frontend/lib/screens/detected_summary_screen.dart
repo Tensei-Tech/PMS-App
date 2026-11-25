@@ -37,6 +37,14 @@ class DetectedSummaryScreen extends StatefulWidget {
 
 class _DetectedSummaryScreenState extends State<DetectedSummaryScreen> {
   String _selectedCategory = 'All';
+  final TextEditingController _searchCtrl = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
 
   static bool _usingExplicitLive(List<Map<String, String>>? live) =>
       live != null && live.isNotEmpty;
@@ -61,6 +69,26 @@ class _DetectedSummaryScreenState extends State<DetectedSummaryScreen> {
     }
     final list = categories.toList()..sort();
     return list;
+  }
+
+  List<Map<String, String>> _filterBySearch(
+    List<Map<String, String>> list,
+    String query,
+  ) {
+    if (query.trim().isEmpty) return list;
+    final q = query.trim().toLowerCase();
+    return list.where((r) {
+      final cr = (r['cr'] ?? '').toLowerCase();
+      final head = (r['head'] ?? '').toLowerCase();
+      final sections = (r['sections'] ?? '').toLowerCase();
+      final accused = (r['accused'] ?? '').toLowerCase();
+      final io = (r['io'] ?? '').toLowerCase();
+      return cr.contains(q) ||
+          head.contains(q) ||
+          sections.contains(q) ||
+          accused.contains(q) ||
+          io.contains(q);
+    }).toList();
   }
 
   Future<void> _exportPdf(
@@ -215,6 +243,76 @@ class _DetectedSummaryScreenState extends State<DetectedSummaryScreen> {
     );
   }
 
+  Widget _buildSearchAndFilterBar(
+      List<Map<String, String>> dataset, bool isMobile) {
+    final searchWidget = Container(
+      height: 38,
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFCBD5E1)),
+      ),
+      child: TextField(
+        controller: _searchCtrl,
+        onChanged: (val) {
+          setState(() {
+            _searchQuery = val;
+          });
+        },
+        style: GoogleFonts.poppins(
+          fontSize: 12.5,
+          color: AppColors.navyDark,
+          fontWeight: FontWeight.w500,
+        ),
+        decoration: InputDecoration(
+          isDense: true,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+          border: InputBorder.none,
+          hintText: 'Search by Cr. No., accused, head, section, IO...',
+          hintStyle: GoogleFonts.poppins(
+            fontSize: 12,
+            color: const Color(0xFF94A3B8),
+          ),
+          prefixIcon: const Icon(
+            Icons.search_rounded,
+            size: 18,
+            color: Color(0xFF64748B),
+          ),
+          prefixIconConstraints:
+              const BoxConstraints(minWidth: 34, minHeight: 34),
+          suffixIcon: _searchQuery.isNotEmpty
+              ? MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: GestureDetector(
+                    onTap: () {
+                      _searchCtrl.clear();
+                      setState(() => _searchQuery = '');
+                    },
+                    child: const Icon(
+                      Icons.close_rounded,
+                      size: 16,
+                      color: Color(0xFF64748B),
+                    ),
+                  ),
+                )
+              : null,
+          suffixIconConstraints:
+              const BoxConstraints(minWidth: 32, minHeight: 32),
+        ),
+      ),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        searchWidget,
+        _buildCategoryFilterBar(dataset),
+      ],
+    );
+  }
+
   Widget _builtContent(
     BuildContext context, {
     required List<Map<String, String>> dataset,
@@ -222,17 +320,19 @@ class _DetectedSummaryScreenState extends State<DetectedSummaryScreen> {
     required bool showDemoNote,
   }) {
     const title = 'Detected Cases — Summary';
-    final categories = _getUniqueCategories(dataset);
+    final searchedDataset = _filterBySearch(dataset, _searchQuery);
+    final categories = _getUniqueCategories(searchedDataset);
     final isFiltered =
         _selectedCategory != 'All' && categories.contains(_selectedCategory);
-    final visibleDataset =
-        isFiltered ? _rowsForBucket(dataset, _selectedCategory) : dataset;
+    final visibleDataset = isFiltered
+        ? _rowsForBucket(searchedDataset, _selectedCategory)
+        : searchedDataset;
     final anyRows = visibleDataset.isNotEmpty;
 
     final Map<String, List<Map<String, String>>> groupedMap = {};
     if (!isFiltered) {
       for (final cat in categories) {
-        final catRows = _rowsForBucket(dataset, cat);
+        final catRows = _rowsForBucket(searchedDataset, cat);
         if (catRows.isNotEmpty) {
           groupedMap[cat] = catRows;
         }
@@ -277,9 +377,11 @@ class _DetectedSummaryScreenState extends State<DetectedSummaryScreen> {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                isFiltered
-                    ? '${visibleDataset.length} of ${dataset.length}'
-                    : '${dataset.length} Total',
+                _searchQuery.isNotEmpty
+                    ? '${visibleDataset.length} of ${dataset.length} Matches'
+                    : (isFiltered
+                        ? '${visibleDataset.length} of ${dataset.length}'
+                        : '${dataset.length} Total'),
                 style: GoogleFonts.poppins(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
@@ -450,7 +552,7 @@ class _DetectedSummaryScreenState extends State<DetectedSummaryScreen> {
                 children: [
                   headerWidget,
                   const SizedBox(height: 14),
-                  _buildCategoryFilterBar(dataset),
+                  _buildSearchAndFilterBar(searchedDataset, isMobile),
                   Expanded(
                     child: !anyRows
                         ? Center(
@@ -469,14 +571,27 @@ class _DetectedSummaryScreenState extends State<DetectedSummaryScreen> {
                                 ),
                                 const SizedBox(height: 14),
                                 Text(
-                                  'No detected cases',
+                                  _searchQuery.isNotEmpty
+                                      ? 'No matching detected cases'
+                                      : 'No detected cases',
                                   style: GoogleFonts.poppins(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
                                     color: AppColors.lightSubText,
                                   ),
                                 ),
-                                if (isFiltered) ...[
+                                if (_searchQuery.isNotEmpty) ...[
+                                  const SizedBox(height: 14),
+                                  TextButton.icon(
+                                    onPressed: () {
+                                      _searchCtrl.clear();
+                                      setState(() => _searchQuery = '');
+                                    },
+                                    icon: const Icon(Icons.clear_rounded,
+                                        size: 16),
+                                    label: const Text('Clear Search'),
+                                  ),
+                                ] else if (isFiltered) ...[
                                   const SizedBox(height: 14),
                                   TextButton.icon(
                                     onPressed: () => setState(
@@ -489,26 +604,10 @@ class _DetectedSummaryScreenState extends State<DetectedSummaryScreen> {
                               ],
                             ),
                           )
-                        : Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              border:
-                                  Border.all(color: const Color(0xFFCBD5E1)),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.02),
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            padding: const EdgeInsets.all(12),
-                            child: DetectedCasesDemoDataTable(
-                              isAd: false,
-                              realDataRows: isFiltered ? visibleDataset : null,
-                              groupedData: isFiltered ? null : groupedMap,
-                            ),
+                        : DetectedCasesDemoDataTable(
+                            isAd: false,
+                            realDataRows: isFiltered ? visibleDataset : null,
+                            groupedData: isFiltered ? null : groupedMap,
                           ),
                   ),
                 ],
