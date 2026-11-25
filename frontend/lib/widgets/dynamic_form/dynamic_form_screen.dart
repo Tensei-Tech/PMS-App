@@ -12111,10 +12111,11 @@ class _CustodyAccusedCardState extends State<_CustodyAccusedCard> {
         child: child,
       );
 
-  /// Surety details (opened by Bail): three fields per line on a wide
-  /// card (Name | Age | Gender, Occupation | Mobile | Aadhaar, PAN |
-  /// Relation | Address), one per line when narrow. Labels sit above the
-  /// boxes; Gender is a dropdown so every box is the same height.
+  /// Surety details (opened by Bail): four fields per line on a wide card
+  /// (Name | Age | Gender | Occupation, Mobile | Aadhaar | Relation |
+  /// Address), two or one per line when narrower. Labels sit above the
+  /// boxes on one line each, so every box starts at the same height. No PAN
+  /// box: a PAN saved earlier is kept as it is.
   Widget _buildSuretyCard() {
     InputDecoration deco(String hint) => InputDecoration(
           hintText: hint,
@@ -12145,13 +12146,19 @@ class _CustodyAccusedCardState extends State<_CustodyAccusedCard> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF334155))),
+            // One line, shrunk to fit if needed ("Relation with accused"
+            // in a narrow column), so the boxes below stay level
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(label,
+                  maxLines: 1,
+                  softWrap: false,
+                  style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF334155))),
+            ),
             const SizedBox(height: 4),
             field,
           ],
@@ -12211,8 +12218,6 @@ class _CustodyAccusedCardState extends State<_CustodyAccusedCard> {
           keyboard: TextInputType.phone),
       text('Aadhaar', _suretyAadhaarCtrl, 'XXXX XXXX XXXX',
           keyboard: TextInputType.number),
-      text('PAN', _suretyPanCtrl, 'ABCDE1234F',
-          caps: TextCapitalization.characters),
       dropdown('Relation with accused', _suretyRelation, widget.relationChoices,
           'Select relation', (v) => _suretyRelation = v),
       text('Address', _suretyAddressCtrl, 'Residential address'),
@@ -12254,7 +12259,7 @@ class _CustodyAccusedCardState extends State<_CustodyAccusedCard> {
           ),
           const SizedBox(height: 12),
           LayoutBuilder(builder: (context, c) {
-            final perLine = c.maxWidth >= 600 ? 3 : (c.maxWidth >= 380 ? 2 : 1);
+            final perLine = c.maxWidth >= 760 ? 4 : (c.maxWidth >= 380 ? 2 : 1);
             final rows = <Widget>[];
             for (var i = 0; i < cells.length; i += perLine) {
               rows.add(Padding(
