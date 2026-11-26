@@ -5677,17 +5677,21 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     );
 
     // Arrows outside the panel, in gutters as wide as the indent of the
-    // step header and the bottom bar, so all three line up
+    // step header and the bottom bar, so all three line up.
+    // The left arrow is hidden on the very first sub-step (current == 0)
+    // so the user is not confused by a disabled back arrow on page 1.
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
           width: _tabArrowGutter,
-          child: Align(
-            alignment: Alignment.topLeft,
-            child: arrow(Icons.chevron_left_rounded, 'Previous section',
-                current > 0 ? () => _goTo(step, current - 1) : null),
-          ),
+          child: current > 0
+              ? Align(
+                  alignment: Alignment.topLeft,
+                  child: arrow(Icons.chevron_left_rounded, 'Previous section',
+                      () => _goTo(step, current - 1)),
+                )
+              : const SizedBox.shrink(),
         ),
         Expanded(child: panel),
         SizedBox(
