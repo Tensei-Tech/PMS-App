@@ -123,10 +123,25 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   /// Sub-steps from the last build, to jump to a section with an error.
   List<List<_SubStep>> _lastSteps = const [];
 
-  void _goTo(int step, int sub) => setState(() {
-        _formStep = step;
-        _formSub = sub;
-      });
+  final Map<int, GlobalKey> _stepTabKeys = {};
+
+  void _goTo(int step, int sub) {
+    setState(() {
+      _formStep = step;
+      _formSub = sub;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final ctx = _stepTabKeys[step]?.currentContext;
+      if (ctx != null && ctx.mounted) {
+        Scrollable.ensureVisible(
+          ctx,
+          alignment: 0.5,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
+  }
 
   // Accused whose arrest & custody are shown; null = the first one
   String? _focusedAccused;
@@ -4019,7 +4034,9 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
           if (shownSteps.length > 1)
             Padding(
               padding: EdgeInsets.symmetric(
-                  horizontal: steps[step].isEmpty ? 0 : _tabArrowGutter),
+                  horizontal: (steps[step].isEmpty || isCompact)
+                      ? 0
+                      : _tabArrowGutter),
               child: _buildStepTabs(shownSteps, step, isCompact),
             ),
           // Box only as tall as its section, the bar right under it; a long
@@ -5246,6 +5263,110 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     const doneFg = Color(0xFF2E7D32);
     const doneBg = Color(0xFFE8F5E9);
     final at = shown.indexOf(current);
+
+    if (isCompact) {
+      Widget compactTab(int n) {
+        final isOn = n == at;
+        final isDone = n < at;
+        final badge = Container(
+          width: 22,
+          height: 22,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: isOn ? AppColors.navyMid : (isDone ? doneBg : Colors.white),
+            border: Border.all(
+              color: isOn
+                  ? AppColors.navyMid
+                  : (isDone
+                      ? doneFg.withValues(alpha: 0.5)
+                      : AppColors.lightBorder),
+            ),
+          ),
+          child: isDone
+              ? const Icon(Icons.check_rounded, size: 14, color: doneFg)
+              : Text(
+                  '${n + 1}',
+                  style: GoogleFonts.poppins(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                    color: isOn ? Colors.white : AppColors.lightSubText,
+                  ),
+                ),
+        );
+        return KeyedSubtree(
+          key: _stepTabKeys.putIfAbsent(shown[n], GlobalKey.new),
+          child: Material(
+            color: isOn ? Colors.white : Colors.transparent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+              side: isOn
+                  ? const BorderSide(color: AppColors.lightBorder)
+                  : BorderSide.none,
+            ),
+            elevation: isOn ? 1 : 0,
+            shadowColor: AppColors.navyDark.withValues(alpha: 0.15),
+            child: InkWell(
+              onTap: () => _goTo(shown[n], 0),
+              borderRadius: BorderRadius.circular(10),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    badge,
+                    const SizedBox(width: 6),
+                    Text(
+                      _stepHints[shown[n]],
+                      maxLines: 1,
+                      softWrap: false,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: isOn ? FontWeight.w700 : FontWeight.w600,
+                        color: isOn
+                            ? AppColors.navyDark
+                            : (isDone ? doneFg : AppColors.lightSubText),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+
+      return Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          border: Border.all(color: AppColors.lightBorder),
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF1F5F9),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (var n = 0; n < shown.length; n++) ...[
+                  if (n > 0) const SizedBox(width: 4),
+                  compactTab(n),
+                ],
+              ],
+            ),
+          ),
+        ),
+      );
+    }
 
     Widget tab(int n) {
       final isOn = n == at;
