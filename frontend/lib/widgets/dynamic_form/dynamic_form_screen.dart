@@ -5767,43 +5767,64 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     final btnShape = RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md));
     final btnPad = EdgeInsets.symmetric(
-        horizontal: isPhone ? 8 : 18, vertical: isPhone ? 9 : 13);
+        horizontal: isPhone ? 6 : 18, vertical: isPhone ? 8 : 13);
     final btnText = GoogleFonts.poppins(
         fontSize: isPhone ? 12 : 13, fontWeight: FontWeight.w600);
 
     final prevBtn = prev == null
         ? null
-        : OutlinedButton.icon(
+        : OutlinedButton(
             onPressed: () => _goTo(prev!.$1, prev.$2),
-            icon: const Icon(Icons.arrow_back_rounded, size: 16),
-            label: Text(isPhone ? 'Back' : 'Previous',
-                maxLines: 1, overflow: TextOverflow.ellipsis, style: btnText),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.navyDark,
               side: const BorderSide(color: AppColors.lightBorder),
               shape: btnShape,
               padding: btnPad,
+              minimumSize: isPhone ? const Size(0, 38) : const Size(64, 44),
+              tapTargetSize: isPhone ? MaterialTapTargetSize.shrinkWrap : null,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.arrow_back_rounded, size: isPhone ? 15 : 16),
+                SizedBox(width: isPhone ? 4 : 8),
+                Flexible(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(isPhone ? 'Back' : 'Previous', style: btnText),
+                  ),
+                ),
+              ],
             ),
           );
 
     final nextBtn = next == null
         ? null
-        : ElevatedButton.icon(
+        : ElevatedButton(
             onPressed: () => _goTo(next!.$1, next.$2),
-            iconAlignment: IconAlignment.end,
-            icon: const Icon(Icons.arrow_forward_rounded, size: 16),
-            label: Text(
-              'Next',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: btnText,
-            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.navyMid,
               foregroundColor: Colors.white,
               elevation: 0,
               shape: btnShape,
               padding: btnPad,
+              minimumSize: isPhone ? const Size(0, 38) : const Size(64, 44),
+              tapTargetSize: isPhone ? MaterialTapTargetSize.shrinkWrap : null,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text('Next', style: btnText),
+                  ),
+                ),
+                SizedBox(width: isPhone ? 4 : 8),
+                Icon(Icons.arrow_forward_rounded, size: isPhone ? 15 : 16),
+              ],
             ),
           );
 
@@ -5812,39 +5833,53 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
             width: 16,
             height: 16,
             child: CircularProgressIndicator(strokeWidth: 2))
-        : const Icon(Icons.check_circle_outline_rounded, size: 16);
+        : Icon(Icons.check_circle_outline_rounded, size: isPhone ? 15 : 16);
     final effectiveSubmitLabel = isPhone && isEdit ? 'Update' : _submitLabel;
+    final submitChild = Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        submitIcon,
+        SizedBox(width: isPhone ? 4 : 8),
+        Flexible(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(effectiveSubmitLabel, style: btnText),
+          ),
+        ),
+      ],
+    );
     final Widget? submitBtn = widget.readOnly
         ? null
         : isLast
-            ? ElevatedButton.icon(
+            ? ElevatedButton(
                 onPressed: _isSubmitting ? null : _submitForm,
-                icon: submitIcon,
-                label: Text(effectiveSubmitLabel,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: btnText),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.navyMid,
                   foregroundColor: Colors.white,
                   elevation: 0,
                   shape: btnShape,
                   padding: btnPad,
+                  minimumSize:
+                      isPhone ? const Size(0, 38) : const Size(64, 44),
+                  tapTargetSize:
+                      isPhone ? MaterialTapTargetSize.shrinkWrap : null,
                 ),
+                child: submitChild,
               )
-            : OutlinedButton.icon(
+            : OutlinedButton(
                 onPressed: _isSubmitting ? null : _submitForm,
-                icon: submitIcon,
-                label: Text(effectiveSubmitLabel,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: btnText),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.navyMid,
                   side: const BorderSide(color: AppColors.navyMid),
                   shape: btnShape,
                   padding: btnPad,
+                  minimumSize:
+                      isPhone ? const Size(0, 38) : const Size(64, 44),
+                  tapTargetSize:
+                      isPhone ? MaterialTapTargetSize.shrinkWrap : null,
                 ),
+                child: submitChild,
               );
 
     final progress = Column(
@@ -5905,11 +5940,11 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                   children: [
                     if (prevBtn != null) ...[
                       Expanded(child: prevBtn),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                     ],
                     if (submitBtn != null && !isLast) ...[
                       Expanded(child: submitBtn),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                     ],
                     if (nextBtn != null)
                       Expanded(child: nextBtn),
