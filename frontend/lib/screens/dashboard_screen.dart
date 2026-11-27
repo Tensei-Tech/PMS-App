@@ -6554,133 +6554,286 @@ class _SearchModuleGroup extends StatelessWidget {
   Widget build(BuildContext context) {
     final shown = results.take(5).toList();
     final overflow = results.length - 5;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        GestureDetector(
-          onTap: () => CategoryNavigationHelper.handleDashboardCategoryTap(
-            context: context,
-            categoryName: moduleLabel,
-            moduleKey: moduleKey,
+    void openModule() => CategoryNavigationHelper.handleDashboardCategoryTap(
+          context: context,
+          categoryName: moduleLabel,
+          moduleKey: moduleKey,
+        );
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 8, top: 4),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.navyMid.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(8),
-              border:
-                  Border.all(color: AppColors.navyMid.withValues(alpha: 0.2)),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(13),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Material(
+              color: const Color(0xFFF8FAFC),
+              child: InkWell(
+                onTap: openModule,
+                hoverColor: const Color(0xFFEFF6FF),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: const BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(color: Color(0xFFE2E8F0)),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 28,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEEF2FF),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.folder_outlined,
+                          size: 15,
+                          color: AppColors.navyMid,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          moduleLabel,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.navyDark,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEEF2FF),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          '${results.length} match${results.length == 1 ? '' : 'es'}',
+                          style: GoogleFonts.poppins(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.navyMid,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(
+                        Icons.chevron_right_rounded,
+                        size: 18,
+                        color: Color(0xFF64748B),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
-            child: Row(children: [
-              const Icon(Icons.folder_copy_rounded,
-                  size: 15, color: AppColors.goldPrimary),
-              const SizedBox(width: 8),
-              Text(moduleLabel.toUpperCase(),
-                  style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.2,
-                      color: AppColors.goldPrimary)),
-              const Spacer(),
-              Text('${results.length} match${results.length == 1 ? '' : 'es'}',
-                  style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.lightSubText)),
-              const SizedBox(width: 4),
-              const Icon(Icons.arrow_forward_ios_rounded,
-                  size: 11, color: AppColors.goldPrimary),
-            ]),
-          ),
+            for (var i = 0; i < shown.length; i++) ...[
+              if (i > 0)
+                const Divider(
+                  height: 1,
+                  thickness: 1,
+                  color: Color(0xFFF1F5F9),
+                  indent: 58,
+                ),
+              _resultCard(context, shown[i], onTap: openModule),
+            ],
+            if (overflow > 0)
+              Material(
+                color: const Color(0xFFF8FAFC),
+                child: InkWell(
+                  onTap: openModule,
+                  hoverColor: const Color(0xFFEFF6FF),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 10),
+                    decoration: const BoxDecoration(
+                      border: Border(
+                        top: BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'View $overflow more in $moduleLabel',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.navyMid,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        const Icon(
+                          Icons.arrow_forward_rounded,
+                          size: 14,
+                          color: AppColors.navyMid,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
-        ...shown.map((r) => _resultCard(context, r)),
-        if (overflow > 0)
-          GestureDetector(
-            onTap: () => CategoryNavigationHelper.handleDashboardCategoryTap(
-              context: context,
-              categoryName: moduleLabel,
-              moduleKey: moduleKey,
-            ),
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 12, left: 4),
-              child: Text('+ $overflow more in $moduleLabel →',
-                  style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.goldPrimary)),
-            ),
-          ),
-        const SizedBox(height: 4),
-      ],
+      ),
     );
   }
 
-  Widget _resultCard(BuildContext context, SearchResult r) {
+  Widget _resultCard(BuildContext context, SearchResult r,
+      {required VoidCallback onTap}) {
     final record = r.record;
-    final sc = _statusColor(record.status);
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: AppColors.lightBorder),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 6,
-              offset: const Offset(0, 2))
-        ],
-      ),
-      child: Row(children: [
-        Expanded(
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(record.title,
-                style: GoogleFonts.poppins(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.navyDark),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis),
-            const SizedBox(height: 3),
-            Row(children: [
-              Text(record.caseNumber,
-                  style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      color: AppColors.infoBlue,
-                      fontWeight: FontWeight.w600)),
-              const SizedBox(width: 8),
-              Text('• ${DateFormat('dd MMM yyyy').format(record.incidentDate)}',
-                  style: GoogleFonts.poppins(
-                      fontSize: 11, color: AppColors.lightSubText)),
-            ]),
-          ]),
-        ),
-        const SizedBox(width: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: sc.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: sc.withValues(alpha: 0.3)),
+    final statusLabel = record.status == 'Open' ? 'Pending' : record.status;
+    final sc = _statusColor(statusLabel);
+    return Material(
+      color: Colors.white,
+      child: InkWell(
+        onTap: onTap,
+        hoverColor: const Color(0xFFF8FAFC),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+          child: Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(9),
+                ),
+                child: const Icon(
+                  Icons.description_outlined,
+                  size: 17,
+                  color: AppColors.navyMid,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      record.title,
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.navyDark,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 3),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 1.5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEFF6FF),
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          child: Text(
+                            record.caseNumber,
+                            style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              color: AppColors.navyMid,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Icon(
+                          Icons.calendar_today_rounded,
+                          size: 11,
+                          color: Color(0xFF94A3B8),
+                        ),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            DateFormat('dd MMM yyyy')
+                                .format(record.incidentDate),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              color: const Color(0xFF64748B),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                decoration: BoxDecoration(
+                  color: sc.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(color: sc.withValues(alpha: 0.25)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: sc,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      statusLabel,
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: sc,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          child: Text(record.status == 'Open' ? 'Pending' : record.status,
-              style: GoogleFonts.poppins(
-                  fontSize: 10, fontWeight: FontWeight.w700, color: sc)),
         ),
-      ]),
+      ),
     );
   }
 
   Color _statusColor(String status) {
     switch (status) {
       case 'Open':
+      case 'Pending':
         return AppColors.warningOrange;
       case 'Active':
         return AppColors.infoBlue;
       case 'Resolved':
+      case 'Detected':
+      case 'Disposal':
         return AppColors.successGreen;
       case 'Closed':
         return const Color(0xFF607D8B);
