@@ -145,6 +145,17 @@ class _PdfDocumentViewScreenState extends State<PdfDocumentViewScreen>
     }
   }
 
+  Future<void> _downloadPdf() async {
+    final safeName = widget.moduleName
+        .replaceAll(RegExp(r'[^a-zA-Z0-9_-]+'), '_')
+        .replaceAll(RegExp(r'^_+|_+$'), '');
+    final fileName = '${safeName.isEmpty ? 'Case' : safeName}_Report.pdf';
+    await Printing.sharePdf(
+      bytes: widget.pdfBytes,
+      filename: fileName,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final name = TranslationHelper.translate(context, widget.moduleName);
@@ -153,6 +164,33 @@ class _PdfDocumentViewScreenState extends State<PdfDocumentViewScreen>
       appBar: ModuleHubScreenAppBar(
         title: '${TranslationHelper.translate(context, 'View')} $name',
         subtitle: name,
+        actionWidget: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: ElevatedButton.icon(
+            onPressed: _downloadPdf,
+            icon: const Icon(
+              Icons.download_rounded,
+              color: Colors.white,
+              size: 16,
+            ),
+            label: Text(
+              'PDF',
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w600,
+                fontSize: 12.5,
+                color: Colors.white,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.navyMid,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+        ),
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {
