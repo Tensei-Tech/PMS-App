@@ -49,18 +49,14 @@ class IradCaseItem {
     final now = DateTime.now();
     final id = (m['id'] ?? '').toString();
     final crNo = (m['cr_no'] ?? m['case_number'] ?? '—').toString();
-    final subCat = (m['sub_category'] ??
-            m['category_name'] ??
-            m['title'] ??
-            '')
+    final subCat = (m['sub_category'] ?? m['category_name'] ?? m['title'] ?? '')
         .toString()
         .trim();
     final rawAct = (m['act_and_section'] ?? m['section'] ?? m['charges'] ?? '')
         .toString()
         .trim();
-    final act = (rawAct.isNotEmpty && rawAct != '-' && rawAct != '—')
-        ? rawAct
-        : '—';
+    final act =
+        (rawAct.isNotEmpty && rawAct != '-' && rawAct != '—') ? rawAct : '—';
     final io = (m['io_name'] ?? m['assigned_officer'] ?? 'Unassigned')
         .toString()
         .trim();
@@ -616,9 +612,10 @@ class _IradHubScreenState extends State<IradHubScreen>
         ? 'IRAD Cases — Summary'
         : 'IRAD Cases — $filterLabel';
 
-    final stName = (widget.stationName != null && widget.stationName!.isNotEmpty)
-        ? widget.stationName!
-        : 'All Stations';
+    final stName =
+        (widget.stationName != null && widget.stationName!.isNotEmpty)
+            ? widget.stationName!
+            : 'All Stations';
 
     final doc = DynamicMapPdf.buildLandscapeDataTableDocument(
       theme: theme,
@@ -806,9 +803,7 @@ class _IradHubScreenState extends State<IradHubScreen>
               ? caseData['sub_category'].toString()
               : (item.subCategory.isNotEmpty
                   ? item.subCategory
-                  : (item.actAndSection != '—'
-                      ? item.actAndSection
-                      : '')),
+                  : (item.actAndSection != '—' ? item.actAndSection : '')),
           existingRecord: ModuleRecord(
             id: caseId,
             caseNumber: crNo,
@@ -828,14 +823,12 @@ class _IradHubScreenState extends State<IradHubScreen>
             assignedOfficerUid: item.ioUid,
             status: item.status,
             createdAt: item.createdAt,
-            subCategory:
-                (caseData['sub_category']?.toString().isNotEmpty == true)
-                    ? caseData['sub_category'].toString()
-                    : (item.subCategory.isNotEmpty
-                        ? item.subCategory
-                        : (item.actAndSection != '—'
-                            ? item.actAndSection
-                            : '')),
+            subCategory: (caseData['sub_category']?.toString().isNotEmpty ==
+                    true)
+                ? caseData['sub_category'].toString()
+                : (item.subCategory.isNotEmpty
+                    ? item.subCategory
+                    : (item.actAndSection != '—' ? item.actAndSection : '')),
             extraFields: existingExtra,
             createdBy: caseData['created_by']?.toString() ?? '',
             stationName: item.stationName.isNotEmpty
@@ -2840,7 +2833,8 @@ class _IradCasesDetailScreenState extends State<IradCasesDetailScreen> {
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.poppins(
                       fontSize: isMobile ? 10.5 : 11.5,
-                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                      fontWeight:
+                          isSelected ? FontWeight.w700 : FontWeight.w600,
                       color: isSelected ? color : AppColors.lightSubText,
                     ),
                   ),
@@ -2909,7 +2903,9 @@ class _IradCasesDetailScreenState extends State<IradCasesDetailScreen> {
         backgroundColor: Colors.white,
         elevation: 1,
         iconTheme: const IconThemeData(color: AppColors.navyDark),
-        titleSpacing: isMobile ? NavigationToolbar.kMiddleSpacing / 2 : NavigationToolbar.kMiddleSpacing,
+        titleSpacing: isMobile
+            ? NavigationToolbar.kMiddleSpacing / 2
+            : NavigationToolbar.kMiddleSpacing,
         title: Text(
           widget.title,
           maxLines: 1,
@@ -2938,7 +2934,8 @@ class _IradCasesDetailScreenState extends State<IradCasesDetailScreen> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.add_rounded, size: isMobile ? 15 : 16, color: Colors.white),
+                  Icon(Icons.add_rounded,
+                      size: isMobile ? 15 : 16, color: Colors.white),
                   const SizedBox(width: 6),
                   Text(
                     'Add Case',
@@ -2958,7 +2955,8 @@ class _IradCasesDetailScreenState extends State<IradCasesDetailScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.symmetric(
-              horizontal: isMobile ? 8.0 : 16.0, vertical: isMobile ? 8.0 : 10.0),
+              horizontal: isMobile ? 8.0 : 16.0,
+              vertical: isMobile ? 8.0 : 10.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -3220,265 +3218,248 @@ class _IradCasesDetailScreenState extends State<IradCasesDetailScreen> {
 
                                     // ── Case List Table ──
                                     Table(
-                                            columnWidths: columnWidths,
-                                            defaultVerticalAlignment:
-                                                TableCellVerticalAlignment
-                                                    .middle,
-                                            border: const TableBorder(
-                                              horizontalInside: BorderSide(
-                                                color: Color(0xFFEDF2F7),
-                                                width: 1,
-                                              ),
-                                            ),
-                                            children: List<TableRow>.generate(
-                                              _displayCases.length,
-                                              (index) {
-                                                final c = _displayCases[index];
-                                                final crNo = c.crNo;
-                                                final act = c.actAndSection;
-                                                final io = c.ioName;
-                                                final statusStr = c.status;
-                                                final isFilled = statusStr
-                                                            .toLowerCase() ==
-                                                        'filled' ||
-                                                    statusStr.toLowerCase() ==
-                                                        'completed';
-                                                final caseId = c.id;
-                                                final bg = index.isEven
-                                                    ? Colors.white
-                                                    : const Color(0xFFF9FAFF);
+                                      columnWidths: columnWidths,
+                                      defaultVerticalAlignment:
+                                          TableCellVerticalAlignment.middle,
+                                      border: const TableBorder(
+                                        horizontalInside: BorderSide(
+                                          color: Color(0xFFEDF2F7),
+                                          width: 1,
+                                        ),
+                                      ),
+                                      children: List<TableRow>.generate(
+                                        _displayCases.length,
+                                        (index) {
+                                          final c = _displayCases[index];
+                                          final crNo = c.crNo;
+                                          final act = c.actAndSection;
+                                          final io = c.ioName;
+                                          final statusStr = c.status;
+                                          final isFilled =
+                                              statusStr.toLowerCase() ==
+                                                      'filled' ||
+                                                  statusStr.toLowerCase() ==
+                                                      'completed';
+                                          final caseId = c.id;
+                                          final bg = index.isEven
+                                              ? Colors.white
+                                              : const Color(0xFFF9FAFF);
 
-                                                return TableRow(
-                                                  decoration:
-                                                      BoxDecoration(color: bg),
-                                                  children: [
-                                                    dataCell(
-                                                      Text(
-                                                        '${index + 1}',
-                                                        style:
-                                                            GoogleFonts.poppins(
-                                                          fontSize: 12,
-                                                          fontWeight:
-                                                              FontWeight.w500,
-                                                          color: AppColors
-                                                              .navyDark,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    dataCell(
-                                                      InkWell(
-                                                        onTap: () => widget
-                                                            .onOpenCaseForm(c),
-                                                        child: Row(
-                                                          mainAxisSize:
-                                                              MainAxisSize.min,
-                                                          children: [
-                                                            Flexible(
-                                                              child: Text(
-                                                                crNo,
-                                                                style:
-                                                                    GoogleFonts
-                                                                        .poppins(
-                                                                  color: AppColors
-                                                                      .navyMid,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w700,
-                                                                  fontSize: 12,
-                                                                  decoration:
-                                                                      TextDecoration
-                                                                          .underline,
-                                                                ),
-                                                                overflow:
-                                                                    TextOverflow
-                                                                        .ellipsis,
-                                                              ),
-                                                            ),
-                                                            const SizedBox(
-                                                                width: 4),
-                                                            const Icon(
-                                                              Icons
-                                                                  .open_in_new_rounded,
-                                                              size: 13,
-                                                              color: AppColors
-                                                                  .navyMid,
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    dataCell(
-                                                      Text(
-                                                        act,
-                                                        style:
-                                                            GoogleFonts.poppins(
-                                                          fontSize: 12,
-                                                          fontWeight:
-                                                              FontWeight.w500,
-                                                          color: AppColors
-                                                              .navyDark,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    dataCell(
-                                                      Text(
-                                                        io,
-                                                        style:
-                                                            GoogleFonts.poppins(
-                                                          fontSize: 12,
-                                                          fontWeight:
-                                                              FontWeight.w500,
-                                                          color: AppColors
-                                                              .navyDark,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    dataCell(
-                                                      Container(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .symmetric(
-                                                                horizontal: 10,
-                                                                vertical: 4),
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          color: isFilled
-                                                              ? const Color(
-                                                                      0xFF10B981)
-                                                                  .withValues(
-                                                                      alpha:
-                                                                          0.15)
-                                                              : const Color(
-                                                                      0xFFEF4444)
-                                                                  .withValues(
-                                                                      alpha:
-                                                                          0.15),
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(20),
-                                                          border: Border.all(
-                                                            color: isFilled
-                                                                ? const Color(
-                                                                        0xFF10B981)
-                                                                    .withValues(
-                                                                        alpha:
-                                                                            0.4)
-                                                                : const Color(
-                                                                        0xFFEF4444)
-                                                                    .withValues(
-                                                                        alpha:
-                                                                            0.4),
-                                                          ),
-                                                        ),
+                                          return TableRow(
+                                            decoration:
+                                                BoxDecoration(color: bg),
+                                            children: [
+                                              dataCell(
+                                                Text(
+                                                  '${index + 1}',
+                                                  style: GoogleFonts.poppins(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w500,
+                                                    color: AppColors.navyDark,
+                                                  ),
+                                                ),
+                                              ),
+                                              dataCell(
+                                                InkWell(
+                                                  onTap: () =>
+                                                      widget.onOpenCaseForm(c),
+                                                  child: Row(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      Flexible(
                                                         child: Text(
-                                                          isFilled
-                                                              ? 'Filled'
-                                                              : 'Pending',
+                                                          crNo,
                                                           style: GoogleFonts
                                                               .poppins(
-                                                            fontSize: 11,
+                                                            color: AppColors
+                                                                .navyMid,
+                                                            fontWeight:
+                                                                FontWeight.w700,
+                                                            fontSize: 12,
+                                                            decoration:
+                                                                TextDecoration
+                                                                    .underline,
+                                                          ),
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(width: 4),
+                                                      const Icon(
+                                                        Icons
+                                                            .open_in_new_rounded,
+                                                        size: 13,
+                                                        color:
+                                                            AppColors.navyMid,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                              dataCell(
+                                                Text(
+                                                  act,
+                                                  style: GoogleFonts.poppins(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w500,
+                                                    color: AppColors.navyDark,
+                                                  ),
+                                                ),
+                                              ),
+                                              dataCell(
+                                                Text(
+                                                  io,
+                                                  style: GoogleFonts.poppins(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w500,
+                                                    color: AppColors.navyDark,
+                                                  ),
+                                                ),
+                                              ),
+                                              dataCell(
+                                                Container(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: 10,
+                                                      vertical: 4),
+                                                  decoration: BoxDecoration(
+                                                    color: isFilled
+                                                        ? const Color(
+                                                                0xFF10B981)
+                                                            .withValues(
+                                                                alpha: 0.15)
+                                                        : const Color(
+                                                                0xFFEF4444)
+                                                            .withValues(
+                                                                alpha: 0.15),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            20),
+                                                    border: Border.all(
+                                                      color: isFilled
+                                                          ? const Color(
+                                                                  0xFF10B981)
+                                                              .withValues(
+                                                                  alpha: 0.4)
+                                                          : const Color(
+                                                                  0xFFEF4444)
+                                                              .withValues(
+                                                                  alpha: 0.4),
+                                                    ),
+                                                  ),
+                                                  child: Text(
+                                                    isFilled
+                                                        ? 'Filled'
+                                                        : 'Pending',
+                                                    style: GoogleFonts.poppins(
+                                                      fontSize: 11,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color: isFilled
+                                                          ? const Color(
+                                                              0xFF059669)
+                                                          : const Color(
+                                                              0xFFDC2626),
+                                                    ),
+                                                  ),
+                                                ),
+                                                align: Alignment.center,
+                                              ),
+                                              dataCell(
+                                                isFilled
+                                                    ? Text(
+                                                        '—',
+                                                        style:
+                                                            GoogleFonts.poppins(
+                                                          fontSize: 14,
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                          color: AppColors
+                                                              .lightSubText,
+                                                        ),
+                                                      )
+                                                    : ElevatedButton.icon(
+                                                        onPressed: () {
+                                                          widget
+                                                              .onSendReminderToIO(
+                                                                  caseId,
+                                                                  crNo,
+                                                                  io);
+                                                        },
+                                                        icon: Icon(
+                                                          Icons
+                                                              .notifications_active_rounded,
+                                                          size: isMobile
+                                                              ? 11
+                                                              : 13,
+                                                          color: Colors.white,
+                                                        ),
+                                                        label: Text(
+                                                          'Remind to IO',
+                                                          style: GoogleFonts
+                                                              .poppins(
+                                                            fontSize: isMobile
+                                                                ? 9.5
+                                                                : 10.5,
                                                             fontWeight:
                                                                 FontWeight.w600,
-                                                            color: isFilled
-                                                                ? const Color(
-                                                                    0xFF059669)
-                                                                : const Color(
-                                                                    0xFFDC2626),
+                                                            color: Colors.white,
+                                                          ),
+                                                        ),
+                                                        style: ElevatedButton
+                                                            .styleFrom(
+                                                          backgroundColor:
+                                                              const Color(
+                                                                  0xFFEF4444),
+                                                          foregroundColor:
+                                                              Colors.white,
+                                                          elevation: 0,
+                                                          padding: EdgeInsets
+                                                              .symmetric(
+                                                                  horizontal:
+                                                                      isMobile
+                                                                          ? 6
+                                                                          : 10,
+                                                                  vertical:
+                                                                      isMobile
+                                                                          ? 3
+                                                                          : 4),
+                                                          minimumSize: Size(
+                                                              isMobile
+                                                                  ? 78
+                                                                  : 90,
+                                                              isMobile
+                                                                  ? 26
+                                                                  : 28),
+                                                          shape:
+                                                              RoundedRectangleBorder(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        16),
                                                           ),
                                                         ),
                                                       ),
-                                                      align: Alignment.center,
-                                                    ),
-                                                    dataCell(
-                                                      isFilled
-                                                          ? Text(
-                                                              '—',
-                                                              style: GoogleFonts
-                                                                  .poppins(
-                                                                fontSize: 14,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w500,
-                                                                color: AppColors
-                                                                    .lightSubText,
-                                                              ),
-                                                            )
-                                                          : ElevatedButton.icon(
-                                                              onPressed: () {
-                                                                widget
-                                                                    .onSendReminderToIO(
-                                                                        caseId,
-                                                                        crNo,
-                                                                        io);
-                                                              },
-                                                              icon: Icon(
-                                                                Icons
-                                                                    .notifications_active_rounded,
-                                                                size: isMobile ? 11 : 13,
-                                                                color: Colors
-                                                                    .white,
-                                                              ),
-                                                              label: Text(
-                                                                'Remind to IO',
-                                                                style:
-                                                                    GoogleFonts
-                                                                        .poppins(
-                                                                  fontSize:
-                                                                      isMobile ? 9.5 : 10.5,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w600,
-                                                                  color: Colors
-                                                                      .white,
-                                                                ),
-                                                              ),
-                                                              style:
-                                                                  ElevatedButton
-                                                                      .styleFrom(
-                                                                backgroundColor:
-                                                                    const Color(
-                                                                        0xFFEF4444),
-                                                                foregroundColor:
-                                                                    Colors
-                                                                        .white,
-                                                                elevation: 0,
-                                                                padding: EdgeInsets
-                                                                    .symmetric(
-                                                                    horizontal:
-                                                                        isMobile ? 6 : 10,
-                                                                    vertical:
-                                                                        isMobile ? 3 : 4),
-                                                                minimumSize:
-                                                                    Size(
-                                                                        isMobile ? 78 : 90, isMobile ? 26 : 28),
-                                                                shape:
-                                                                    RoundedRectangleBorder(
-                                                                  borderRadius:
-                                                                      BorderRadius
-                                                                          .circular(
-                                                                              16),
-                                                                ),
-                                                              ),
-                                                            ),
-                                                      align: Alignment.center,
-                                                    ),
-                                                  ],
-                                                );
-                                              },
-                                            ),
-                                          ),
-                                        ],
+                                                align: Alignment.center,
+                                              ),
+                                            ],
+                                          );
+                                        },
                                       ),
                                     ),
-                                  );
-                                },
+                                  ],
+                                ),
                               ),
-                            ),
-                          ),
-              ],
-            ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+            ],
           ),
         ),
-      );
+      ),
+    );
   }
 }
