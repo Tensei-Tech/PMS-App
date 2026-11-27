@@ -890,7 +890,7 @@ class _ModernCalendarPopoverCardState
 
     return GridView.count(
       crossAxisCount: 7,
-      childAspectRatio: 1.15,
+      childAspectRatio: 1.05,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       mainAxisSpacing: 3,
@@ -1001,32 +1001,38 @@ class _ModernCalendarPopoverCardState
       child: Container(
         alignment: Alignment.center,
         decoration: containerDec,
-        child: Stack(
-          alignment: Alignment.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               '${date.day}',
               style: GoogleFonts.poppins(
                 fontSize: 12,
+                height: 1.05,
                 fontWeight: fontWeight,
                 color: textColor,
               ),
             ),
-            if (hasCases)
-              Positioned(
-                bottom: 3,
-                child: Container(
-                  key: const Key('date-case-dot'),
-                  width: 4.5,
-                  height: 4.5,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isStrongSelected
-                        ? Colors.white
-                        : const Color(0xFF1976D2),
-                  ),
-                ),
-              ),
+            const SizedBox(height: 3),
+            SizedBox(
+              height: 5,
+              child: hasCases
+                  ? Center(
+                      child: Container(
+                        key: const Key('date-case-dot'),
+                        width: 5,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: isStrongSelected
+                              ? Colors.white
+                              : const Color(0xFF1976D2),
+                        ),
+                      ),
+                    )
+                  : null,
+            ),
           ],
         ),
       ),
