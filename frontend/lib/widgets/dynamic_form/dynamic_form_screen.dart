@@ -5271,8 +5271,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         final isOn = n == at;
         final isDone = n < at;
         final badge = Container(
-          width: 22,
-          height: 22,
+          width: 20,
+          height: 20,
           alignment: Alignment.center,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
@@ -5286,11 +5286,11 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
             ),
           ),
           child: isDone
-              ? const Icon(Icons.check_rounded, size: 14, color: doneFg)
+              ? const Icon(Icons.check_rounded, size: 12, color: doneFg)
               : Text(
                   '${n + 1}',
                   style: GoogleFonts.poppins(
-                    fontSize: 11.5,
+                    fontSize: 10.5,
                     fontWeight: FontWeight.w600,
                     color: isOn ? Colors.white : AppColors.lightSubText,
                   ),
@@ -5301,7 +5301,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
           child: Material(
             color: isOn ? Colors.white : Colors.transparent,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(8),
               side: isOn
                   ? const BorderSide(color: AppColors.lightBorder)
                   : BorderSide.none,
@@ -5310,25 +5310,33 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
             shadowColor: AppColors.navyDark.withValues(alpha: 0.15),
             child: InkWell(
               onTap: () => _goTo(shown[n], 0),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(8),
               child: Padding(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                    const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     badge,
-                    const SizedBox(width: 6),
-                    Text(
-                      _stepHints[shown[n]],
-                      maxLines: 1,
-                      softWrap: false,
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: isOn ? FontWeight.w700 : FontWeight.w600,
-                        color: isOn
-                            ? AppColors.navyDark
-                            : (isDone ? doneFg : AppColors.lightSubText),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          _stepHints[shown[n]],
+                          maxLines: 1,
+                          softWrap: false,
+                          style: GoogleFonts.poppins(
+                            fontSize: 11.5,
+                            fontWeight:
+                                isOn ? FontWeight.w700 : FontWeight.w600,
+                            color: isOn
+                                ? AppColors.navyDark
+                                : (isDone ? doneFg : AppColors.lightSubText),
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -5341,30 +5349,28 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
 
       return Container(
         margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(6),
+        padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(AppRadius.lg),
           border: Border.all(color: AppColors.lightBorder),
         ),
         child: Container(
-          padding: const EdgeInsets.all(4),
+          padding: const EdgeInsets.all(3),
           decoration: BoxDecoration(
             color: const Color(0xFFF1F5F9),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(10),
           ),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                for (var n = 0; n < shown.length; n++) ...[
-                  if (n > 0) const SizedBox(width: 4),
-                  compactTab(n),
-                ],
+          child: Row(
+            children: [
+              for (var n = 0; n < shown.length; n++) ...[
+                if (n > 0) const SizedBox(width: 4),
+                Expanded(
+                  flex: _stepHints[shown[n]].length <= 4 ? 3 : 5,
+                  child: compactTab(n),
+                ),
               ],
-            ),
+            ],
           ),
         ),
       );
