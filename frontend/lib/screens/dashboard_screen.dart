@@ -2783,11 +2783,12 @@ class _HomeTabState extends State<_HomeTab> {
 
   Widget _buildModulesToolbar(bool isWide, {required bool showToggle}) {
     final toggle = Container(
-      padding: const EdgeInsets.all(3),
+      height: 32,
+      padding: const EdgeInsets.all(2.5),
       decoration: BoxDecoration(
         color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        borderRadius: BorderRadius.circular(10),
+        border: isWide ? null : Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -2822,16 +2823,7 @@ class _HomeTabState extends State<_HomeTab> {
       );
     }
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Expanded(child: _buildSearchBar()),
-        if (showToggle) ...[
-          const SizedBox(width: 12),
-          toggle,
-        ],
-      ],
-    );
+    return _buildSearchBar(trailing: showToggle ? toggle : null);
   }
 
   Widget _buildNewsCarousel(NewsProvider news, bool isWide) {
@@ -2980,7 +2972,7 @@ class _HomeTabState extends State<_HomeTab> {
     );
   }
 
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar({Widget? trailing}) {
     return AnimatedBuilder(
       animation: _searchFocusNode,
       builder: (context, child) {
@@ -2988,10 +2980,10 @@ class _HomeTabState extends State<_HomeTab> {
         return AnimatedContainer(
           duration: const Duration(milliseconds: 160),
           curve: Curves.easeOut,
-          height: 42,
+          height: 44,
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: isFocused ? AppColors.navyMid : const Color(0xFFE2E8F0),
               width: isFocused ? 1.5 : 1,
@@ -3014,118 +3006,135 @@ class _HomeTabState extends State<_HomeTab> {
           child: child,
         );
       },
-      child: TextField(
-        controller: _searchCtrl,
-        focusNode: _searchFocusNode,
-        autofocus: false,
-        keyboardType: TextInputType.text,
-        textInputAction: TextInputAction.search,
-        textAlignVertical: TextAlignVertical.center,
-        enableSuggestions: true,
-        autocorrect: true,
-        onChanged: _onSearchChanged,
-        style: GoogleFonts.poppins(
-          color: AppColors.lightText,
-          fontSize: 13.5,
-          fontWeight: FontWeight.w500,
-        ),
-        decoration: InputDecoration(
-          isDense: true,
-          filled: false,
-          border: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          focusedBorder: InputBorder.none,
-          disabledBorder: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 10),
-          hintText: TranslationHelper.translate(context,
-              'Search cases or type module (e.g. Murder, Theft, Missing)...'),
-          hintStyle: GoogleFonts.poppins(
-            color: const Color(0xFF94A3B8),
-            fontSize: 13,
-            fontWeight: FontWeight.w400,
-          ),
-          prefixIcon: const Icon(
-            Icons.search_rounded,
-            color: Color(0xFF64748B),
-            size: 18,
-          ),
-          prefixIconConstraints:
-              const BoxConstraints(minWidth: 40, minHeight: 40),
-          suffixIcon: Padding(
-            padding: const EdgeInsets.only(right: 6),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (_searchQuery.isNotEmpty) ...[
-                  _searchActionButton(
-                    icon: Icons.close_rounded,
-                    tooltip: 'Clear Search',
-                    iconColor: const Color(0xFF64748B),
-                    onTap: () {
-                      _searchCtrl.clear();
-                      setState(() => _explicitSearchDate = null);
-                      _onSearchChanged('');
-                    },
-                  ),
-                  const SizedBox(width: 6),
-                ],
-                Container(
-                  width: 1,
-                  height: 18,
-                  color: const Color(0xFFE2E8F0),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _searchCtrl,
+              focusNode: _searchFocusNode,
+              autofocus: false,
+              keyboardType: TextInputType.text,
+              textInputAction: TextInputAction.search,
+              textAlignVertical: TextAlignVertical.center,
+              enableSuggestions: true,
+              autocorrect: true,
+              onChanged: _onSearchChanged,
+              style: GoogleFonts.poppins(
+                color: AppColors.lightText,
+                fontSize: 13.5,
+                fontWeight: FontWeight.w500,
+              ),
+              decoration: InputDecoration(
+                isDense: true,
+                filled: false,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                disabledBorder: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                hintText: TranslationHelper.translate(context,
+                    'Search cases or type module (e.g. Murder, Theft, Missing)...'),
+                hintStyle: GoogleFonts.poppins(
+                  color: const Color(0xFF94A3B8),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w400,
                 ),
-                const SizedBox(width: 6),
-                _searchActionButton(
-                  icon: Icons.mic_rounded,
-                  tooltip: 'Speak / Voice Search',
-                  onTap: () async {
-                    final spoken = await VoiceSearchDialog.show(context);
-                    if (spoken != null && spoken.trim().isNotEmpty) {
-                      var cleanSpoken = spoken.trim();
-                      while (cleanSpoken.endsWith('.') ||
-                          cleanSpoken.endsWith(',') ||
-                          cleanSpoken.endsWith('?') ||
-                          cleanSpoken.endsWith('!')) {
-                        cleanSpoken = cleanSpoken
-                            .substring(0, cleanSpoken.length - 1)
-                            .trim();
-                      }
-                      if (cleanSpoken.isEmpty) return;
+                prefixIcon: const Icon(
+                  Icons.search_rounded,
+                  color: Color(0xFF64748B),
+                  size: 18,
+                ),
+                prefixIconConstraints:
+                    const BoxConstraints(minWidth: 40, minHeight: 40),
+                suffixIcon: Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (_searchQuery.isNotEmpty) ...[
+                        _searchActionButton(
+                          icon: Icons.close_rounded,
+                          tooltip: 'Clear Search',
+                          iconColor: const Color(0xFF64748B),
+                          onTap: () {
+                            _searchCtrl.clear();
+                            setState(() => _explicitSearchDate = null);
+                            _onSearchChanged('');
+                          },
+                        ),
+                        const SizedBox(width: 6),
+                      ],
+                      Container(
+                        width: 1,
+                        height: 18,
+                        color: const Color(0xFFE2E8F0),
+                      ),
+                      const SizedBox(width: 6),
+                      _searchActionButton(
+                        icon: Icons.mic_rounded,
+                        tooltip: 'Speak / Voice Search',
+                        onTap: () async {
+                          final spoken = await VoiceSearchDialog.show(context);
+                          if (spoken != null && spoken.trim().isNotEmpty) {
+                            var cleanSpoken = spoken.trim();
+                            while (cleanSpoken.endsWith('.') ||
+                                cleanSpoken.endsWith(',') ||
+                                cleanSpoken.endsWith('?') ||
+                                cleanSpoken.endsWith('!')) {
+                              cleanSpoken = cleanSpoken
+                                  .substring(0, cleanSpoken.length - 1)
+                                  .trim();
+                            }
+                            if (cleanSpoken.isEmpty) return;
 
-                      final parsedDate =
-                          UniversalSearch.tryParseNaturalDate(cleanSpoken);
-                      if (parsedDate != null) {
-                        final formatted =
-                            DateFormat('dd MMM yyyy').format(parsedDate);
-                        setState(() {
-                          _explicitSearchDate = parsedDate;
-                          _searchQuery = formatted;
-                          _searchCtrl.text = formatted;
-                          _invalidateSearchCache();
-                        });
-                      } else {
-                        _searchCtrl.text = cleanSpoken;
-                        _onSearchChanged(cleanSpoken);
-                      }
-                    }
-                  },
+                            final parsedDate =
+                                UniversalSearch.tryParseNaturalDate(
+                                    cleanSpoken);
+                            if (parsedDate != null) {
+                              final formatted =
+                                  DateFormat('dd MMM yyyy').format(parsedDate);
+                              setState(() {
+                                _explicitSearchDate = parsedDate;
+                                _searchQuery = formatted;
+                                _searchCtrl.text = formatted;
+                                _invalidateSearchCache();
+                              });
+                            } else {
+                              _searchCtrl.text = cleanSpoken;
+                              _onSearchChanged(cleanSpoken);
+                            }
+                          }
+                        },
+                      ),
+                      const SizedBox(width: 6),
+                      _searchActionButton(
+                        icon: Icons.calendar_month_rounded,
+                        tooltip: 'Select Custom Date',
+                        iconColor: _explicitSearchDate != null
+                            ? Colors.white
+                            : AppColors.navyMid,
+                        backgroundColor: _explicitSearchDate != null
+                            ? AppColors.goldPrimary
+                            : const Color(0xFFF1F5F9),
+                        onTap: () => _showSearchDatePicker(context),
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(width: 6),
-                _searchActionButton(
-                  icon: Icons.calendar_month_rounded,
-                  tooltip: 'Select Custom Date',
-                  iconColor: _explicitSearchDate != null
-                      ? Colors.white
-                      : AppColors.navyMid,
-                  backgroundColor: _explicitSearchDate != null
-                      ? AppColors.goldPrimary
-                      : const Color(0xFFF1F5F9),
-                  onTap: () => _showSearchDatePicker(context),
-                ),
-              ],
+              ),
             ),
           ),
-        ),
+          if (trailing != null) ...[
+            Container(
+              width: 1,
+              height: 22,
+              color: const Color(0xFFE2E8F0),
+            ),
+            const SizedBox(width: 8),
+            trailing,
+            const SizedBox(width: 6),
+          ],
+        ],
       ),
     );
   }
