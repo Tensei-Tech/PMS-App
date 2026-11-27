@@ -3031,7 +3031,11 @@ class _HomeTabState extends State<_HomeTab> {
         ),
         decoration: InputDecoration(
           isDense: true,
+          filled: false,
           border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          disabledBorder: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 10),
           hintText: TranslationHelper.translate(context,
               'Search cases or type module (e.g. Murder, Theft, Missing)...'),
