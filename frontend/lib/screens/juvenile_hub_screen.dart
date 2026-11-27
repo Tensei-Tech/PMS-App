@@ -164,6 +164,7 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
     required String subtitle,
     required IconData icon,
     required Future<void> Function() onRefresh,
+    bool isCompact = false,
   }) {
     return RefreshIndicator(
       onRefresh: onRefresh,
@@ -171,20 +172,24 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
-          SizedBox(height: MediaQuery.of(context).size.height * 0.15),
+          SizedBox(
+            height: isCompact
+                ? 36
+                : MediaQuery.sizeOf(context).height * 0.15,
+          ),
           Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(20),
+                  padding: EdgeInsets.all(isCompact ? 16 : 20),
                   decoration: BoxDecoration(
                     color: AppColors.navyMid.withValues(alpha: 0.06),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     icon,
-                    size: 44,
+                    size: isCompact ? 36 : 44,
                     color: AppColors.navyMid.withValues(alpha: 0.5),
                   ),
                 ),
@@ -192,7 +197,7 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
                 Text(
                   title,
                   style: GoogleFonts.poppins(
-                    fontSize: 15,
+                    fontSize: isCompact ? 14 : 15,
                     fontWeight: FontWeight.w600,
                     color: AppColors.navyDark,
                   ),
@@ -201,7 +206,7 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
                 Text(
                   subtitle,
                   style: GoogleFonts.poppins(
-                    fontSize: 12.5,
+                    fontSize: isCompact ? 11.5 : 12.5,
                     color: AppColors.lightSubText,
                   ),
                 ),
@@ -213,7 +218,7 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
     );
   }
 
-  Widget _buildCaseWiseTab() {
+  Widget _buildCaseWiseTab(bool isCompact) {
     if (_isLoadingCase) {
       return const Center(
         child: CircularProgressIndicator(color: AppColors.navyMid),
@@ -233,6 +238,7 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
         subtitle: 'Cases involving CiCL will appear here once registered',
         icon: Icons.category_outlined,
         onRefresh: _loadCaseWise,
+        isCompact: isCompact,
       );
     }
 
@@ -249,7 +255,7 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
           final cases = _caseWiseData![head] ?? [];
 
           return Container(
-            margin: const EdgeInsets.only(bottom: 12),
+            margin: EdgeInsets.only(bottom: isCompact ? 8 : 12),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(14),
@@ -280,36 +286,43 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
                   );
                 },
                 child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isCompact ? 12 : 16,
+                    vertical: isCompact ? 11 : 14,
+                  ),
                   child: Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(10),
+                        padding: EdgeInsets.all(isCompact ? 8 : 10),
                         decoration: BoxDecoration(
                           color: AppColors.navyMid.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.category_outlined,
                           color: AppColors.navyMid,
-                          size: 20,
+                          size: isCompact ? 18 : 20,
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      SizedBox(width: isCompact ? 10 : 16),
                       Expanded(
                         child: Text(
                           head,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.poppins(
                             fontWeight: FontWeight.w600,
-                            fontSize: 14.5,
+                            fontSize: isCompact ? 13.5 : 14.5,
                             color: AppColors.navyDark,
                           ),
                         ),
                       ),
+                      const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 6),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isCompact ? 10 : 14,
+                          vertical: isCompact ? 5 : 6,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.navyMid.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(20),
@@ -321,16 +334,16 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
                           '${cases.length} ${cases.length == 1 ? 'Case' : 'Cases'}',
                           style: GoogleFonts.poppins(
                             fontWeight: FontWeight.w700,
-                            fontSize: 12,
+                            fontSize: isCompact ? 11 : 12,
                             color: AppColors.navyMid,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      const Icon(
+                      SizedBox(width: isCompact ? 4 : 8),
+                      Icon(
                         Icons.chevron_right_rounded,
                         color: AppColors.lightSubText,
-                        size: 22,
+                        size: isCompact ? 18 : 22,
                       ),
                     ],
                   ),
@@ -343,7 +356,7 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
     );
   }
 
-  Widget _buildTimeWiseTab() {
+  Widget _buildTimeWiseTab(bool isCompact) {
     if (_isLoadingTime) {
       return const Center(
         child: CircularProgressIndicator(color: AppColors.navyMid),
@@ -363,6 +376,7 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
         subtitle: 'Duration-wise CiCL breakdown will appear here',
         icon: Icons.schedule_rounded,
         onRefresh: _loadTimeWise,
+        isCompact: isCompact,
       );
     }
 
@@ -378,7 +392,7 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
           final count = (item['count'] as num?)?.toInt() ?? 0;
 
           return Container(
-            margin: const EdgeInsets.only(bottom: 12),
+            margin: EdgeInsets.only(bottom: isCompact ? 8 : 12),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(14),
@@ -429,36 +443,43 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
                   );
                 },
                 child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isCompact ? 12 : 16,
+                    vertical: isCompact ? 11 : 14,
+                  ),
                   child: Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(10),
+                        padding: EdgeInsets.all(isCompact ? 8 : 10),
                         decoration: BoxDecoration(
                           color: const Color(0xFFF0F2FA),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.schedule_rounded,
                           color: AppColors.navyMid,
-                          size: 20,
+                          size: isCompact ? 18 : 20,
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      SizedBox(width: isCompact ? 10 : 16),
                       Expanded(
                         child: Text(
                           p,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.poppins(
                             fontWeight: FontWeight.w600,
-                            fontSize: 14.5,
+                            fontSize: isCompact ? 13.5 : 14.5,
                             color: AppColors.navyDark,
                           ),
                         ),
                       ),
+                      const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 6),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isCompact ? 10 : 14,
+                          vertical: isCompact ? 5 : 6,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.navyMid.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(20),
@@ -470,16 +491,16 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
                           '$count ${count == 1 ? 'Case' : 'Cases'}',
                           style: GoogleFonts.poppins(
                             fontWeight: FontWeight.w700,
-                            fontSize: 12,
+                            fontSize: isCompact ? 11 : 12,
                             color: AppColors.navyMid,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      const Icon(
+                      SizedBox(width: isCompact ? 4 : 8),
+                      Icon(
                         Icons.chevron_right_rounded,
                         color: AppColors.lightSubText,
-                        size: 22,
+                        size: isCompact ? 18 : 22,
                       ),
                     ],
                   ),
@@ -492,7 +513,7 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
     );
   }
 
-  Widget _buildIOWiseTab() {
+  Widget _buildIOWiseTab(bool isCompact) {
     if (_isLoadingIO) {
       return const Center(
         child: CircularProgressIndicator(color: AppColors.navyMid),
@@ -513,6 +534,7 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
             'CiCL cases mapped to investigating officers will appear here',
         icon: Icons.badge_outlined,
         onRefresh: _loadIOWise,
+        isCompact: isCompact,
       );
     }
 
@@ -530,7 +552,7 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
           final count = (item['count'] as num?)?.toInt() ?? 0;
 
           return Container(
-            margin: const EdgeInsets.only(bottom: 12),
+            margin: EdgeInsets.only(bottom: isCompact ? 8 : 12),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(14),
@@ -560,33 +582,37 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
                   );
                 },
                 child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isCompact ? 12 : 16,
+                    vertical: isCompact ? 11 : 14,
+                  ),
                   child: Row(
                     children: [
                       Container(
-                        width: 44,
-                        height: 44,
+                        width: isCompact ? 38 : 44,
+                        height: isCompact ? 38 : 44,
                         decoration: BoxDecoration(
                           color: AppColors.navyDark,
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.person_rounded,
                           color: Colors.white,
-                          size: 24,
+                          size: isCompact ? 20 : 24,
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      SizedBox(width: isCompact ? 10 : 16),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               ioName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.poppins(
                                 fontWeight: FontWeight.w600,
-                                fontSize: 14.5,
+                                fontSize: isCompact ? 13.5 : 14.5,
                                 color: AppColors.navyDark,
                               ),
                             ),
@@ -595,17 +621,22 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
                               ioRank.isNotEmpty || stationName.isNotEmpty
                                   ? '$ioRank • $stationName'
                                   : 'Investigating Officer',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.poppins(
-                                fontSize: 12,
+                                fontSize: isCompact ? 11 : 12,
                                 color: AppColors.lightSubText,
                               ),
                             ),
                           ],
                         ),
                       ),
+                      const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 6),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isCompact ? 10 : 14,
+                          vertical: isCompact ? 5 : 6,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.navyMid.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(20),
@@ -617,16 +648,16 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
                           '$count ${count == 1 ? 'Case' : 'Cases'}',
                           style: GoogleFonts.poppins(
                             fontWeight: FontWeight.w700,
-                            fontSize: 12,
+                            fontSize: isCompact ? 11 : 12,
                             color: AppColors.navyMid,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      const Icon(
+                      SizedBox(width: isCompact ? 4 : 8),
+                      Icon(
                         Icons.chevron_right_rounded,
                         color: AppColors.lightSubText,
-                        size: 22,
+                        size: isCompact ? 18 : 22,
                       ),
                     ],
                   ),
@@ -641,6 +672,9 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isCompact = screenWidth < 600;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF6F8FF),
       appBar: AppBar(
@@ -652,12 +686,12 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
           style: GoogleFonts.poppins(
             color: AppColors.navyDark,
             fontWeight: FontWeight.w700,
-            fontSize: 16,
+            fontSize: isCompact ? 15 : 16,
           ),
         ),
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 16),
+            padding: EdgeInsets.only(right: isCompact ? 10 : 16),
             child: ElevatedButton.icon(
               onPressed: () {
                 Navigator.push(
@@ -669,16 +703,16 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
                   ),
                 );
               },
-              icon: const Icon(
+              icon: Icon(
                 Icons.picture_as_pdf_rounded,
                 color: Colors.white,
-                size: 16,
+                size: isCompact ? 15 : 16,
               ),
               label: Text(
                 'PDF',
                 style: GoogleFonts.poppins(
                   fontWeight: FontWeight.w600,
-                  fontSize: 13,
+                  fontSize: isCompact ? 12 : 13,
                   color: Colors.white,
                 ),
               ),
@@ -688,8 +722,10 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isCompact ? 10 : 14,
+                  vertical: isCompact ? 6 : 8,
+                ),
               ),
             ),
           ),
@@ -698,33 +734,46 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
           preferredSize: const Size.fromHeight(48),
           child: Container(
             color: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: EdgeInsets.symmetric(horizontal: isCompact ? 4 : 12),
             child: TabBar(
-              isScrollable: true,
-              tabAlignment: TabAlignment.start,
+              isScrollable: !isCompact,
+              tabAlignment:
+                  isCompact ? TabAlignment.fill : TabAlignment.start,
               controller: _tabController,
               labelColor: AppColors.navyMid,
               unselectedLabelColor: AppColors.lightSubText,
               indicatorColor: AppColors.navyMid,
               indicatorWeight: 3,
-              indicatorSize: TabBarIndicatorSize.label,
+              indicatorSize: isCompact
+                  ? TabBarIndicatorSize.tab
+                  : TabBarIndicatorSize.label,
+              labelPadding: isCompact
+                  ? EdgeInsets.zero
+                  : const EdgeInsets.symmetric(horizontal: 16),
               labelStyle: GoogleFonts.poppins(
                 fontWeight: FontWeight.w700,
-                fontSize: 13,
+                fontSize: isCompact ? 12 : 13,
               ),
               unselectedLabelStyle: GoogleFonts.poppins(
                 fontWeight: FontWeight.w500,
-                fontSize: 13,
+                fontSize: isCompact ? 12 : 13,
               ),
-              tabs: const [
+              tabs: [
                 Tab(
                   iconMargin: EdgeInsets.zero,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.category_outlined, size: 16),
-                      SizedBox(width: 8),
-                      Text('Case Wise'),
+                      Icon(Icons.category_outlined,
+                          size: isCompact ? 14 : 16),
+                      SizedBox(width: isCompact ? 4 : 8),
+                      Flexible(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: const Text('Case Wise'),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -732,10 +781,16 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
                   iconMargin: EdgeInsets.zero,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.schedule_rounded, size: 16),
-                      SizedBox(width: 8),
-                      Text('Time Wise'),
+                      Icon(Icons.schedule_rounded, size: isCompact ? 14 : 16),
+                      SizedBox(width: isCompact ? 4 : 8),
+                      Flexible(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: const Text('Time Wise'),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -743,10 +798,16 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
                   iconMargin: EdgeInsets.zero,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.badge_outlined, size: 16),
-                      SizedBox(width: 8),
-                      Text('IO Wise'),
+                      Icon(Icons.badge_outlined, size: isCompact ? 14 : 16),
+                      SizedBox(width: isCompact ? 4 : 8),
+                      Flexible(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: const Text('IO Wise'),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -756,15 +817,25 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
         ),
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
-          child: TabBarView(
-            controller: _tabController,
-            children: [
-              _buildCaseWiseTab(),
-              _buildTimeWiseTab(),
-              _buildIOWiseTab(),
-            ],
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1000),
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                isCompact ? 12 : 24,
+                isCompact ? 10 : 16,
+                isCompact ? 12 : 24,
+                isCompact ? 10 : 16,
+              ),
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildCaseWiseTab(isCompact),
+                  _buildTimeWiseTab(isCompact),
+                  _buildIOWiseTab(isCompact),
+                ],
+              ),
+            ),
           ),
         ),
       ),

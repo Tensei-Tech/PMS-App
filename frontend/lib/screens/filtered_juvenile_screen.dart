@@ -124,8 +124,10 @@ class _FilteredJuvenileScreenState extends State<FilteredJuvenileScreen> {
                   Expanded(
                     child: Text(
                       widget.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
-                        fontSize: 16,
+                        fontSize: 15,
                         fontWeight: FontWeight.w700,
                         color: AppColors.navyDark,
                       ),
