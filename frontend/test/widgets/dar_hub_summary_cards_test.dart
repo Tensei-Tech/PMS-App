@@ -146,44 +146,91 @@ void main() {
     expect(filledPos.dy, equals(pendingPos.dy));
   });
 
-  testWidgets(
-      'DarCasesDetailScreen renders cleanly on 360px mobile without overflow',
-      (tester) async {
-    tester.view.physicalSize = const Size(360, 800);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.reset);
+  final sampleDarCases = [
+    DarCaseItem.fromMap({
+      'id': '1',
+      'cr_no': '5646',
+      'act_and_section': 'IPC 279, 304A',
+      'sub_category': 'Death Due to Rash Driving',
+      'io_name': 'PI Patil',
+      'status': 'Filled',
+    }),
+    DarCaseItem.fromMap({
+      'id': '2',
+      'cr_no': '45896',
+      'act_and_section': '—',
+      'sub_category': 'Road Accident',
+      'io_name': 'PSI Shinde',
+      'status': 'Pending',
+    }),
+  ];
 
-    final sampleCases = [
-      DarCaseItem.fromMap({
-        'id': '1',
-        'cr_no': '5646',
-        'act_and_section': 'Road Accident',
-        'io_name': 'DGP Maharashtra',
-        'status': 'Filled',
-      }),
-      DarCaseItem.fromMap({
-        'id': '2',
-        'cr_no': '45896',
-        'act_and_section': 'Road Accident',
-        'io_name': 'DGP Maharashtra',
-        'status': 'Pending',
-      }),
-    ];
+  final sampleIradCases = [
+    IradCaseItem.fromMap({
+      'id': '1',
+      'cr_no': '5646',
+      'act_and_section': 'M.V. Act 184',
+      'sub_category': 'Road Accident',
+      'io_name': 'PI Patil',
+      'status': 'Filled',
+    }),
+    IradCaseItem.fromMap({
+      'id': '2',
+      'cr_no': '45896',
+      'act_and_section': '—',
+      'sub_category': 'Other Road Accident',
+      'io_name': 'PSI Shinde',
+      'status': 'Pending',
+    }),
+  ];
 
-    await tester.pumpWidget(buildApp(DarCasesDetailScreen(
-      title: 'DAR Cases — Road Accident',
-      cases: sampleCases,
-      stationName: 'All Stations',
-      onOpenCaseForm: (_) async {},
-      onSendReminderToIO: (_, __, ___) async {},
-      onRefreshData: () async {},
-    )));
-    await tester.pumpAndSettle();
+  for (final width in [360.0, 390.0, 768.0, 1280.0]) {
+    testWidgets(
+        'DarCasesDetailScreen renders cleanly on ${width.toInt()}px width without overflow',
+        (tester) async {
+      tester.view.physicalSize = Size(width, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
 
-    expect(find.text('Total'), findsOneWidget);
-    expect(find.text('Filled'), findsWidgets);
-    expect(find.text('Pending'), findsWidgets);
-    expect(find.text('Remind to IO'), findsOneWidget);
-    expect(tester.takeException(), isNull);
-  });
+      await tester.pumpWidget(buildApp(DarCasesDetailScreen(
+        title: 'DAR Cases — Death Due to Rash Driving',
+        cases: sampleDarCases,
+        stationName: 'All Stations',
+        onOpenCaseForm: (_) async {},
+        onSendReminderToIO: (_, __, ___) async {},
+        onRefreshData: () async {},
+      )));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Total'), findsOneWidget);
+      expect(find.text('Filled'), findsWidgets);
+      expect(find.text('Pending'), findsWidgets);
+      expect(find.text('Remind to IO'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets(
+        'IradCasesDetailScreen renders cleanly on ${width.toInt()}px width without overflow',
+        (tester) async {
+      tester.view.physicalSize = Size(width, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(buildApp(IradCasesDetailScreen(
+        title: 'IRAD Cases — Road Accident',
+        cases: sampleIradCases,
+        stationName: 'All Stations',
+        onOpenCaseForm: (_) async {},
+        onSendReminderToIO: (_, __, ___) async {},
+        onRefreshData: () async {},
+      )));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Total'), findsOneWidget);
+      expect(find.text('Filled'), findsWidgets);
+      expect(find.text('Pending'), findsWidgets);
+      expect(find.text('Remind to IO'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  }
 }
