@@ -72,6 +72,8 @@ class BaseModuleProvider extends ChangeNotifier {
       _stationId = effectiveStation;
       _uid = uid;
       _visibilityMode = visibilityMode;
+      _records = [];
+      _deletedIds.clear();
       _hasFetched = false;
       _pollTimer?.cancel();
       _pollTimer = null;
@@ -98,30 +100,22 @@ class BaseModuleProvider extends ChangeNotifier {
         forceRefresh: forceRefresh,
       );
 
-      if (fetched.isNotEmpty) {
-        // Merge backend records with existing local records by ID
-        final Map<String, ModuleRecord> merged = {
-          for (final r in _records)
-            if (!_deletedIds.contains(r.id)) r.id: r,
-        };
-        for (final r in fetched) {
-          if (!_deletedIds.contains(r.id)) {
-            merged[r.id] = r;
-          }
+      final Map<String, ModuleRecord> merged = {};
+      for (final r in fetched) {
+        if (!_deletedIds.contains(r.id)) {
+          merged[r.id] = r;
         }
-        final mergedList = merged.values.toList()
-          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-
-        _records = CaseVisibility.filterRecords(
-          mergedList,
-          uid: _uid,
-          mode: _visibilityMode,
-        );
-        notifyListeners();
-      } else if (forceRefresh && _records.isEmpty) {
-        _records = [];
-        notifyListeners();
       }
+      final mergedList = merged.values.toList()
+        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+      _records = CaseVisibility.filterRecords(
+        mergedList,
+        uid: _uid,
+        mode: _visibilityMode,
+        stationName: _stationId,
+      );
+      notifyListeners();
     } catch (e) {
       debugPrint('[$moduleKey] CaseService fetch error: $e');
       if (_records.isEmpty) {
