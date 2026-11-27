@@ -262,6 +262,27 @@ class RoadAccidentIradTests(TestCase):
         response = self.client.post(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
+    def test_irad_serializer_act_and_section_zero_category_fallback(self):
+        """Verifies IRAD serializer act_and_section returns legal sections or '-' and never falls back to sub_category/title."""
+        from apps.cases.serializers import IradCaseRecordSerializer
+        ser_filled = IradCaseRecordSerializer(self.case_filled)
+        self.assertIn('Sec 279', ser_filled.data['act_and_section'])
+
+        case_no_section = CaseRecord.objects.create(
+            case_number='CR/2026/IRAD-NOSEC',
+            title='Highway Collision',
+            sub_category='Road Accident',
+            module_key='form_1_5',
+            station_name='TUMSAR',
+            assigned_officer='PI Ramesh Patil',
+            assigned_officer_uid='io_uid_001',
+            extra_fields={}
+        )
+        ser_no_sec = IradCaseRecordSerializer(case_no_section)
+        self.assertEqual(ser_no_sec.data['act_and_section'], '-')
+        self.assertNotEqual(ser_no_sec.data['act_and_section'], 'Road Accident')
+        self.assertNotEqual(ser_no_sec.data['act_and_section'], 'Highway Collision')
+
     def test_irad_station_security_denied(self):
         """Verifies an officer without district/state permission cannot view other stations' data."""
         url = reverse('irad-cases-list')

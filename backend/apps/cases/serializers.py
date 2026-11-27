@@ -942,13 +942,6 @@ class DarCaseRecordSerializer(serializers.ModelSerializer):
             except Exception:
                 pass
 
-        # 4. Check sub_category or title from database record
-        if obj.sub_category and str(obj.sub_category).strip():
-            return str(obj.sub_category).strip()
-
-        if obj.title and str(obj.title).strip():
-            return str(obj.title).strip()
-
         return '-'
 
 
@@ -1084,13 +1077,6 @@ class IradCaseRecordSerializer(serializers.ModelSerializer):
                     return combined
             except Exception:
                 pass
-
-        # 4. Check sub_category or title from database record
-        if obj.sub_category and str(obj.sub_category).strip():
-            return str(obj.sub_category).strip()
-
-        if obj.title and str(obj.title).strip():
-            return str(obj.title).strip()
 
         return '-'
 

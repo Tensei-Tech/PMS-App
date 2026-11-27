@@ -112,7 +112,7 @@ class PendingSummaryScreen extends StatelessWidget {
       }
       rowMap['IO Name'] =
           r['io']?.trim().isNotEmpty == true ? r['io']!.trim() : '—';
-      if (!isUndetected && !isAbsconded) {
+      if (!isUndetected && !isAbsconded && !isVictim) {
         rowMap['Police Station'] = r['station']?.trim().isNotEmpty == true
             ? r['station']!.trim()
             : '—';
@@ -129,7 +129,7 @@ class PendingSummaryScreen extends StatelessWidget {
       if (isVictim) 'Name',
       if (isVictim) 'Injured/Deceased',
       'IO Name',
-      if (!isUndetected && !isAbsconded) 'Police Station',
+      if (!isUndetected && !isAbsconded && !isVictim) 'Police Station',
     ];
 
     final theme = await PdfUnicodeFonts.openSansTheme();

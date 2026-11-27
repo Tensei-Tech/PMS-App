@@ -263,6 +263,29 @@ class RoadAccidentDarTests(TestCase):
         self.assertEqual(resp_stats.status_code, status.HTTP_200_OK)
         self.assertEqual(resp_stats.json()['total_dar'], 3)
 
+    def test_12_dar_serializer_act_and_section_zero_category_fallback(self):
+        """Verifies act_and_section only returns actual legal sections or '-' and never falls back to sub_category/title."""
+        from apps.cases.serializers import DarCaseRecordSerializer
+        # Case with legal acts/sections
+        ser_filled = DarCaseRecordSerializer(self.case_filled)
+        self.assertIn('Sec 279', ser_filled.data['act_and_section'])
+
+        # Case without legal acts/sections (even though sub_category='Road Accident')
+        case_no_section = CaseRecord.objects.create(
+            case_number='CR/2026/ACC-NOSEC',
+            title='Fatal Crash',
+            sub_category='Road Accident',
+            module_key='form_1_5',
+            station_name='TUMSAR',
+            assigned_officer='PI Ramesh Patil',
+            assigned_officer_uid='io_uid_001',
+            extra_fields={}
+        )
+        ser_no_sec = DarCaseRecordSerializer(case_no_section)
+        self.assertEqual(ser_no_sec.data['act_and_section'], '-')
+        self.assertNotEqual(ser_no_sec.data['act_and_section'], 'Road Accident')
+        self.assertNotEqual(ser_no_sec.data['act_and_section'], 'Fatal Crash')
+
 
 class RoadAccidentSelectionTests(TestCase):
     """DAR / IRAD list Road Accident cases only, and read the answers from road_accident_records."""
