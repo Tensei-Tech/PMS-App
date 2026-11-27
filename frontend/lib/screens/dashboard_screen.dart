@@ -3449,71 +3449,127 @@ class _HomeTabState extends State<_HomeTab> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final menu in matchingMenus)
-                _quickNavChip(
-                  icon: menu.icon,
-                  label: menu.title,
-                  tag: menu.subtext,
-                  iconBg: const Color(0xFFEEF2FF),
-                  iconColor: AppColors.navyMid,
-                  onTap: menu.onTap,
-                ),
-              for (final cat in matchingFormIV)
-                _quickNavChip(
-                  icon: Icons.article_outlined,
-                  label: cat,
-                  tag: 'Form I-V',
-                  iconBg: const Color(0xFFE0F2FE),
-                  iconColor: const Color(0xFF0369A1),
-                  onTap: () {
-                    CategoryNavigationHelper.handleDashboardCategoryTap(
-                      context: context,
-                      categoryName: cat,
-                      moduleKey: 'form_1_5',
-                      readOnly: false,
-                    );
-                  },
-                ),
-              for (final item in matchingClassifications)
-                _quickNavChip(
-                  icon: _classIcon(item.iconName) is IconData
-                      ? _classIcon(item.iconName) as IconData
-                      : Icons.folder_outlined,
-                  label: TranslationHelper.translate(
-                      context, item.name.replaceAll('\n', ' ')),
-                  iconBg: const Color(0xFFF1F5F9),
-                  iconColor: AppColors.navyDark,
-                  onTap: () => _openClassificationItem(context, item),
-                ),
-            ],
-          ),
+          if (matchingClassifications.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            _quickNavSection(
+              'Modules',
+              [
+                for (final item in matchingClassifications)
+                  _quickNavChip(
+                    iconWidget: _moduleIconWidget(item),
+                    label: TranslationHelper.translate(
+                        context, item.name.replaceAll('\n', ' ')),
+                    onTap: () => _openClassificationItem(context, item),
+                  ),
+              ],
+            ),
+          ],
+          if (matchingFormIV.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            _quickNavSection(
+              'Form I–V',
+              [
+                for (final cat in matchingFormIV)
+                  _quickNavChip(
+                    iconWidget: const Icon(
+                      Icons.description_outlined,
+                      size: 15,
+                      color: AppColors.navyMid,
+                    ),
+                    label: cat,
+                    tag: 'Form I-V',
+                    onTap: () {
+                      CategoryNavigationHelper.handleDashboardCategoryTap(
+                        context: context,
+                        categoryName: cat,
+                        moduleKey: 'form_1_5',
+                        readOnly: false,
+                      );
+                    },
+                  ),
+              ],
+            ),
+          ],
+          if (matchingMenus.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            _quickNavSection(
+              'Navigation',
+              [
+                for (final menu in matchingMenus)
+                  _quickNavChip(
+                    iconWidget: Icon(
+                      menu.icon,
+                      size: 15,
+                      color: AppColors.navyMid,
+                    ),
+                    label: menu.title,
+                    tag: menu.subtext,
+                    onTap: menu.onTap,
+                  ),
+              ],
+            ),
+          ],
         ],
       ),
     );
   }
 
+  Widget _moduleIconWidget(Classification item) {
+    final label = item.name.replaceAll('\n', ' ');
+    ServiceData? matchedTool;
+    for (final t in ServiceData.dashboardTools) {
+      if (t.label.toLowerCase() == label.toLowerCase() ||
+          (t.moduleKey != null && t.moduleKey == item.moduleKey)) {
+        matchedTool = t;
+        break;
+      }
+    }
+    return _buildGridIcon(
+      item.name,
+      matchedTool?.icon ?? _classIcon(item.iconName),
+      AppColors.navyMid,
+      15,
+    );
+  }
+
+  Widget _quickNavSection(String heading, List<Widget> chips) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          heading.toUpperCase(),
+          style: GoogleFonts.poppins(
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.7,
+            color: const Color(0xFF64748B),
+          ),
+        ),
+        const SizedBox(height: 7),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: chips,
+        ),
+      ],
+    );
+  }
+
   Widget _quickNavChip({
-    required IconData icon,
+    required Widget iconWidget,
     required String label,
     String? tag,
-    required Color iconBg,
-    required Color iconColor,
     required VoidCallback onTap,
   }) {
     return Material(
-      color: const Color(0xFFF8FAFC),
+      color: Colors.white,
       borderRadius: BorderRadius.circular(10),
       child: InkWell(
         borderRadius: BorderRadius.circular(10),
         hoverColor: const Color(0xFFEFF6FF),
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
             border: Border.all(color: const Color(0xFFE2E8F0)),
@@ -3522,15 +3578,15 @@ class _HomeTabState extends State<_HomeTab> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 22,
-                height: 22,
+                width: 26,
+                height: 26,
                 decoration: BoxDecoration(
-                  color: iconBg,
-                  borderRadius: BorderRadius.circular(6),
+                  color: AppColors.navyDark.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(7),
                 ),
-                child: Icon(icon, color: iconColor, size: 13.5),
+                child: Center(child: iconWidget),
               ),
-              const SizedBox(width: 7),
+              const SizedBox(width: 8),
               Text(
                 label,
                 style: GoogleFonts.poppins(
