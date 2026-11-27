@@ -3397,18 +3397,17 @@ class _HomeTabState extends State<_HomeTab> {
     }
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(
-            color: AppColors.goldPrimary.withValues(alpha: 0.4), width: 1.2),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.navyDark.withValues(alpha: 0.06),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -3418,30 +3417,34 @@ class _HomeTabState extends State<_HomeTab> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(6),
+                width: 26,
+                height: 26,
                 decoration: BoxDecoration(
-                  color: AppColors.goldPrimary.withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
+                  color: const Color(0xFFEEF2FF),
+                  borderRadius: BorderRadius.circular(7),
                 ),
-                child: const Icon(Icons.flash_on_rounded,
-                    size: 16, color: AppColors.goldDark),
+                child: const Icon(
+                  Icons.bolt_rounded,
+                  size: 16,
+                  color: AppColors.navyMid,
+                ),
               ),
               const SizedBox(width: 8),
               Text(
                 'Quick Navigation & Modules',
                 style: GoogleFonts.poppins(
                   fontSize: 13,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                   color: AppColors.navyDark,
                 ),
               ),
               const Spacer(),
               Text(
-                'Tap to open directly',
+                '${matchingMenus.length + matchingFormIV.length + matchingClassifications.length} shortcuts',
                 style: GoogleFonts.poppins(
-                  fontSize: 11,
+                  fontSize: 11.5,
                   fontWeight: FontWeight.w500,
-                  color: AppColors.lightSubText,
+                  color: const Color(0xFF64748B),
                 ),
               ),
             ],
@@ -3452,182 +3455,112 @@ class _HomeTabState extends State<_HomeTab> {
             runSpacing: 8,
             children: [
               for (final menu in matchingMenus)
-                Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                    onTap: menu.onTap,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF1E3C72), Color(0xFF2A5298)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                        boxShadow: [
-                          BoxShadow(
-                            color:
-                                const Color(0xFF1E3C72).withValues(alpha: 0.25),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(menu.icon, color: Colors.white, size: 16),
-                          const SizedBox(width: 6),
-                          Text(
-                            menu.title,
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 5, vertical: 2),
-                            decoration: BoxDecoration(
-                              color:
-                                  AppColors.goldPrimary.withValues(alpha: 0.35),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              menu.subtext,
-                              style: GoogleFonts.poppins(
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                _quickNavChip(
+                  icon: menu.icon,
+                  label: menu.title,
+                  tag: menu.subtext,
+                  iconBg: const Color(0xFFEEF2FF),
+                  iconColor: AppColors.navyMid,
+                  onTap: menu.onTap,
                 ),
               for (final cat in matchingFormIV)
-                Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                    onTap: () {
-                      CategoryNavigationHelper.handleDashboardCategoryTap(
-                        context: context,
-                        categoryName: cat,
-                        moduleKey: 'form_1_5',
-                        readOnly: false,
-                      );
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF2193B0), Color(0xFF6DD5ED)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                        boxShadow: [
-                          BoxShadow(
-                            color:
-                                const Color(0xFF2193B0).withValues(alpha: 0.25),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.article_rounded,
-                              color: Colors.white, size: 16),
-                          const SizedBox(width: 6),
-                          Text(
-                            cat,
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 5, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.25),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              'Form I-V',
-                              style: GoogleFonts.poppins(
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                _quickNavChip(
+                  icon: Icons.article_outlined,
+                  label: cat,
+                  tag: 'Form I-V',
+                  iconBg: const Color(0xFFE0F2FE),
+                  iconColor: const Color(0xFF0369A1),
+                  onTap: () {
+                    CategoryNavigationHelper.handleDashboardCategoryTap(
+                      context: context,
+                      categoryName: cat,
+                      moduleKey: 'form_1_5',
+                      readOnly: false,
+                    );
+                  },
                 ),
               for (final item in matchingClassifications)
-                Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                    onTap: () => _openClassificationItem(context, item),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: AppColors.navyDark,
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.navyDark.withValues(alpha: 0.2),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            _classIcon(item.iconName) is IconData
-                                ? _classIcon(item.iconName) as IconData
-                                : Icons.folder_rounded,
-                            color: Colors.white,
-                            size: 15,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            TranslationHelper.translate(
-                                context, item.name.replaceAll('\n', ' ')),
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                _quickNavChip(
+                  icon: _classIcon(item.iconName) is IconData
+                      ? _classIcon(item.iconName) as IconData
+                      : Icons.folder_outlined,
+                  label: TranslationHelper.translate(
+                      context, item.name.replaceAll('\n', ' ')),
+                  iconBg: const Color(0xFFF1F5F9),
+                  iconColor: AppColors.navyDark,
+                  onTap: () => _openClassificationItem(context, item),
                 ),
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _quickNavChip({
+    required IconData icon,
+    required String label,
+    String? tag,
+    required Color iconBg,
+    required Color iconColor,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: const Color(0xFFF8FAFC),
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        hoverColor: const Color(0xFFEFF6FF),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(
+                  color: iconBg,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Icon(icon, color: iconColor, size: 13.5),
+              ),
+              const SizedBox(width: 7),
+              Text(
+                label,
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.navyDark,
+                ),
+              ),
+              if (tag != null && tag.isNotEmpty) ...[
+                const SizedBox(width: 6),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE2E8F0).withValues(alpha: 0.7),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: Text(
+                    tag,
+                    style: GoogleFonts.poppins(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xFF475569),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }
