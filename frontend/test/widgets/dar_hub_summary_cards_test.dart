@@ -91,13 +91,13 @@ void main() {
     await tester.pumpWidget(buildApp(const DarHubScreen()));
     await tester.pumpAndSettle();
 
-    expect(find.text('Total DAR'), findsOneWidget);
-    expect(find.text('DAR Form Filled'), findsOneWidget);
-    expect(find.text('DAR Form Pending'), findsOneWidget);
+    expect(find.text('Total'), findsOneWidget);
+    expect(find.text('Filled'), findsOneWidget);
+    expect(find.text('Pending'), findsOneWidget);
 
-    final totalPos = tester.getTopLeft(find.text('Total DAR'));
-    final filledPos = tester.getTopLeft(find.text('DAR Form Filled'));
-    final pendingPos = tester.getTopLeft(find.text('DAR Form Pending'));
+    final totalPos = tester.getTopLeft(find.text('Total'));
+    final filledPos = tester.getTopLeft(find.text('Filled'));
+    final pendingPos = tester.getTopLeft(find.text('Pending'));
 
     expect(totalPos.dy, equals(filledPos.dy));
     expect(filledPos.dy, equals(pendingPos.dy));
@@ -134,15 +134,56 @@ void main() {
     await tester.pumpWidget(buildApp(const IradHubScreen()));
     await tester.pumpAndSettle();
 
-    expect(find.text('Total IRAD'), findsOneWidget);
-    expect(find.text('IRAD Form Filled'), findsOneWidget);
-    expect(find.text('IRAD Form Pending'), findsOneWidget);
+    expect(find.text('Total'), findsOneWidget);
+    expect(find.text('Filled'), findsOneWidget);
+    expect(find.text('Pending'), findsOneWidget);
 
-    final totalPos = tester.getTopLeft(find.text('Total IRAD'));
-    final filledPos = tester.getTopLeft(find.text('IRAD Form Filled'));
-    final pendingPos = tester.getTopLeft(find.text('IRAD Form Pending'));
+    final totalPos = tester.getTopLeft(find.text('Total'));
+    final filledPos = tester.getTopLeft(find.text('Filled'));
+    final pendingPos = tester.getTopLeft(find.text('Pending'));
 
     expect(totalPos.dy, equals(filledPos.dy));
     expect(filledPos.dy, equals(pendingPos.dy));
+  });
+
+  testWidgets(
+      'DarCasesDetailScreen renders cleanly on 360px mobile without overflow',
+      (tester) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final sampleCases = [
+      DarCaseItem.fromMap({
+        'id': '1',
+        'cr_no': '5646',
+        'act_and_section': 'Road Accident',
+        'io_name': 'DGP Maharashtra',
+        'status': 'Filled',
+      }),
+      DarCaseItem.fromMap({
+        'id': '2',
+        'cr_no': '45896',
+        'act_and_section': 'Road Accident',
+        'io_name': 'DGP Maharashtra',
+        'status': 'Pending',
+      }),
+    ];
+
+    await tester.pumpWidget(buildApp(DarCasesDetailScreen(
+      title: 'DAR Cases — Road Accident',
+      cases: sampleCases,
+      stationName: 'All Stations',
+      onOpenCaseForm: (_) async {},
+      onSendReminderToIO: (_, __, ___) async {},
+      onRefreshData: () async {},
+    )));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Total'), findsOneWidget);
+    expect(find.text('Filled'), findsWidgets);
+    expect(find.text('Pending'), findsWidgets);
+    expect(find.text('Remind to IO'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }

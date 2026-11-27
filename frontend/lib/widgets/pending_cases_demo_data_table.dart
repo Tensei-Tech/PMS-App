@@ -56,7 +56,7 @@ class PendingCasesDemoDataTable extends StatelessWidget {
 
           if (isVictim) {
             final otherColW = math.max(colUnitW * 1.15, 120.0);
-            tableWidth = srWidth + (colUnitW * 3) + (otherColW * 4);
+            tableWidth = srWidth + (colUnitW * 3) + (otherColW * 3);
             columnWidths = <int, TableColumnWidth>{
               0: const FixedColumnWidth(srWidth),
               1: FixedColumnWidth(colUnitW),
@@ -65,7 +65,6 @@ class PendingCasesDemoDataTable extends StatelessWidget {
               4: FixedColumnWidth(otherColW),
               5: FixedColumnWidth(otherColW),
               6: FixedColumnWidth(otherColW),
-              7: FixedColumnWidth(otherColW),
             };
           } else if (isAbsconded) {
             final otherColW = math.max(colUnitW * 1.25, 130.0);
@@ -111,7 +110,6 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                   4: FlexColumnWidth(1.2),
                   5: FlexColumnWidth(1.0),
                   6: FlexColumnWidth(1.2),
-                  7: FlexColumnWidth(1.2),
                 }
               : isAbsconded
                   ? const <int, TableColumnWidth>{
@@ -230,7 +228,8 @@ class PendingCasesDemoDataTable extends StatelessWidget {
           if (isVictim) headerCell('Name'),
           if (isVictim) headerCell('Injured/Deceased'),
           headerCell('IO Name'),
-          if (!isUndetected && !isAbsconded) headerCell('Police Station'),
+          if (!isUndetected && !isAbsconded && !isVictim)
+            headerCell('Police Station'),
         ];
 
         TableRow rowFor(int idx, Map<String, String> r) {
@@ -271,7 +270,7 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                         : '—',
                     align: Alignment.centerLeft),
               dataCell(r['io'] ?? '—', align: Alignment.centerLeft),
-              if (!isUndetected && !isAbsconded)
+              if (!isUndetected && !isAbsconded && !isVictim)
                 dataCell(r['station'] ?? '—', align: Alignment.centerLeft),
             ],
           );

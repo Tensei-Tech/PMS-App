@@ -73,6 +73,46 @@ class ModuleHubScreenAppBar extends StatelessWidget
     );
   }
 
+  /// Factory for standard compact pill 'PDF' button matching the Add Case button.
+  static Widget buildPdfButton({
+    required BuildContext context,
+    required VoidCallback onPressed,
+    Color? backgroundColor,
+    Color? foregroundColor,
+  }) {
+    final bg = backgroundColor ?? AppColors.navyMid;
+    final fg = foregroundColor ?? Colors.white;
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: bg,
+        foregroundColor: fg,
+        elevation: 0,
+        minimumSize: const Size(0, 34),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+        visualDensity: VisualDensity.compact,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        shape: const StadiumBorder(),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.picture_as_pdf_rounded, size: 16, color: fg),
+          const SizedBox(width: 6),
+          Text(
+            'PDF',
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: fg,
+              letterSpacing: 0.2,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 

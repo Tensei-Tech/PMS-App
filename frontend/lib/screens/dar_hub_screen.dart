@@ -14,12 +14,14 @@ import '../widgets/dynamic_form/dynamic_form_screen.dart';
 import '../widgets/sub_tab_host.dart';
 import '../utils/dynamic_map_pdf.dart';
 import '../utils/pdf_unicode_fonts.dart';
+import '../widgets/custom_pdf_preview_dialog.dart';
 
 /// Strongly-typed data model for a DAR case item
 class DarCaseItem {
   final String id;
   final String crNo;
   final String actAndSection;
+  final String subCategory;
   final String ioName;
   final String ioUid;
   final String status;
@@ -33,6 +35,7 @@ class DarCaseItem {
     required this.id,
     required this.crNo,
     required this.actAndSection,
+    this.subCategory = '',
     required this.ioName,
     required this.ioUid,
     required this.status,
@@ -47,13 +50,18 @@ class DarCaseItem {
     final now = DateTime.now();
     final id = (m['id'] ?? '').toString();
     final crNo = (m['cr_no'] ?? m['case_number'] ?? '—').toString();
-    final act = (m['act_and_section'] ??
-            m['sub_category'] ??
+    final subCat = (m['sub_category'] ??
             m['category_name'] ??
             m['title'] ??
-            'Road Accident')
+            '')
         .toString()
         .trim();
+    final rawAct = (m['act_and_section'] ?? m['section'] ?? m['charges'] ?? '')
+        .toString()
+        .trim();
+    final act = (rawAct.isNotEmpty && rawAct != '-' && rawAct != '—')
+        ? rawAct
+        : '—';
     final io = (m['io_name'] ?? m['assigned_officer'] ?? 'Unassigned')
         .toString()
         .trim();
@@ -85,7 +93,8 @@ class DarCaseItem {
     return DarCaseItem(
       id: id,
       crNo: crNo.isEmpty ? '—' : crNo,
-      actAndSection: act.isEmpty ? 'Road Accident' : act,
+      actAndSection: act,
+      subCategory: subCat,
       ioName: io.isEmpty ? 'Unassigned' : io,
       ioUid: ioUid,
       status: st,
@@ -295,14 +304,11 @@ class _DarHubScreenState extends State<DarHubScreen>
         pendingCount++;
       }
 
-      final cat = c.actAndSection.trim().isNotEmpty &&
-              c.actAndSection.trim() != '—'
-          ? c.actAndSection.trim()
-          : (c.rawMap['sub_category']?.toString().trim().isNotEmpty == true
-              ? c.rawMap['sub_category'].toString().trim()
-              : (c.rawMap['category_name']?.toString().trim().isNotEmpty == true
-                  ? c.rawMap['category_name'].toString().trim()
-                  : ''));
+      final cat = c.subCategory.isNotEmpty
+          ? c.subCategory
+          : (c.actAndSection.trim().isNotEmpty && c.actAndSection.trim() != '—'
+              ? c.actAndSection.trim()
+              : '');
       if (cat.isNotEmpty && cat != '—') {
         dynamicCategories.add(cat);
       }
@@ -476,8 +482,11 @@ class _DarHubScreenState extends State<DarHubScreen>
     // 1. Group for Case Wise
     final grouped = <String, List<DarCaseItem>>{};
     for (final c in activeCases) {
-      final head =
-          c.actAndSection.isNotEmpty ? c.actAndSection : 'Road Accident';
+      final head = c.subCategory.isNotEmpty
+          ? c.subCategory
+          : (c.actAndSection.isNotEmpty && c.actAndSection != '—'
+              ? c.actAndSection
+              : 'General');
       if (!grouped.containsKey(head)) {
         grouped[head] = <DarCaseItem>[];
       }
@@ -565,12 +574,165 @@ class _DarHubScreenState extends State<DarHubScreen>
         .join(', ');
   }
 
+  Future<void> _exportPdf() async {
+    final activeCases = _getActiveFilteredCases();
+    if (activeCases.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'No DAR cases available to export.',
+            style: GoogleFonts.poppins(),
+          ),
+          backgroundColor: AppColors.navyDark,
+        ),
+      );
+      return;
+    }
+
+    final theme = await PdfUnicodeFonts.openSansTheme();
+
+    final rows = activeCases.asMap().entries.map((entry) {
+      final i = entry.key + 1;
+      final c = entry.value;
+      return <String, dynamic>{
+        'Sr. No.': '$i',
+        'CR No.': c.crNo,
+        'Act and Section': c.actAndSection,
+        'IO Name': c.ioName,
+        'Status': c.status,
+      };
+    }).toList();
+
+    final columnOrder = [
+      'Sr. No.',
+      'CR No.',
+      'Act and Section',
+      'IO Name',
+      'Status',
+    ];
+
+    final filterLabel = _getActiveFilterLabels();
+    final title = filterLabel == 'Total'
+        ? 'DAR Cases — Summary'
+        : 'DAR Cases — $filterLabel';
+
+    final stName = (widget.stationName != null && widget.stationName!.isNotEmpty)
+        ? widget.stationName!
+        : 'All Stations';
+
+    final doc = DynamicMapPdf.buildLandscapeDataTableDocument(
+      theme: theme,
+      title: '$title — $stName',
+      rows: rows,
+      prependSerial: false,
+      columnOrder: columnOrder,
+    );
+
+    if (!mounted) return;
+
+    await CustomPdfPreviewDialog.show(
+      context: context,
+      title: title,
+      fileName: 'DAR_Cases_${DateTime.now().millisecondsSinceEpoch}.pdf',
+      buildPdf: (_) async => doc.save(),
+    );
+  }
+
   // ---------------------------------------------------------------------------
   // REMIND IO ACTION & CASE FORM NAVIGATION
   // ---------------------------------------------------------------------------
 
   Future<void> _sendReminderToIO(
       String caseId, String crNo, String ioName) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEF4444).withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.notifications_active_rounded,
+                  color: Color(0xFFEF4444), size: 20),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              'Remind to IO',
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppColors.navyDark,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Send a supervisory reminder to the Investigating Officer to complete the DAR report for this case?',
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                color: AppColors.navyDark,
+                height: 1.35,
+              ),
+            ),
+            const SizedBox(height: 14),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF6F8FF),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('CR No: $crNo',
+                      style: GoogleFonts.poppins(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.navyDark)),
+                  if (ioName.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text('IO: $ioName',
+                        style: GoogleFonts.poppins(
+                            fontSize: 12, color: AppColors.lightSubText)),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text('Cancel',
+                style: GoogleFonts.poppins(color: AppColors.lightSubText)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFEF4444),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text('Send Reminder',
+                style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
     try {
       final url = '${ApiConfig.cases}dar/$caseId/remind/';
       final res = await _apiService.post(url, body: {});
@@ -601,9 +763,11 @@ class _DarHubScreenState extends State<DarHubScreen>
 
   Future<void> _openNewCaseForm() async {
     final defaultCat =
-        _rawCases.isNotEmpty && _rawCases.first.actAndSection.isNotEmpty
-            ? _rawCases.first.actAndSection
-            : 'Road Accident';
+        _rawCases.isNotEmpty && _rawCases.first.subCategory.isNotEmpty
+            ? _rawCases.first.subCategory
+            : (_rawCases.isNotEmpty && _rawCases.first.actAndSection != '—'
+                ? _rawCases.first.actAndSection
+                : '');
 
     await Navigator.push(
       context,
@@ -640,9 +804,11 @@ class _DarHubScreenState extends State<DarHubScreen>
               : 'dar',
           subCategory: (caseData['sub_category']?.toString().isNotEmpty == true)
               ? caseData['sub_category'].toString()
-              : (item.actAndSection.isNotEmpty
-                  ? item.actAndSection
-                  : 'Road Accident'),
+              : (item.subCategory.isNotEmpty
+                  ? item.subCategory
+                  : (item.actAndSection != '—'
+                      ? item.actAndSection
+                      : '')),
           existingRecord: ModuleRecord(
             id: caseId,
             caseNumber: crNo,
@@ -665,7 +831,11 @@ class _DarHubScreenState extends State<DarHubScreen>
             subCategory:
                 (caseData['sub_category']?.toString().isNotEmpty == true)
                     ? caseData['sub_category'].toString()
-                    : item.actAndSection,
+                    : (item.subCategory.isNotEmpty
+                        ? item.subCategory
+                        : (item.actAndSection != '—'
+                            ? item.actAndSection
+                            : '')),
             extraFields: existingExtra,
             createdBy: caseData['created_by']?.toString() ?? '',
             stationName: item.stationName.isNotEmpty
@@ -1944,12 +2114,12 @@ class _DarHubScreenState extends State<DarHubScreen>
           children: [
             Expanded(
               child: _buildMetricCard(
-                title: isCompact ? 'Total' : 'Total DAR',
+                title: 'Total',
                 count: _filterCounts['all'] ?? _rawCases.length,
                 icon: Icons.assignment_outlined,
-                activeColor: const Color(0xFF1976D2),
-                iconBg: const Color(0xFFE8F1FC),
-                iconFg: const Color(0xFF1976D2),
+                activeColor: AppColors.navyDark,
+                iconBg: AppColors.navyMid.withValues(alpha: 0.08),
+                iconFg: AppColors.navyMid,
                 isActive: _selectedFilterKeys.contains('all') ||
                     _selectedFilterKeys.isEmpty,
                 isCompact: isCompact,
@@ -1961,12 +2131,12 @@ class _DarHubScreenState extends State<DarHubScreen>
             SizedBox(width: isCompact ? 8 : 14),
             Expanded(
               child: _buildMetricCard(
-                title: isCompact ? 'Filled' : 'DAR Form Filled',
+                title: 'Filled',
                 count: _filterCounts['filled'] ?? 0,
                 icon: Icons.check_circle_outline_rounded,
-                activeColor: const Color(0xFF2E7D32),
-                iconBg: const Color(0xFFE8F5E9),
-                iconFg: const Color(0xFF2E7D32),
+                activeColor: AppColors.successGreen,
+                iconBg: AppColors.successGreen.withValues(alpha: 0.1),
+                iconFg: AppColors.successGreen,
                 isActive: _selectedFilterKeys.contains('filled'),
                 isCompact: isCompact,
                 onTap: () {
@@ -1977,12 +2147,12 @@ class _DarHubScreenState extends State<DarHubScreen>
             SizedBox(width: isCompact ? 8 : 14),
             Expanded(
               child: _buildMetricCard(
-                title: isCompact ? 'Pending' : 'DAR Form Pending',
+                title: 'Pending',
                 count: _filterCounts['pending'] ?? 0,
                 icon: Icons.pending_actions_rounded,
-                activeColor: const Color(0xFFE65100),
-                iconBg: const Color(0xFFFFF3E0),
-                iconFg: const Color(0xFFE65100),
+                activeColor: AppColors.dangerRed,
+                iconBg: AppColors.dangerRed.withValues(alpha: 0.1),
+                iconFg: AppColors.dangerRed,
                 isActive: _selectedFilterKeys.contains('pending'),
                 isCompact: isCompact,
                 onTap: () {
@@ -2102,7 +2272,7 @@ class _DarHubScreenState extends State<DarHubScreen>
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'DAR (Detailed Accident Report)',
+              'DAR',
               style: GoogleFonts.poppins(
                 color: AppColors.navyDark,
                 fontWeight: FontWeight.w700,
@@ -2110,7 +2280,7 @@ class _DarHubScreenState extends State<DarHubScreen>
               ),
             ),
             Text(
-              'Road Accident Investigation Records',
+              'Detailed Accident Report',
               style: GoogleFonts.poppins(
                 color: AppColors.lightSubText,
                 fontSize: 11,
@@ -2125,47 +2295,12 @@ class _DarHubScreenState extends State<DarHubScreen>
           ),
           const SizedBox(width: 8),
 
-          // Summary Button (like Victim tab)
-          ElevatedButton.icon(
-            onPressed: () {
-              _openDetailScreen(
-                title: _selectedFilterKeys.contains('all')
-                    ? 'DAR Cases — Summary'
-                    : 'DAR Summary — ${_getActiveFilterLabels()}',
-                cases: _getActiveFilteredCases(),
-              );
-            },
-            icon: const Icon(
-              Icons.assessment_outlined,
-              color: Colors.white,
-              size: 16,
-            ),
-            label: Text(
-              'Summary',
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
-                color: Colors.white,
-              ),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.navyMid,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            ),
+          // PDF Button matching Add Case button size & stadium shape
+          ModuleHubScreenAppBar.buildPdfButton(
+            context: context,
+            onPressed: _exportPdf,
           ),
-          const SizedBox(width: 6),
-
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded,
-                color: AppColors.navyMid, size: 20),
-            tooltip: 'Refresh',
-            onPressed: _fetchDarData,
-          ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 16),
         ],
         bottom: SubTabHost.appBarBottomAbove(
           context,
@@ -2329,7 +2464,11 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
           final cr = c.crNo.toLowerCase();
           final io = c.ioName.toLowerCase();
           final act = c.actAndSection.toLowerCase();
-          if (!cr.contains(q) && !io.contains(q) && !act.contains(q)) {
+          final sub = c.subCategory.toLowerCase();
+          if (!cr.contains(q) &&
+              !io.contains(q) &&
+              !act.contains(q) &&
+              !sub.contains(q)) {
             return false;
           }
         }
@@ -2440,14 +2579,17 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
       columnOrder: columnOrder,
     );
 
-    await Printing.sharePdf(
-      bytes: await doc.save(),
-      filename:
+    if (!mounted) return;
+    await CustomPdfPreviewDialog.show(
+      context: context,
+      title: widget.title,
+      fileName:
           '${widget.title.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_')}.pdf',
+      buildPdf: (_) async => doc.save(),
     );
   }
 
-  Widget _buildDateFilterMenu(BuildContext context) {
+  Widget _buildDateFilterMenu(BuildContext context, {bool isMobile = false}) {
     final hasFilter = _selectedDateRange != null;
     final now = DateTime.now();
 
@@ -2576,13 +2718,13 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
         ),
       ],
       child: Container(
-        height: 38,
-        padding: const EdgeInsets.symmetric(horizontal: 10),
+        height: isMobile ? 32 : 34,
+        padding: EdgeInsets.symmetric(horizontal: isMobile ? 6 : 8),
         decoration: BoxDecoration(
           color: hasFilter
               ? AppColors.navyMid.withValues(alpha: 0.08)
               : Colors.white,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(6),
           border: Border.all(
             color: hasFilter ? AppColors.navyMid : const Color(0xFFCBD5E1),
           ),
@@ -2592,22 +2734,22 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
           children: [
             Icon(
               Icons.calendar_month_rounded,
-              size: 16,
+              size: isMobile ? 13 : 15,
               color: hasFilter ? AppColors.navyMid : AppColors.lightSubText,
             ),
-            const SizedBox(width: 6),
+            SizedBox(width: isMobile ? 4 : 5),
             Text(
-              _datePresetLabel ?? 'Date Filter',
+              _datePresetLabel ?? (isMobile ? 'Date' : 'Date Filter'),
               style: GoogleFonts.poppins(
-                fontSize: 12,
+                fontSize: isMobile ? 10.5 : 11.5,
                 fontWeight: hasFilter ? FontWeight.w600 : FontWeight.w500,
                 color: hasFilter ? AppColors.navyMid : AppColors.navyDark,
               ),
             ),
-            const SizedBox(width: 4),
+            SizedBox(width: isMobile ? 2 : 3),
             Icon(
               Icons.arrow_drop_down_rounded,
-              size: 18,
+              size: isMobile ? 15 : 17,
               color: hasFilter ? AppColors.navyMid : AppColors.lightSubText,
             ),
           ],
@@ -2648,16 +2790,20 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
     required Color color,
     required Color bgColor,
     bool isSelected = false,
+    bool isMobile = false,
     VoidCallback? onTap,
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(isMobile ? 8 : 10),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+        padding: EdgeInsets.symmetric(
+          horizontal: isMobile ? 6 : 10,
+          vertical: isMobile ? 6 : 8,
+        ),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(isMobile ? 8 : 10),
           border: Border.all(
             color: isSelected ? color : Colors.grey.withValues(alpha: 0.2),
             width: isSelected ? 2 : 1,
@@ -2665,46 +2811,52 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
           boxShadow: [
             BoxShadow(
               color: isSelected
-                  ? color.withValues(alpha: 0.15)
+                  ? color.withValues(alpha: 0.12)
                   : Colors.black.withValues(alpha: 0.02),
-              blurRadius: isSelected ? 8 : 6,
-              offset: const Offset(0, 2),
+              blurRadius: isSelected ? 6 : 4,
+              offset: const Offset(0, 1),
             ),
           ],
         ),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: EdgeInsets.all(isMobile ? 4 : 6),
               decoration: BoxDecoration(
                 color: bgColor,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(isMobile ? 6 : 8),
               ),
-              child: Icon(icon, color: color, size: 20),
+              child: Icon(icon, color: color, size: isMobile ? 14 : 18),
             ),
-            const SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  title,
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                    color: isSelected ? color : AppColors.lightSubText,
+            SizedBox(width: isMobile ? 5 : 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: isMobile ? 10.5 : 11.5,
+                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                      color: isSelected ? color : AppColors.lightSubText,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  count.toString(),
-                  style: GoogleFonts.poppins(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.navyDark,
+                  const SizedBox(height: 1),
+                  Text(
+                    count.toString(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: isMobile ? 15 : 18,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.navyDark,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
@@ -2723,7 +2875,11 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
         final cr = c.crNo.toLowerCase();
         final io = c.ioName.toLowerCase();
         final act = c.actAndSection.toLowerCase();
-        if (!cr.contains(q) && !io.contains(q) && !act.contains(q)) {
+        final sub = c.subCategory.toLowerCase();
+        if (!cr.contains(q) &&
+            !io.contains(q) &&
+            !act.contains(q) &&
+            !sub.contains(q)) {
           continue;
         }
       }
@@ -2744,74 +2900,65 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
       }
     }
 
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 650;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF6F8FF),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 1,
         iconTheme: const IconThemeData(color: AppColors.navyDark),
+        titleSpacing: isMobile ? NavigationToolbar.kMiddleSpacing / 2 : NavigationToolbar.kMiddleSpacing,
         title: Text(
           widget.title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: GoogleFonts.poppins(
             color: AppColors.navyDark,
             fontWeight: FontWeight.w700,
-            fontSize: 16,
+            fontSize: isMobile ? 14 : 16,
           ),
         ),
         actions: [
           if (widget.onOpenNewCaseForm != null)
-            ElevatedButton.icon(
+            ElevatedButton(
               onPressed: widget.onOpenNewCaseForm,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.navyMid,
                 foregroundColor: Colors.white,
                 elevation: 0,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
+                minimumSize: Size(0, isMobile ? 30 : 34),
+                padding: EdgeInsets.symmetric(
+                    horizontal: isMobile ? 10 : 16, vertical: 0),
+                visualDensity: VisualDensity.compact,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                shape: const StadiumBorder(),
               ),
-              icon: const Icon(Icons.add_rounded, size: 16),
-              label: Text(
-                'Add Case',
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.add_rounded, size: isMobile ? 15 : 16, color: Colors.white),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Add Case',
+                    style: GoogleFonts.poppins(
+                      fontSize: isMobile ? 11 : 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                ],
               ),
             ),
-          const SizedBox(width: 8),
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: AppColors.navyMid),
-            tooltip: 'Refresh',
-            onPressed: () async {
-              await widget.onRefreshData();
-              _applySearch();
-            },
-          ),
-          const SizedBox(width: 8),
+          SizedBox(width: isMobile ? 8 : 16),
         ],
       ),
-      floatingActionButton: widget.onOpenNewCaseForm != null
-          ? FloatingActionButton.extended(
-              onPressed: widget.onOpenNewCaseForm,
-              backgroundColor: AppColors.navyMid,
-              foregroundColor: Colors.white,
-              elevation: 4,
-              icon: const Icon(Icons.add_rounded, size: 20),
-              label: Text(
-                'Add Case',
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            )
-          : null,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.symmetric(
+              horizontal: isMobile ? 8.0 : 16.0, vertical: isMobile ? 8.0 : 10.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -2826,6 +2973,7 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
                       color: AppColors.navyMid,
                       bgColor: AppColors.navyMid.withValues(alpha: 0.08),
                       isSelected: _statusFilter == 'all',
+                      isMobile: isMobile,
                       onTap: () => _setStatusFilter('all'),
                     ),
                     _buildStatCard(
@@ -2835,6 +2983,7 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
                       color: AppColors.successGreen,
                       bgColor: AppColors.successGreen.withValues(alpha: 0.1),
                       isSelected: _statusFilter == 'filled',
+                      isMobile: isMobile,
                       onTap: () => _setStatusFilter('filled'),
                     ),
                     _buildStatCard(
@@ -2844,6 +2993,7 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
                       color: AppColors.dangerRed,
                       bgColor: AppColors.dangerRed.withValues(alpha: 0.1),
                       isSelected: _statusFilter == 'pending',
+                      isMobile: isMobile,
                       onTap: () => _setStatusFilter('pending'),
                     ),
                   ];
@@ -2852,8 +3002,8 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
                     children: cards
                         .map((c) => Expanded(
                               child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 4),
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: isMobile ? 2 : 4),
                                 child: c,
                               ),
                             ))
@@ -2862,14 +3012,15 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
                 },
               ),
 
-              const SizedBox(height: 16),
+              SizedBox(height: isMobile ? 8 : 10),
 
               // Search, Date Filter & PDF Row (matching Screenshot 1)
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: EdgeInsets.symmetric(
+                    horizontal: isMobile ? 8 : 10, vertical: isMobile ? 4 : 6),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
                 ),
                 child: Row(
@@ -2877,21 +3028,25 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
                     Expanded(
                       child: TextField(
                         controller: _searchController,
-                        style: GoogleFonts.poppins(fontSize: 13),
+                        style: GoogleFonts.poppins(
+                            fontSize: isMobile ? 11.5 : 12.5),
                         decoration: InputDecoration(
-                          hintText: 'Search by CR No. or IO Name...',
+                          hintText: isMobile
+                              ? 'Search CR or IO...'
+                              : 'Search by CR No. or IO Name...',
                           hintStyle: GoogleFonts.poppins(
-                            fontSize: 13,
+                            fontSize: isMobile ? 11.5 : 12.5,
                             color: AppColors.lightSubText,
                           ),
-                          prefixIcon: const Icon(
+                          prefixIcon: Icon(
                             Icons.search,
                             color: AppColors.navyMid,
-                            size: 18,
+                            size: isMobile ? 16 : 17,
                           ),
                           suffixIcon: _searchController.text.isNotEmpty
                               ? IconButton(
-                                  icon: const Icon(Icons.clear, size: 16),
+                                  icon: Icon(Icons.clear,
+                                      size: isMobile ? 14 : 15),
                                   onPressed: () {
                                     _searchController.clear();
                                     _searchQuery = '';
@@ -2901,13 +3056,14 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
                               : null,
                           isDense: true,
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(6),
                             borderSide: BorderSide(
                               color: Colors.grey.withValues(alpha: 0.3),
                             ),
                           ),
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 8),
+                          contentPadding: EdgeInsets.symmetric(
+                              horizontal: isMobile ? 6 : 10,
+                              vertical: isMobile ? 4 : 6),
                         ),
                         onChanged: (val) {
                           _searchQuery = val;
@@ -2915,29 +3071,29 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
                         },
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    SizedBox(width: isMobile ? 5 : 8),
 
                     // Date Filter Menu (matching Screenshot 1)
-                    _buildDateFilterMenu(context),
-                    const SizedBox(width: 8),
+                    _buildDateFilterMenu(context, isMobile: isMobile),
+                    SizedBox(width: isMobile ? 4 : 6),
 
                     // PDF Export Button (matching Screenshot 1)
                     Container(
-                      height: 38,
-                      width: 38,
+                      height: isMobile ? 32 : 34,
+                      width: isMobile ? 32 : 34,
                       decoration: BoxDecoration(
                         color: const Color(0xFFFEF2F2),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(6),
                         border: Border.all(color: const Color(0xFFFCA5A5)),
                       ),
                       child: IconButton(
                         padding: EdgeInsets.zero,
                         tooltip: 'Export PDF',
                         onPressed: _displayCases.isNotEmpty ? _exportPdf : null,
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.picture_as_pdf_outlined,
-                          color: Color(0xFFDC2626),
-                          size: 20,
+                          color: const Color(0xFFDC2626),
+                          size: isMobile ? 16 : 18,
                         ),
                       ),
                     ),
@@ -2945,118 +3101,125 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
                 ),
               ),
 
-              const SizedBox(height: 14),
+              SizedBox(height: isMobile ? 8 : 10),
 
               // Cases Table
-              Expanded(
-                child: _displayCases.isEmpty
-                    ? Center(
-                        child: Text(
-                          'No cases found matching your criteria.',
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            color: AppColors.lightSubText,
+              _displayCases.isEmpty
+                  ? Container(
+                      padding: const EdgeInsets.symmetric(vertical: 36),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                            color: Colors.grey.withValues(alpha: 0.2)),
+                      ),
+                      child: Text(
+                        'No cases found matching your criteria.',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          color: AppColors.lightSubText,
+                        ),
+                      ),
+                    )
+                  : Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                            color: Colors.grey.withValues(alpha: 0.2)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.02),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
                           ),
-                        ),
-                      )
-                    : Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                              color: Colors.grey.withValues(alpha: 0.2)),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.02),
-                              blurRadius: 8,
-                              offset: const Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: LayoutBuilder(
-                            builder: (context, constraints) {
-                              const minWidth = 780.0;
-                              final tableWidth = constraints.maxWidth > minWidth
-                                  ? constraints.maxWidth
-                                  : minWidth;
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final minWidth = isMobile ? 620.0 : 840.0;
+                            final tableWidth = constraints.maxWidth > minWidth
+                                ? constraints.maxWidth
+                                : minWidth;
 
-                              const columnWidths = <int, TableColumnWidth>{
-                                0: FixedColumnWidth(65),
-                                1: FlexColumnWidth(1.4),
-                                2: FlexColumnWidth(2.0),
-                                3: FlexColumnWidth(1.6),
-                                4: FixedColumnWidth(100),
-                                5: FixedColumnWidth(140),
-                              };
+                            final columnWidths = <int, TableColumnWidth>{
+                              0: FixedColumnWidth(isMobile ? 48 : 65),
+                              1: const FlexColumnWidth(1.2),
+                              2: const FlexColumnWidth(1.8),
+                              3: const FlexColumnWidth(1.5),
+                              4: FixedColumnWidth(isMobile ? 85 : 110),
+                              5: FixedColumnWidth(isMobile ? 120 : 150),
+                            };
 
-                              Widget headerCell(String text,
-                                  {Alignment align = Alignment.centerLeft}) {
-                                return Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 14),
-                                  alignment: align,
-                                  child: Text(
-                                    text,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 12.5,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.white,
-                                    ),
+                            Widget headerCell(String text,
+                                {Alignment align = Alignment.centerLeft}) {
+                              return Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: isMobile ? 6 : 8,
+                                    vertical: isMobile ? 8 : 9),
+                                alignment: align,
+                                child: Text(
+                                  text,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: isMobile ? 11 : 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
                                   ),
-                                );
-                              }
+                                ),
+                              );
+                            }
 
-                              Widget dataCell(Widget child,
-                                  {Alignment align = Alignment.centerLeft}) {
-                                return Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 12),
-                                  alignment: align,
-                                  child: child,
-                                );
-                              }
+                            Widget dataCell(Widget child,
+                                {Alignment align = Alignment.centerLeft}) {
+                              return Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: isMobile ? 6 : 8,
+                                    vertical: isMobile ? 5 : 6),
+                                alignment: align,
+                                child: child,
+                              );
+                            }
 
-                              return SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: SizedBox(
-                                  width: tableWidth,
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
-                                    children: [
-                                      // ── Sticky Fixed Blue Header ──
-                                      Container(
-                                        color: AppColors.navyMid,
-                                        child: Table(
-                                          columnWidths: columnWidths,
-                                          defaultVerticalAlignment:
-                                              TableCellVerticalAlignment.middle,
-                                          children: [
-                                            TableRow(
-                                              decoration: const BoxDecoration(
-                                                  color: AppColors.navyMid),
-                                              children: [
-                                                headerCell('Sr. No.'),
-                                                headerCell('CR No.'),
-                                                headerCell('Act and Section'),
-                                                headerCell('IO Name'),
-                                                headerCell('Status',
-                                                    align: Alignment.center),
-                                                headerCell('Action',
-                                                    align: Alignment.center),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
+                            return SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: SizedBox(
+                                width: tableWidth,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    // ── Sticky Fixed Blue Header ──
+                                    Container(
+                                      color: AppColors.navyMid,
+                                      child: Table(
+                                        columnWidths: columnWidths,
+                                        defaultVerticalAlignment:
+                                            TableCellVerticalAlignment.middle,
+                                        children: [
+                                          TableRow(
+                                            decoration: const BoxDecoration(
+                                                color: AppColors.navyMid),
+                                            children: [
+                                              headerCell('Sr. No.'),
+                                              headerCell('CR No.'),
+                                              headerCell('Act and Section'),
+                                              headerCell('IO Name'),
+                                              headerCell('Status',
+                                                  align: Alignment.center),
+                                              headerCell('Action',
+                                                  align: Alignment.center),
+                                            ],
+                                          ),
+                                        ],
                                       ),
+                                    ),
 
-                                      // ── Scrollable Case List ──
-                                      Expanded(
-                                        child: SingleChildScrollView(
-                                          scrollDirection: Axis.vertical,
-                                          child: Table(
+                                    // ── Case List Table ──
+                                    Table(
                                             columnWidths: columnWidths,
                                             defaultVerticalAlignment:
                                                 TableCellVerticalAlignment
@@ -3180,13 +3343,32 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
                                                         decoration:
                                                             BoxDecoration(
                                                           color: isFilled
-                                                              ? AppColors
-                                                                  .successGreen
-                                                              : AppColors
-                                                                  .dangerRed,
+                                                              ? const Color(
+                                                                      0xFF10B981)
+                                                                  .withValues(
+                                                                      alpha:
+                                                                          0.15)
+                                                              : const Color(
+                                                                      0xFFEF4444)
+                                                                  .withValues(
+                                                                      alpha:
+                                                                          0.15),
                                                           borderRadius:
                                                               BorderRadius
-                                                                  .circular(12),
+                                                                  .circular(20),
+                                                          border: Border.all(
+                                                            color: isFilled
+                                                                ? const Color(
+                                                                        0xFF10B981)
+                                                                    .withValues(
+                                                                        alpha:
+                                                                            0.4)
+                                                                : const Color(
+                                                                        0xFFEF4444)
+                                                                    .withValues(
+                                                                        alpha:
+                                                                            0.4),
+                                                          ),
                                                         ),
                                                         child: Text(
                                                           isFilled
@@ -3196,8 +3378,12 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
                                                               .poppins(
                                                             fontSize: 11,
                                                             fontWeight:
-                                                                FontWeight.w700,
-                                                            color: Colors.white,
+                                                                FontWeight.w600,
+                                                            color: isFilled
+                                                                ? const Color(
+                                                                    0xFF059669)
+                                                                : const Color(
+                                                                    0xFFDC2626),
                                                           ),
                                                         ),
                                                       ),
@@ -3206,15 +3392,15 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
                                                     dataCell(
                                                       isFilled
                                                           ? Text(
-                                                              'Completed',
+                                                              '—',
                                                               style: GoogleFonts
                                                                   .poppins(
-                                                                fontSize: 12,
+                                                                fontSize: 14,
                                                                 fontWeight:
                                                                     FontWeight
-                                                                        .w600,
+                                                                        .w500,
                                                                 color: AppColors
-                                                                    .successGreen,
+                                                                    .lightSubText,
                                                               ),
                                                             )
                                                           : ElevatedButton.icon(
@@ -3225,10 +3411,10 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
                                                                         crNo,
                                                                         io);
                                                               },
-                                                              icon: const Icon(
+                                                              icon: Icon(
                                                                 Icons
                                                                     .notifications_active_rounded,
-                                                                size: 14,
+                                                                size: isMobile ? 11 : 13,
                                                                 color: Colors
                                                                     .white,
                                                               ),
@@ -3238,7 +3424,7 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
                                                                     GoogleFonts
                                                                         .poppins(
                                                                   fontSize:
-                                                                      11.5,
+                                                                      isMobile ? 9.5 : 10.5,
                                                                   fontWeight:
                                                                       FontWeight
                                                                           .w600,
@@ -3250,21 +3436,27 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
                                                                   ElevatedButton
                                                                       .styleFrom(
                                                                 backgroundColor:
-                                                                    AppColors
-                                                                        .dangerRed,
+                                                                    const Color(
+                                                                        0xFFEF4444),
+                                                                foregroundColor:
+                                                                    Colors
+                                                                        .white,
                                                                 elevation: 0,
-                                                                padding: const EdgeInsets
+                                                                padding: EdgeInsets
                                                                     .symmetric(
                                                                     horizontal:
-                                                                        10,
+                                                                        isMobile ? 6 : 10,
                                                                     vertical:
-                                                                        6),
+                                                                        isMobile ? 3 : 4),
+                                                                minimumSize:
+                                                                    Size(
+                                                                        isMobile ? 78 : 90, isMobile ? 26 : 28),
                                                                 shape:
                                                                     RoundedRectangleBorder(
                                                                   borderRadius:
                                                                       BorderRadius
                                                                           .circular(
-                                                                              6),
+                                                                              16),
                                                                 ),
                                                               ),
                                                             ),
@@ -3275,21 +3467,18 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
                                               },
                                             ),
                                           ),
-                                        ),
+                                        ],
                                       ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      );
   }
 }
