@@ -1255,12 +1255,14 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
       ],
     );
 
+    final bool isNdps = catLabel.trim().toUpperCase() == 'NDPS';
     await CustomPdfPreviewDialog.show(
       context: context,
       title: '$catLabel Cases Report',
       fileName:
           '${catLabel.replaceAll(RegExp(r'[^A-Za-z0-9]+'), '_')}_Cases_${DateTime.now().millisecondsSinceEpoch}.pdf',
       buildPdf: (_) async => doc.save(),
+      showPrint: !isNdps,
     );
   }
 

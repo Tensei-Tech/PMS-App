@@ -55,11 +55,15 @@ class CaseReportPdfHelper {
       return;
     }
     final title = _docTitle(record);
+    final bool isNdps = _tabName(record).trim().toUpperCase() == 'NDPS' ||
+        record.category.trim().toUpperCase() == 'NDPS' ||
+        record.subCategory?.trim().toUpperCase() == 'NDPS';
     await CustomPdfPreviewDialog.show(
       context: context,
       title: title,
       fileName: '${title.replaceAll(RegExp(r'[^A-Za-z0-9]+'), '_')}.pdf',
       buildPdf: (_) async => bytes,
+      showPrint: !isNdps,
     );
   }
 }

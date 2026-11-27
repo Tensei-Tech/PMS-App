@@ -15,12 +15,14 @@ class CustomPdfPreviewDialog extends StatefulWidget {
   final Future<Uint8List> Function(PdfPageFormat format) buildPdf;
   final String title;
   final String fileName;
+  final bool showPrint;
 
   const CustomPdfPreviewDialog({
     super.key,
     required this.buildPdf,
     this.title = 'Document Preview',
     this.fileName = 'Document.pdf',
+    this.showPrint = true,
   });
 
   /// Shows a modal full-screen PDF preview dialog matching the PMS design
@@ -29,6 +31,7 @@ class CustomPdfPreviewDialog extends StatefulWidget {
     required Future<Uint8List> Function(PdfPageFormat format) buildPdf,
     String title = 'Document Preview',
     String fileName = 'Document.pdf',
+    bool showPrint = true,
   }) {
     return showDialog(
       context: context,
@@ -50,6 +53,7 @@ class CustomPdfPreviewDialog extends StatefulWidget {
             buildPdf: buildPdf,
             title: title,
             fileName: fileName,
+            showPrint: showPrint,
           ),
         ),
       ),
@@ -163,6 +167,14 @@ class _CustomPdfPreviewDialogState extends State<CustomPdfPreviewDialog>
     }
   }
 
+  bool get _isNdpsDoc {
+    final t = widget.title.toUpperCase();
+    final f = widget.fileName.toUpperCase();
+    return t.contains('NDPS') || f.contains('NDPS');
+  }
+
+  bool get _canPrint => widget.showPrint && !_isNdpsDoc;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -208,29 +220,30 @@ class _CustomPdfPreviewDialogState extends State<CustomPdfPreviewDialog>
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.print_rounded,
-                color: AppColors.navyDark, size: 20),
-            tooltip: 'Print',
-            onPressed: () async {
-              try {
-                final bytes = await widget.buildPdf(PdfPageFormat.a4);
-                await Printing.layoutPdf(
-                  onLayout: (_) async => bytes,
-                  name: widget.fileName,
-                );
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Print failed: $e'),
-                      backgroundColor: AppColors.dangerRed,
-                    ),
+          if (_canPrint)
+            IconButton(
+              icon: const Icon(Icons.print_rounded,
+                  color: AppColors.navyDark, size: 20),
+              tooltip: 'Print',
+              onPressed: () async {
+                try {
+                  final bytes = await widget.buildPdf(PdfPageFormat.a4);
+                  await Printing.layoutPdf(
+                    onLayout: (_) async => bytes,
+                    name: widget.fileName,
                   );
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Print failed: $e'),
+                        backgroundColor: AppColors.dangerRed,
+                      ),
+                    );
+                  }
                 }
-              }
-            },
-          ),
+              },
+            ),
           IconButton(
             icon: const Icon(Icons.download_rounded,
                 color: AppColors.navyDark, size: 20),
