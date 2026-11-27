@@ -629,34 +629,41 @@ class _ModernCalendarPopoverCardState
 
         const SizedBox(width: 8),
 
-        // Trash / Clear Button
-        Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: hasFilter ? _clearFilter : null,
-            borderRadius: BorderRadius.circular(8),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
-              height: 36,
-              width: 36,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: hasFilter
-                    ? const Color(0xFFFEE2E2)
-                    : const Color(0xFFF8FAFC),
+        // Clear Filter Button
+        Tooltip(
+          message: 'Clear date filter',
+          child: MouseRegion(
+            cursor:
+                hasFilter ? SystemMouseCursors.click : SystemMouseCursors.basic,
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: hasFilter ? _clearFilter : null,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: hasFilter
-                      ? const Color(0xFFFCA5A5)
-                      : const Color(0xFFE2E8F0),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 150),
+                  height: 36,
+                  width: 36,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: hasFilter
+                        ? const Color(0xFFF1F5F9)
+                        : const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: hasFilter
+                          ? const Color(0xFFCBD5E1)
+                          : const Color(0xFFE2E8F0),
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.close_rounded,
+                    size: 18,
+                    color: hasFilter
+                        ? AppColors.navyDark
+                        : const Color(0xFF94A3B8),
+                  ),
                 ),
-              ),
-              child: Icon(
-                Icons.delete_outline_rounded,
-                size: 18,
-                color: hasFilter
-                    ? const Color(0xFFDC2626)
-                    : const Color(0xFF94A3B8),
               ),
             ),
           ),

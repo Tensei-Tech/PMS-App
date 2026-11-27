@@ -111,7 +111,8 @@ void main() {
       expect(find.text('Today'), findsWidgets);
       expect(find.text('Range'), findsOneWidget);
       expect(find.text('Custom'), findsOneWidget);
-      expect(find.byIcon(Icons.delete_outline_rounded), findsOneWidget);
+      expect(find.byTooltip('Clear date filter'), findsOneWidget);
+      expect(find.byIcon(Icons.close_rounded), findsOneWidget);
       expect(find.text('Mo'), findsOneWidget);
       expect(find.text('Tu'), findsOneWidget);
       expect(find.text('Su'), findsOneWidget);
@@ -264,8 +265,8 @@ void main() {
       expect(activeRange!.start.day, 15);
       expect(activeRange!.end.day, 20);
 
-      // Tap trash button inside popover to clear
-      await tester.tap(find.byIcon(Icons.delete_outline_rounded));
+      // Tap clear button inside popover to reset
+      await tester.tap(find.byTooltip('Clear date filter'));
       await tester.pumpAndSettle();
 
       expect(activeRange, isNull);
