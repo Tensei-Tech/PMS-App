@@ -2782,20 +2782,12 @@ class _HomeTabState extends State<_HomeTab> {
   }
 
   Widget _buildModulesToolbar(bool isWide, {required bool showToggle}) {
-    final title = Text(
-      TranslationHelper.translate(context, 'Modules'),
-      style: GoogleFonts.poppins(
-        fontSize: 13.5,
-        fontWeight: FontWeight.w700,
-        color: AppColors.navyDark,
-      ),
-    );
     final toggle = Container(
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
         color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFCBD5E1)),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -2824,10 +2816,7 @@ class _HomeTabState extends State<_HomeTab> {
           _buildSearchBar(),
           if (showToggle) ...[
             const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [title, toggle],
-            ),
+            Align(alignment: Alignment.centerRight, child: toggle),
           ],
         ],
       );
@@ -2836,10 +2825,6 @@ class _HomeTabState extends State<_HomeTab> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        if (showToggle) ...[
-          title,
-          const SizedBox(width: 12),
-        ],
         Expanded(child: _buildSearchBar()),
         if (showToggle) ...[
           const SizedBox(width: 12),
@@ -2966,24 +2951,84 @@ class _HomeTabState extends State<_HomeTab> {
 
   final FocusNode _searchFocusNode = FocusNode();
 
-  Widget _buildSearchBar() {
-    return Container(
-      height: 40,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFCBD5E1)),
+  Widget _searchActionButton({
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback onTap,
+    Color? iconColor,
+    Color? backgroundColor,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: backgroundColor ?? const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(8),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(8),
+          child: SizedBox(
+            width: 30,
+            height: 30,
+            child: Icon(
+              icon,
+              size: 16,
+              color: iconColor ?? AppColors.navyMid,
+            ),
+          ),
+        ),
       ),
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return AnimatedBuilder(
+      animation: _searchFocusNode,
+      builder: (context, child) {
+        final isFocused = _searchFocusNode.hasFocus;
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          curve: Curves.easeOut,
+          height: 42,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isFocused ? AppColors.navyMid : const Color(0xFFE2E8F0),
+              width: isFocused ? 1.5 : 1,
+            ),
+            boxShadow: [
+              if (isFocused)
+                BoxShadow(
+                  color: AppColors.navyMid.withValues(alpha: 0.10),
+                  blurRadius: 10,
+                  spreadRadius: 1,
+                )
+              else
+                BoxShadow(
+                  color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+            ],
+          ),
+          child: child,
+        );
+      },
       child: TextField(
         controller: _searchCtrl,
         focusNode: _searchFocusNode,
         autofocus: false,
         keyboardType: TextInputType.text,
         textInputAction: TextInputAction.search,
+        textAlignVertical: TextAlignVertical.center,
         enableSuggestions: true,
         autocorrect: true,
         onChanged: _onSearchChanged,
-        style: GoogleFonts.poppins(color: AppColors.lightText, fontSize: 13),
+        style: GoogleFonts.poppins(
+          color: AppColors.lightText,
+          fontSize: 13.5,
+          fontWeight: FontWeight.w500,
+        ),
         decoration: InputDecoration(
           isDense: true,
           border: InputBorder.none,
@@ -2991,68 +3036,90 @@ class _HomeTabState extends State<_HomeTab> {
           hintText: TranslationHelper.translate(context,
               'Search cases or type module (e.g. Murder, Theft, Missing)...'),
           hintStyle: GoogleFonts.poppins(
-              color: AppColors.lightSubText, fontSize: 12.5),
-          prefixIcon: const Icon(Icons.search_rounded,
-              color: AppColors.navyMid, size: 19),
+            color: const Color(0xFF94A3B8),
+            fontSize: 13,
+            fontWeight: FontWeight.w400,
+          ),
+          prefixIcon: const Icon(
+            Icons.search_rounded,
+            color: Color(0xFF64748B),
+            size: 18,
+          ),
           prefixIconConstraints:
-              const BoxConstraints(minWidth: 38, minHeight: 38),
-          suffixIcon: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (_searchQuery.isNotEmpty)
-                IconButton(
-                  icon: const Icon(Icons.clear_rounded, size: 20),
-                  color: AppColors.lightSubText,
-                  onPressed: () {
-                    _searchCtrl.clear();
-                    setState(() => _explicitSearchDate = null);
-                    _onSearchChanged('');
+              const BoxConstraints(minWidth: 40, minHeight: 40),
+          suffixIcon: Padding(
+            padding: const EdgeInsets.only(right: 6),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (_searchQuery.isNotEmpty) ...[
+                  _searchActionButton(
+                    icon: Icons.close_rounded,
+                    tooltip: 'Clear Search',
+                    iconColor: const Color(0xFF64748B),
+                    onTap: () {
+                      _searchCtrl.clear();
+                      setState(() => _explicitSearchDate = null);
+                      _onSearchChanged('');
+                    },
+                  ),
+                  const SizedBox(width: 6),
+                ],
+                Container(
+                  width: 1,
+                  height: 18,
+                  color: const Color(0xFFE2E8F0),
+                ),
+                const SizedBox(width: 6),
+                _searchActionButton(
+                  icon: Icons.mic_rounded,
+                  tooltip: 'Speak / Voice Search',
+                  onTap: () async {
+                    final spoken = await VoiceSearchDialog.show(context);
+                    if (spoken != null && spoken.trim().isNotEmpty) {
+                      var cleanSpoken = spoken.trim();
+                      while (cleanSpoken.endsWith('.') ||
+                          cleanSpoken.endsWith(',') ||
+                          cleanSpoken.endsWith('?') ||
+                          cleanSpoken.endsWith('!')) {
+                        cleanSpoken = cleanSpoken
+                            .substring(0, cleanSpoken.length - 1)
+                            .trim();
+                      }
+                      if (cleanSpoken.isEmpty) return;
+
+                      final parsedDate =
+                          UniversalSearch.tryParseNaturalDate(cleanSpoken);
+                      if (parsedDate != null) {
+                        final formatted =
+                            DateFormat('dd MMM yyyy').format(parsedDate);
+                        setState(() {
+                          _explicitSearchDate = parsedDate;
+                          _searchQuery = formatted;
+                          _searchCtrl.text = formatted;
+                          _invalidateSearchCache();
+                        });
+                      } else {
+                        _searchCtrl.text = cleanSpoken;
+                        _onSearchChanged(cleanSpoken);
+                      }
+                    }
                   },
                 ),
-              IconButton(
-                icon: const Icon(Icons.mic_rounded, color: AppColors.navyMid),
-                tooltip: 'Speak / Voice Search',
-                onPressed: () async {
-                  final spoken = await VoiceSearchDialog.show(context);
-                  if (spoken != null && spoken.trim().isNotEmpty) {
-                    var cleanSpoken = spoken.trim();
-                    while (cleanSpoken.endsWith('.') ||
-                        cleanSpoken.endsWith(',') ||
-                        cleanSpoken.endsWith('?') ||
-                        cleanSpoken.endsWith('!')) {
-                      cleanSpoken = cleanSpoken
-                          .substring(0, cleanSpoken.length - 1)
-                          .trim();
-                    }
-                    if (cleanSpoken.isEmpty) return;
-
-                    final parsedDate =
-                        UniversalSearch.tryParseNaturalDate(cleanSpoken);
-                    if (parsedDate != null) {
-                      final formatted =
-                          DateFormat('dd MMM yyyy').format(parsedDate);
-                      setState(() {
-                        _explicitSearchDate = parsedDate;
-                        _searchQuery = formatted;
-                        _searchCtrl.text = formatted;
-                        _invalidateSearchCache();
-                      });
-                    } else {
-                      _searchCtrl.text = cleanSpoken;
-                      _onSearchChanged(cleanSpoken);
-                    }
-                  }
-                },
-              ),
-              IconButton(
-                icon: Icon(Icons.calendar_month_rounded,
-                    color: _explicitSearchDate != null
-                        ? AppColors.goldPrimary
-                        : AppColors.navyMid),
-                onPressed: () => _showSearchDatePicker(context),
-                tooltip: 'Select Custom Date',
-              ),
-            ],
+                const SizedBox(width: 6),
+                _searchActionButton(
+                  icon: Icons.calendar_month_rounded,
+                  tooltip: 'Select Custom Date',
+                  iconColor: _explicitSearchDate != null
+                      ? Colors.white
+                      : AppColors.navyMid,
+                  backgroundColor: _explicitSearchDate != null
+                      ? AppColors.goldPrimary
+                      : const Color(0xFFF1F5F9),
+                  onTap: () => _showSearchDatePicker(context),
+                ),
+              ],
+            ),
           ),
         ),
       ),
