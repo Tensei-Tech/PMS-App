@@ -124,9 +124,37 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   List<List<_SubStep>> _lastSteps = const [];
 
   void _goTo(int step, int sub) => setState(() {
+        _untickBoxesWithoutDate();
         _formStep = step;
         _formSub = sub;
       });
+
+  /// Checkboxes that need their date ("<key>_date", shown inside the
+  /// box's card once ticked): Murder Post-Mortem & FSL.
+  static const _boxesNeedingDate = [
+    'murder_postmortem',
+    'murder_pm_report',
+    'murder_viscera_fsl',
+    'murder_fsl_report',
+  ];
+
+  /// On leaving a section, a box above that was ticked but left without
+  /// its date is unticked again.
+  void _untickBoxesWithoutDate() {
+    for (final k in _boxesNeedingDate) {
+      final v = _values[k];
+      final ticked = v == true || v == 'true' || v == 'Yes' || v == 1;
+      if (!ticked) continue;
+      final dateKey = '${k}_date';
+      final date = (_controllers[dateKey]?.text ?? _values[dateKey] ?? '')
+          .toString()
+          .trim();
+      if (date.isNotEmpty) continue;
+      _values[k] = false;
+      _controllers[k]?.text = '';
+      _values.remove(dateKey);
+    }
+  }
 
   // Accused whose arrest & custody are shown; null = the first one
   String? _focusedAccused;
@@ -3909,11 +3937,11 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                   fieldMaxLengths: widget.fieldMaxLengths,
                   allFormFields: fields,
                   // PC: three fields per line (Panchnama, Complainant four;
-                  // IO / Registered By two: IO on one line, Registered By
-                  // below it)
+                  // IO / Registered By and Evidence two: IO on one line,
+                  // Registered By below it; NAFIS below E-Shakshya)
                   columns: secKey == 'All Panchnama' || secKey == 'Complainant'
                       ? 4
-                      : (secKey == 'Officer' ? 2 : 3),
+                      : (secKey == 'Officer' || secKey == 'Evidence' ? 2 : 3),
                 );
           }
         }
@@ -3960,7 +3988,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
             copyOnTickRules: _copyOnTickRules,
             fieldMaxLengths: widget.fieldMaxLengths,
             allFormFields: fields,
-            columns: 4,
+            // Post-Mortem & FSL: two tick boxes (with their dates) per line
+            columns: entry.key.toLowerCase().contains('post-mortem') ? 2 : 4,
           ),
         ));
       }
@@ -4298,14 +4327,19 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   /// above the two cards.
   Widget _buildArrestCustodyPanel(Widget? arrest, Widget? custody) {
     final people = _panelPeople();
-    final cards = Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (arrest != null) arrest,
-        if (arrest != null && custody != null) const SizedBox(height: 10),
-        if (custody != null) custody,
-      ],
-    );
+    final current = _panelAccused();
+    // One record card for the picked accused: Arrest (with PCR / MCR) and
+    // Release side by side. Without an accused, the old cards explain why.
+    final Widget cards = (current != null && arrest != null)
+        ? _buildArrestRecordCard(current, withCustody: custody != null)
+        : Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (arrest != null) arrest,
+              if (arrest != null && custody != null) const SizedBox(height: 10),
+              if (custody != null) custody,
+            ],
+          );
     if (MediaQuery.sizeOf(context).width < 840 || people.isEmpty) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -4315,10 +4349,696 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(width: 240, child: _buildAccusedListPanel(people)),
+        SizedBox(width: 170, child: _buildAccusedListPanel(people)),
         const SizedBox(width: 14),
         Expanded(child: cards),
       ],
+    );
+  }
+
+  /// A new arrest record for [name], with the same keys as before.
+  Map<String, dynamic> _newArrestRecord(String name) => {
+        'arrested_person_name': name,
+        'person_name': name,
+        'name': name,
+        'arrest_datetime':
+            DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now()),
+        'sec_47_48_bnss': false,
+        'relative_friend_name': '',
+        'relative_friend_relation': '',
+        'release_on_notice': false,
+        'release_on_notice_datetime': '',
+        'anticipatory_bail': false,
+        'anticipatory_bail_datetime': '',
+        'death_of_accused': false,
+        'death_of_accused_datetime': '',
+      };
+
+  int _arrestIndexOf(String name) => _arrestRecordsList.indexWhere((r) =>
+      (r['arrested_person_name'] ?? r['person_name'] ?? r['name'] ?? '')
+          .toString()
+          .trim()
+          .toLowerCase() ==
+      name.toLowerCase());
+
+  /// Arrested = the record has an arrest date. A record without one holds
+  /// only a release option (not arrested; the backend counts arrests by
+  /// arrest date too).
+  bool _recordArrested(Map<String, dynamic>? r) =>
+      r != null && (r['arrest_datetime']?.toString().trim() ?? '').isNotEmpty;
+
+  bool _recordHasRelease(Map<String, dynamic> r) =>
+      _releaseOptions.keys.any((k) => r[k] == true);
+
+  void _clearArrestDetails(Map<String, dynamic> r) {
+    r['arrest_datetime'] = '';
+    r['sec_47_48_bnss'] = false;
+    r['relative_friend_name'] = '';
+    r['relative_friend_relation'] = '';
+  }
+
+  void _clearRelease(Map<String, dynamic> r) {
+    for (final e in _releaseOptions.entries) {
+      r[e.key] = false;
+      r[e.value] = '';
+    }
+  }
+
+  /// Arrest and Release & legal status: only one can be ticked. Ticking
+  /// Arrest gives the record an arrest date and clears any release option;
+  /// unticking it drops the record.
+  void _setArrested(String name, bool on) {
+    setState(() {
+      final i = _arrestIndexOf(name);
+      if (on) {
+        _releaseOpen.remove(name.toLowerCase());
+        if (i < 0) {
+          _arrestRecordsList.add(_newArrestRecord(name));
+        } else {
+          final r = _arrestRecordsList[i];
+          _clearRelease(r);
+          r['arrest_datetime'] =
+              DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
+        }
+      } else {
+        if (i >= 0) _arrestRecordsList.removeAt(i);
+        _dropCustody(name);
+      }
+      _syncPrimaryArrestControllers();
+    });
+  }
+
+  /// PCR / MCR belong to an arrest: cleared when the arrest is unticked.
+  void _dropCustody(String name) {
+    final before = _custodyRecordsList.length;
+    _custodyRecordsList.removeWhere((it) =>
+        (it['name'] ?? it['person_name'] ?? '').toString().toLowerCase() ==
+        name.toLowerCase());
+    if (_custodyRecordsList.length != before) _syncPrimaryCustodyControllers();
+  }
+
+  /// Ticking Release & legal status unticks Arrest (its details are
+  /// cleared) and opens the release options; unticking it clears them and
+  /// drops the record when it holds nothing else.
+  void _setRelease(String name, bool on) {
+    setState(() {
+      final key = name.toLowerCase();
+      var i = _arrestIndexOf(name);
+      if (on) {
+        _releaseOpen.add(key);
+        if (i < 0) {
+          final r = _newArrestRecord(name);
+          _clearArrestDetails(r);
+          _arrestRecordsList.add(r);
+        } else {
+          _clearArrestDetails(_arrestRecordsList[i]);
+        }
+        _dropCustody(name);
+      } else {
+        _releaseOpen.remove(key);
+        if (i >= 0) {
+          final r = _arrestRecordsList[i];
+          _clearRelease(r);
+          if (!_recordArrested(r)) _arrestRecordsList.removeAt(i);
+        }
+      }
+      _syncPrimaryArrestControllers();
+    });
+  }
+
+  TextStyle get _arrestLabelStyle => GoogleFonts.poppins(
+      fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.navyDark);
+
+  /// Date & time box of an arrest record field; tap to pick.
+  Widget _recordDateBox(Map<String, dynamic> record, String key, String hint,
+      {String? inlineLabel}) {
+    final raw = (record[key] ?? '').toString();
+    final v =
+        raw.isNotEmpty && inlineLabel != null ? '$inlineLabel: $raw' : raw;
+    return InkWell(
+      onTap: widget.readOnly
+          ? null
+          : () => _pickDateTimeForRecord(context, record, key),
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      child: Container(
+        height: 46,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          border: Border.all(color: AppColors.lightBorder),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                v.isNotEmpty ? v : hint,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: v.isNotEmpty
+                      ? AppColors.navyDark
+                      : const Color(0xFF94A3B8),
+                ),
+              ),
+            ),
+            const Icon(Icons.calendar_month_rounded,
+                size: 18, color: AppColors.navyMid),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Accused (lower-case names) whose Release & legal status box is ticked
+  /// but no option is picked yet.
+  final Set<String> _releaseOpen = {};
+
+  /// Release options of an arrest record (flag key -> its date key). Only
+  /// one can be picked at a time.
+  static const _releaseOptions = {
+    'release_on_notice': 'release_on_notice_datetime',
+    'anticipatory_bail': 'anticipatory_bail_datetime',
+    'death_of_accused': 'death_of_accused_datetime',
+  };
+
+  Widget _recordTextField(Map<String, dynamic> record, String key, String name,
+      String label, String hint) {
+    return TextFormField(
+      key: ValueKey('${key}_$name'),
+      initialValue: record[key]?.toString() ?? '',
+      enabled: !widget.readOnly,
+      style: GoogleFonts.poppins(fontSize: 13, color: AppColors.navyDark),
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        isDense: true,
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppRadius.md)),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      ),
+      onChanged: (val) {
+        record[key] = val.trim();
+        _syncPrimaryArrestControllers();
+      },
+    );
+  }
+
+  static const _relationOptions = [
+    'Mother',
+    'Father',
+    'Husband',
+    'Wife',
+    'Sister',
+    'Brother',
+    'Friend',
+    'Other',
+  ];
+
+  /// Accused (names) whose "Relation with Accused" is set to Other, so the
+  /// type-in box stays open even while it is still empty.
+  final Set<String> _relationOtherOpen = {};
+
+  /// "Relation with Accused" dropdown, plus (when Other is picked) a box to
+  /// type the relation; the typed text is what gets saved under [key].
+  List<Widget> _relationWithAccusedFields(
+      Map<String, dynamic> record, String key, String name) {
+    final current = (record[key] ?? '').toString().trim();
+    final match = _relationOptions.firstWhere(
+        (o) => o != 'Other' && o.toLowerCase() == current.toLowerCase(),
+        orElse: () => '');
+    final isOther = match.isEmpty &&
+        (current.isNotEmpty || _relationOtherOpen.contains(name));
+    final selected = isOther ? 'Other' : (match.isEmpty ? null : match);
+
+    InputDecoration deco(String label, {String? hint}) => InputDecoration(
+          labelText: label,
+          hintText: hint,
+          isDense: true,
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.md)),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        );
+
+    final dropdown = DropdownButtonFormField<String>(
+      key: ValueKey('${key}_dd_$name'),
+      initialValue: selected,
+      isExpanded: true,
+      decoration: deco('Relation with Accused', hint: 'Select relation'),
+      style: GoogleFonts.poppins(fontSize: 13, color: AppColors.navyDark),
+      items: _relationOptions
+          .map((o) => DropdownMenuItem(value: o, child: Text(o)))
+          .toList(),
+      onChanged: widget.readOnly
+          ? null
+          : (v) => setState(() {
+                if (v == 'Other') {
+                  _relationOtherOpen.add(name);
+                  record[key] = '';
+                } else {
+                  _relationOtherOpen.remove(name);
+                  record[key] = v ?? '';
+                }
+                _syncPrimaryArrestControllers();
+              }),
+    );
+
+    if (!isOther) return [dropdown];
+    return [
+      dropdown,
+      TextFormField(
+        key: ValueKey('${key}_other_$name'),
+        initialValue: current,
+        enabled: !widget.readOnly,
+        style: GoogleFonts.poppins(fontSize: 13, color: AppColors.navyDark),
+        decoration: deco('Specify relation', hint: 'e.g. Uncle / Neighbour'),
+        onChanged: (val) {
+          record[key] = val.trim();
+          _syncPrimaryArrestControllers();
+        },
+      ),
+    ];
+  }
+
+  /// Intimation fields side by side on wide screens, stacked otherwise.
+  Widget _intimationFieldsLayout(List<Widget> fields, bool wide) {
+    if (wide) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (var i = 0; i < fields.length; i++) ...[
+            if (i > 0) const SizedBox(width: 12),
+            Expanded(child: fields[i]),
+          ],
+        ],
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var i = 0; i < fields.length; i++) ...[
+          if (i > 0) const SizedBox(height: 10),
+          fields[i],
+        ],
+      ],
+    );
+  }
+
+  /// Light grey box for fields that open under a choice (Intimation
+  /// details, the release date), so it is clear where they came from.
+  Widget _subFieldsBox({required Widget child}) => Container(
+        margin: const EdgeInsets.only(top: 10),
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.lightBorder),
+        ),
+        child: child,
+      );
+
+  Widget _subHeading(String text) => Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Text(
+          text,
+          style: GoogleFonts.poppins(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: AppColors.lightSubText),
+        ),
+      );
+
+  /// Release / legal: one of Notice 35(3) BNSS, Anticipatory bail, Death of
+  /// accused (side by side); the chosen one's date & time opens below.
+  Widget _releaseChoices(Map<String, dynamic> record, double width) {
+    const labels = {
+      'release_on_notice': 'Notice 35(3) BNSS',
+      'anticipatory_bail': 'Anticipatory bail',
+      'death_of_accused': 'Death of accused',
+    };
+    String? picked;
+    for (final k in _releaseOptions.keys) {
+      if (record[k] == true) picked = k;
+    }
+
+    Widget choice(String flag) {
+      final on = picked == flag;
+      final dateKey = _releaseOptions[flag]!;
+      return InkWell(
+        onTap: widget.readOnly
+            ? null
+            : () => setState(() {
+                  if (on) {
+                    record[flag] = false;
+                  } else {
+                    for (final e in _releaseOptions.entries) {
+                      if (e.key == flag) continue;
+                      record[e.key] = false;
+                      record[e.value] = '';
+                    }
+                    record[flag] = true;
+                    if (record[dateKey]?.toString().isEmpty ?? true) {
+                      record[dateKey] =
+                          DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
+                    }
+                  }
+                  _syncPrimaryArrestControllers();
+                }),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        child: Container(
+          height: 44,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          decoration: BoxDecoration(
+            color:
+                on ? AppColors.navyMid.withValues(alpha: 0.05) : Colors.white,
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            border: Border.all(
+                color: on ? AppColors.navyMid : AppColors.lightBorder,
+                width: on ? 1.5 : 1),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                on
+                    ? Icons.radio_button_checked_rounded
+                    : Icons.radio_button_unchecked_rounded,
+                size: 20,
+                color: on ? AppColors.navyMid : const Color(0xFF94A3B8),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(labels[flag]!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: _arrestLabelStyle),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final flags = _releaseOptions.keys.toList();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (width >= 520)
+          Row(children: [
+            for (var i = 0; i < flags.length; i++) ...[
+              if (i > 0) const SizedBox(width: 8),
+              Expanded(child: choice(flags[i])),
+            ],
+          ])
+        else
+          for (final f in flags)
+            Padding(
+                padding: const EdgeInsets.only(bottom: 8), child: choice(f)),
+        if (picked != null)
+          _subFieldsBox(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _subHeading('${labels[picked]} date & time'),
+                SizedBox(
+                  width: width >= 520 ? width / 2 : double.infinity,
+                  child: _recordDateBox(
+                      record, _releaseOptions[picked]!, 'DD/MM/YYYY HH:mm'),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  /// Arrest & Custody record of one accused (only one status at a time):
+  /// the name with an Arrest | Release / legal switch, then one full-width
+  /// panel for the picked status:
+  ///  - Arrest: Arrested date | Intimation 47/48 BNSS | PCR | MCR on one
+  ///    line (stacked when narrow); Intimation opens the relative's name
+  ///    and relation, MCR opens PR Bond / Jail / Bail and their details
+  ///  - Release / legal: Notice 35(3) BNSS | Anticipatory bail | Death of
+  ///    accused, the chosen one's date & time below
+  /// Same fields and saved data as before; switching clears the other side.
+  Widget _buildArrestRecordCard(String name, {required bool withCustody}) {
+    final idx = _arrestIndexOf(name);
+    final record = idx >= 0 ? _arrestRecordsList[idx] : null;
+    final arrested = _recordArrested(record);
+    final releaseOn = record != null &&
+        !arrested &&
+        (_releaseOpen.contains(name.toLowerCase()) ||
+            _recordHasRelease(record));
+
+    Widget segment(String label, bool on, VoidCallback onTap) {
+      return Material(
+        color: on ? Colors.white : Colors.transparent,
+        elevation: on ? 1 : 0,
+        shadowColor: AppColors.navyDark.withValues(alpha: 0.15),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+          side: on
+              ? const BorderSide(color: AppColors.lightBorder)
+              : BorderSide.none,
+        ),
+        child: InkWell(
+          onTap: widget.readOnly ? null : onTap,
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // A tick box shows each side can be clicked
+                Icon(
+                    on
+                        ? Icons.check_box_rounded
+                        : Icons.check_box_outline_blank_rounded,
+                    size: 19,
+                    color: on ? AppColors.navyMid : const Color(0xFF94A3B8)),
+                const SizedBox(width: 6),
+                Text(
+                  label,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12.5,
+                    fontWeight: on ? FontWeight.w700 : FontWeight.w600,
+                    color: on ? AppColors.navyDark : AppColors.lightSubText,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    final statusSwitch = Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          segment('Arrest', arrested, () => _setArrested(name, !arrested)),
+          const SizedBox(width: 3),
+          segment('Release / legal', releaseOn,
+              () => _setRelease(name, !releaseOn)),
+        ],
+      ),
+    );
+
+    Widget intimationBox(Map<String, dynamic> r) {
+      final intimated = r['sec_47_48_bnss'] == true;
+      return Container(
+        height: 48,
+        decoration: BoxDecoration(
+          color: intimated
+              ? AppColors.navyMid.withValues(alpha: 0.05)
+              : Colors.white,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          border: Border.all(
+            color: intimated ? AppColors.navyMid : AppColors.lightBorder,
+            width: intimated ? 1.5 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Checkbox(
+              value: intimated,
+              activeColor: AppColors.navyMid,
+              visualDensity: VisualDensity.compact,
+              onChanged: widget.readOnly
+                  ? null
+                  : (v) => setState(() {
+                        r['sec_47_48_bnss'] = v ?? false;
+                        _syncPrimaryArrestControllers();
+                      }),
+            ),
+            Expanded(
+              child: Text(
+                'Intimation 47/48 BNSS',
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.navyDark),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    Widget intimationDetails(Map<String, dynamic> r, double width) {
+      final nameF = _recordTextField(r, 'relative_friend_name', name,
+          'Relative / Friend Name', 'e.g. Ramesh');
+      return _subFieldsBox(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _subHeading('Intimation given to'),
+            _intimationFieldsLayout([
+              nameF,
+              ..._relationWithAccusedFields(
+                  r, 'relative_friend_relation', name),
+            ], width >= 420),
+          ],
+        ),
+      );
+    }
+
+    Widget arrestPanel(Map<String, dynamic> r, double width) {
+      final wide = width >= 640;
+      final date = _recordDateBox(r, 'arrest_datetime', 'Arrested date',
+          inlineLabel: 'Arrested');
+      final intim = intimationBox(r);
+      final details =
+          r['sec_47_48_bnss'] == true ? intimationDetails(r, width) : null;
+      if (!withCustody) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(children: [
+              Expanded(child: date),
+              const SizedBox(width: 14),
+              Expanded(child: intim),
+            ]),
+            if (details != null) details,
+          ],
+        );
+      }
+      final ci = _custodyRecordsList.indexWhere((it) =>
+          (it['name'] ?? it['person_name'] ?? '').toString().toLowerCase() ==
+          name.toLowerCase());
+      final custody = _CustodyAccusedCard(
+        key: ValueKey('custody_bare_$name'),
+        personName: name,
+        isCustom: _customCustodyPersons.contains(name),
+        readOnly: widget.readOnly,
+        initialData: ci >= 0 ? _custodyRecordsList[ci] : null,
+        genderOptions: _genderOptions,
+        relationChoices: _suretyRelationChoices,
+        isExpanded: true,
+        onToggleExpand: () {},
+        onChanged: (updated) => _onCustodyRecordChanged(name, updated),
+        bare: true,
+        // Wide: Arrested date | Intimation | PCR | MCR on one line
+        leadingCells: wide ? [date, intim] : const [],
+        belowFirstRow: wide ? details : null,
+      );
+      if (wide) return custody;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(children: [
+            Expanded(child: date),
+            const SizedBox(width: 12),
+            Expanded(child: intim),
+          ]),
+          if (details != null) details,
+          const SizedBox(height: 12),
+          custody,
+        ],
+      );
+    }
+
+    final initials = name
+        .split(RegExp(r'\s+'))
+        .where((w) => w.isNotEmpty)
+        .take(2)
+        .map((w) => w[0].toUpperCase())
+        .join();
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: _responsiveCardRadius(context),
+        border: Border.all(color: AppColors.lightBorder),
+      ),
+      padding: const EdgeInsets.all(14),
+      child: LayoutBuilder(builder: (context, c) {
+        final header = [
+          Container(
+            width: 34,
+            height: 34,
+            alignment: Alignment.center,
+            decoration: const BoxDecoration(
+                shape: BoxShape.circle, color: AppColors.navyMid),
+            child: Text(
+              initials,
+              style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.poppins(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.navyDark),
+            ),
+          ),
+        ];
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (c.maxWidth >= 480)
+              Row(children: [...header, statusSwitch])
+            else ...[
+              Row(children: header),
+              const SizedBox(height: 10),
+              Align(alignment: Alignment.centerLeft, child: statusSwitch),
+            ],
+            const SizedBox(height: 12),
+            if (arrested)
+              arrestPanel(record!, c.maxWidth)
+            else if (releaseOn)
+              _releaseChoices(record, c.maxWidth)
+            else
+              Text(
+                'Pick Arrest or Release / legal to record details.',
+                style: GoogleFonts.poppins(
+                    fontSize: 12, color: AppColors.lightSubText),
+              ),
+          ],
+        );
+      }),
     );
   }
 
@@ -4327,31 +5047,17 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
           (p['name']?.toString().trim().toLowerCase() ?? '') ==
           name.toLowerCase());
 
-  bool _isArrested(String name) => _arrestRecordsList.any((r) =>
-      (r['arrested_person_name'] ?? r['person_name'] ?? r['name'] ?? '')
-          .toString()
-          .trim()
-          .toLowerCase() ==
-      name.toLowerCase());
+  bool _isArrested(String name) {
+    final i = _arrestIndexOf(name);
+    return i >= 0 && _recordArrested(_arrestRecordsList[i]);
+  }
 
-  /// Left list of the accused: initials, name, type, and a green "Arrested"
-  /// once an arrest is recorded. Tap one to show their arrest and custody.
+  /// Narrow left list of the accused: a small initial, the name, and one
+  /// line "Accused · Arrested" with a green (arrested) or grey dot. Tap one
+  /// to show their arrest and custody.
   Widget _buildAccusedListPanel(List<String> people) {
     final current = _panelAccused();
     final arrested = people.where(_isArrested).length;
-
-    Widget pill(String text, Color bg, Color fg) => Container(
-          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
-          decoration: BoxDecoration(
-            color: bg,
-            borderRadius: BorderRadius.circular(5),
-          ),
-          child: Text(
-            text,
-            style: GoogleFonts.poppins(
-                fontSize: 10.5, fontWeight: FontWeight.w600, color: fg),
-          ),
-        );
 
     return Container(
       decoration: BoxDecoration(
@@ -4363,30 +5069,29 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
-            child: Row(
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Text(
-                    'Accused',
-                    style: GoogleFonts.poppins(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.navyDark,
-                    ),
+                Text(
+                  'Accused',
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.navyDark,
                   ),
                 ),
                 Text(
                   '$arrested of ${people.length} arrested',
                   style: GoogleFonts.poppins(
-                      fontSize: 11.5, color: AppColors.lightSubText),
+                      fontSize: 11, color: AppColors.lightSubText),
                 ),
               ],
             ),
           ),
           const Divider(height: 1, color: AppColors.lightBorder),
           Padding(
-            padding: const EdgeInsets.all(6),
+            padding: const EdgeInsets.all(5),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -4394,11 +5099,16 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                   Builder(builder: (context) {
                     final selected =
                         name.toLowerCase() == current?.toLowerCase();
+                    final isArrested = _isArrested(name);
                     final type = _personNamed(_accusedList, name)
                         ? 'Accused'
                         : (_personNamed(_suspectedAccusedList, name)
                             ? 'Suspect'
                             : null);
+                    final status = [
+                      if (type != null) type,
+                      isArrested ? 'Arrested' : 'Not arrested',
+                    ].join(' · ');
                     final initials = name
                         .split(RegExp(r'\s+'))
                         .where((w) => w.isNotEmpty)
@@ -4417,7 +5127,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                           onTap: () => setState(() => _focusedAccused = name),
                           child: Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 9),
+                                horizontal: 7, vertical: 7),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(AppRadius.md),
                               border: Border.all(
@@ -4429,8 +5139,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                             child: Row(
                               children: [
                                 Container(
-                                  width: 32,
-                                  height: 32,
+                                  width: 26,
+                                  height: 26,
                                   alignment: Alignment.center,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
@@ -4441,7 +5151,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                   child: Text(
                                     initials,
                                     style: GoogleFonts.poppins(
-                                      fontSize: 11.5,
+                                      fontSize: 10.5,
                                       fontWeight: FontWeight.w700,
                                       color: selected
                                           ? Colors.white
@@ -4449,7 +5159,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 10),
+                                const SizedBox(width: 8),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
@@ -4460,24 +5170,35 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: GoogleFonts.poppins(
-                                          fontSize: 13,
+                                          fontSize: 12.5,
                                           fontWeight: FontWeight.w600,
                                           color: AppColors.navyDark,
                                         ),
                                       ),
-                                      const SizedBox(height: 3),
-                                      Wrap(
-                                        spacing: 4,
-                                        runSpacing: 2,
+                                      Row(
                                         children: [
-                                          if (type != null)
-                                            pill(type, const Color(0xFFF1F5F9),
-                                                const Color(0xFF475569)),
-                                          if (_isArrested(name))
-                                            pill(
-                                                'Arrested',
-                                                const Color(0xFFDCFCE7),
-                                                const Color(0xFF15803D)),
+                                          Container(
+                                            width: 6,
+                                            height: 6,
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: isArrested
+                                                  ? const Color(0xFF16A34A)
+                                                  : const Color(0xFF94A3B8),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Expanded(
+                                            child: Text(
+                                              status,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 10.5,
+                                                color: AppColors.lightSubText,
+                                              ),
+                                            ),
+                                          ),
                                         ],
                                       ),
                                     ],
@@ -4545,82 +5266,83 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     );
   }
 
+  /// Step header: the steps as segmented tabs in a soft grey bar. The
+  /// current step is a raised white tab with a solid navy number; finished
+  /// steps show a green tick; later ones a plain number. Same on PC and
+  /// phone (narrow tabs shorten long names).
   Widget _buildStepTabs(List<int> shown, int current, bool isCompact) {
-    if (MediaQuery.sizeOf(context).width >= 1000) {
-      return _buildDesktopStepper(shown, current);
-    }
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.lightBorder)),
-      ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            for (var n = 0; n < shown.length; n++)
-              InkWell(
-                onTap: () => _goTo(shown[n], 0),
-                child: Container(
-                  padding: const EdgeInsets.fromLTRB(12, 8, 16, 10),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                        color: shown[n] == current
-                            ? AppColors.navyMid
-                            : Colors.transparent,
-                        width: 2,
+    const doneFg = Color(0xFF2E7D32);
+    const doneBg = Color(0xFFE8F5E9);
+    final at = shown.indexOf(current);
+
+    Widget tab(int n) {
+      final isOn = n == at;
+      final isDone = n < at;
+      final badge = Container(
+        width: 24,
+        height: 24,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: isOn ? AppColors.navyMid : (isDone ? doneBg : Colors.white),
+          border: Border.all(
+            color: isOn
+                ? AppColors.navyMid
+                : (isDone
+                    ? doneFg.withValues(alpha: 0.5)
+                    : AppColors.lightBorder),
+          ),
+        ),
+        child: isDone
+            ? const Icon(Icons.check_rounded, size: 15, color: doneFg)
+            : Text(
+                '${n + 1}',
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: isOn ? Colors.white : AppColors.lightSubText,
+                ),
+              ),
+      );
+      return Expanded(
+        child: Material(
+          color: isOn ? Colors.white : Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+            side: isOn
+                ? const BorderSide(color: AppColors.lightBorder)
+                : BorderSide.none,
+          ),
+          elevation: isOn ? 1 : 0,
+          shadowColor: AppColors.navyDark.withValues(alpha: 0.15),
+          child: InkWell(
+            onTap: () => _goTo(shown[n], 0),
+            borderRadius: BorderRadius.circular(10),
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                  horizontal: 8, vertical: isCompact ? 8 : 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  badge,
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      _stepHints[shown[n]],
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: isCompact ? 12.5 : 13.5,
+                        fontWeight: isOn ? FontWeight.w700 : FontWeight.w600,
+                        color: isOn
+                            ? AppColors.navyDark
+                            : (isDone ? doneFg : AppColors.lightSubText),
                       ),
                     ),
                   ),
-                  child: Row(
-                    children: [
-                      // Only the step's contents line, in bold (no number)
-                      Text(
-                        _stepHints[shown[n]],
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: shown[n] == current
-                              ? AppColors.navyDark
-                              : AppColors.lightSubText,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                ],
               ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// PC stepper: finished steps show a green tick, the current step is
-  /// solid navy, and a line joins each step to the next.
-  Widget _buildDesktopStepper(List<int> shown, int current) {
-    const done = Color(0xFF2E7D32);
-    final at = shown.indexOf(current);
-    Widget stepItem(int n) {
-      final isOn = n == at;
-      return InkWell(
-        onTap: () => _goTo(shown[n], 0),
-        borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Only the step's contents line, in bold (no title)
-              Text(
-                _stepHints[shown[n]],
-                style: GoogleFonts.poppins(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w700,
-                  color: isOn ? AppColors.navyDark : AppColors.lightSubText,
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       );
@@ -4628,26 +5350,26 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(color: AppColors.lightBorder),
       ),
-      child: Row(
-        children: [
-          for (var n = 0; n < shown.length; n++) ...[
-            if (n > 0)
-              Expanded(
-                child: Container(
-                  height: 2,
-                  margin: const EdgeInsets.symmetric(horizontal: 12),
-                  color: n <= at ? done : AppColors.lightBorder,
-                ),
-              ),
-            stepItem(n),
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF1F5F9),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            for (var n = 0; n < shown.length; n++) ...[
+              if (n > 0) const SizedBox(width: 4),
+              tab(n),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -6498,6 +7220,99 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     );
   }
 
+  /// "Added so far": everyone entered under any accused type, as chips
+  /// ("Accused · Gauri", "Suspect · Ramesh"). The dropdown shows one type at
+  /// a time; a chip switches to its type and opens that person, so people of
+  /// other types stay in view. Hidden until someone has been filled in.
+  Widget _buildAddedAccusedStrip(List<String> types, String? current) {
+    const short = {
+      'Accused': 'Accused',
+      'Suspected Accused': 'Suspect',
+      'Unidentified Accused': 'Unidentified',
+      'Unknown Accused': 'Unknown',
+    };
+    final chips = <Widget>[];
+    for (final type in types) {
+      final list = _accusedTypeList(type);
+      // Unknown Accused: one chip with how many ("Unknown · 2"); the others
+      // one chip per filled person
+      final entries = <(Map<String, dynamic>?, String)>[];
+      if (type == 'Unknown Accused') {
+        if (list.isNotEmpty) entries.add((null, '${list.length}'));
+      } else {
+        for (var i = 0; i < list.length; i++) {
+          if (!_personFilled(list[i])) continue;
+          final name = (list[i]['name']?.toString().trim() ?? '');
+          entries.add((list[i], name.isNotEmpty ? name : '#${i + 1}'));
+        }
+      }
+      for (final (person, label) in entries) {
+        final isOpen =
+            type == current && person != null && identical(person, _openPerson);
+        chips.add(InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: () => setState(() {
+            _activeAccusedType = type;
+            _openPerson = person;
+          }),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: type == current
+                  ? AppColors.navyMid.withValues(alpha: 0.08)
+                  : Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: isOpen
+                    ? AppColors.navyMid
+                    : (type == current
+                        ? AppColors.navyMid.withValues(alpha: 0.35)
+                        : AppColors.lightBorder),
+              ),
+            ),
+            child: Text.rich(
+              TextSpan(children: [
+                TextSpan(
+                  text: '${short[type] ?? type} · ',
+                  style: GoogleFonts.poppins(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.lightSubText),
+                ),
+                TextSpan(
+                  text: label,
+                  style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.navyDark),
+                ),
+              ]),
+            ),
+          ),
+        ));
+      }
+    }
+    if (chips.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: Wrap(
+        spacing: 6,
+        runSpacing: 6,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          Text(
+            'Added so far',
+            style: GoogleFonts.poppins(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF334155)),
+          ),
+          ...chips,
+        ],
+      ),
+    );
+  }
+
   /// Body of the Accused card: the type dropdown, then each ticked type's
   /// people under its own heading.
   Widget _mergedAccusedBody(List<String> types) {
@@ -6521,6 +7336,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
           ),
           const SizedBox(height: 4),
           _buildAccusedTypePicker(types),
+          _buildAddedAccusedStrip(types, current),
         ],
         if (shown.isEmpty && widget.readOnly)
           Text(
@@ -7444,79 +8260,15 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                                           _syncPrimaryArrestControllers();
                                                         },
                                                       );
-                                                      final relRelationField =
-                                                          TextFormField(
-                                                        key: ValueKey(
-                                                            'rel_rel_$name'),
-                                                        initialValue: record[
-                                                                    'relative_friend_relation']
-                                                                ?.toString() ??
-                                                            '',
-                                                        enabled:
-                                                            !widget.readOnly,
-                                                        style:
-                                                            GoogleFonts.poppins(
-                                                                fontSize: 13,
-                                                                color: AppColors
-                                                                    .navyDark),
-                                                        decoration:
-                                                            InputDecoration(
-                                                          labelText:
-                                                              'Relation with Accused',
-                                                          hintText:
-                                                              'e.g. Brother / Father',
-                                                          prefixIcon: const Icon(
-                                                              Icons
-                                                                  .family_restroom_rounded,
-                                                              size: 16,
-                                                              color: AppColors
-                                                                  .navyMid),
-                                                          border: OutlineInputBorder(
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          AppRadius
-                                                                              .md)),
-                                                          filled: true,
-                                                          fillColor:
-                                                              Colors.white,
-                                                          contentPadding:
-                                                              const EdgeInsets
-                                                                  .symmetric(
-                                                                  horizontal:
-                                                                      12,
-                                                                  vertical: 10),
-                                                        ),
-                                                        onChanged: (val) {
-                                                          record['relative_friend_relation'] =
-                                                              val.trim();
-                                                          _syncPrimaryArrestControllers();
-                                                        },
-                                                      );
-
-                                                      if (isWide) {
-                                                        return Row(
-                                                          children: [
-                                                            Expanded(
-                                                                child:
-                                                                    relNameField),
-                                                            const SizedBox(
-                                                                width: 12),
-                                                            Expanded(
-                                                                child:
-                                                                    relRelationField),
-                                                          ],
-                                                        );
-                                                      } else {
-                                                        return Column(
-                                                          children: [
+                                                      return _intimationFieldsLayout(
+                                                          [
                                                             relNameField,
-                                                            const SizedBox(
-                                                                height: 10),
-                                                            relRelationField,
+                                                            ..._relationWithAccusedFields(
+                                                                record,
+                                                                'relative_friend_relation',
+                                                                name),
                                                           ],
-                                                        );
-                                                      }
+                                                          isWide);
                                                     },
                                                   ),
                                                 ),
@@ -8203,8 +8955,20 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     }
   }
 
+  /// dd/MM/yyyy -> date, or null.
+  static DateTime? _parseDmy(String? text) {
+    final parts = (text ?? '').trim().split('/');
+    if (parts.length != 3) return null;
+    final d = int.tryParse(parts[0]);
+    final m = int.tryParse(parts[1]);
+    final y = int.tryParse(parts[2]);
+    if (d == null || m == null || y == null) return null;
+    return DateTime(y, m, d);
+  }
+
   Future<void> _pickDateForController(
-      BuildContext context, TextEditingController ctrl) async {
+      BuildContext context, TextEditingController ctrl,
+      {DateTime? firstDate}) async {
     DateTime initial = DateTime.now();
     final cur = ctrl.text.trim();
     if (cur.isNotEmpty) {
@@ -8216,20 +8980,18 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         initial = DateTime(y, m, d);
       }
     }
+    final first = firstDate ?? DateTime(1900);
+    if (initial.isBefore(first)) initial = first;
     final picked = await showDatePicker(
       context: context,
       initialDate: initial,
-      firstDate: DateTime(1900),
+      firstDate: first,
       lastDate: DateTime(2100),
     );
     if (picked != null) {
       ctrl.text = DateFormat('dd/MM/yyyy').format(picked);
     }
   }
-
-  Future<void> _pickCustodyDate(
-          BuildContext context, TextEditingController ctrl) =>
-      _pickDateForController(context, ctrl);
 
   // ── Remand & Custody for Multiple Accused Section ──────────────────────────
   Widget _buildRemandCustodySection({Object? sectionIndex, String? onlyFor}) {
@@ -8683,9 +9445,71 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     bool isLast = false,
   }) {
     final isCompact = MediaQuery.sizeOf(context).width < 600;
+    const muted = Color(0xFF94A3B8);
+
+    final titleBlock = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: GoogleFonts.poppins(
+            fontSize: 12.5,
+            fontWeight: FontWeight.w700,
+            color: isEnabled ? AppColors.navyDark : muted,
+          ),
+        ),
+        Text(
+          subtitle,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: GoogleFonts.poppins(
+            fontSize: 10.5,
+            color: isEnabled ? AppColors.lightSubText : muted,
+          ),
+        ),
+      ],
+    );
+
+    final badge = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+      decoration: BoxDecoration(
+        color: !isEnabled
+            ? const Color(0xFFE2E8F0)
+            : (hasDate
+                ? const Color(0xFFE0F2FE)
+                : AppColors.navyMid.withValues(alpha: 0.08)),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            !isEnabled
+                ? Icons.lock_outline_rounded
+                : (hasDate
+                    ? Icons.check_circle_outline_rounded
+                    : Icons.edit_calendar_rounded),
+            size: 12,
+            color: !isEnabled ? const Color(0xFF64748B) : AppColors.navyMid,
+          ),
+          const SizedBox(width: 3),
+          Text(
+            !isEnabled ? 'Locked' : (hasDate ? 'Recorded' : 'Active'),
+            style: GoogleFonts.poppins(
+              fontSize: 9.5,
+              fontWeight: FontWeight.w600,
+              color: !isEnabled ? const Color(0xFF64748B) : AppColors.navyMid,
+            ),
+          ),
+        ],
+      ),
+    );
 
     return Padding(
-      padding: EdgeInsets.only(bottom: isLast ? 0 : 8),
+      padding: EdgeInsets.only(bottom: isLast ? 0 : 6),
       child: IntrinsicHeight(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -8741,11 +9565,12 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               ),
             ),
             const SizedBox(width: 10),
-            // Step Content Card
+            // Step Content Card: one line on PC (title | Send date |
+            // Grant date | status); stacked on a phone
             Expanded(
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: EdgeInsets.symmetric(
+                    horizontal: 12, vertical: isCompact ? 8 : 6),
                 decoration: BoxDecoration(
                   color: isEnabled ? Colors.white : const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(AppRadius.md),
@@ -8756,97 +9581,18 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                             : AppColors.lightBorder)
                         : const Color(0xFFE2E8F0),
                   ),
-                  boxShadow: isEnabled
-                      ? [
-                          BoxShadow(
-                            color: AppColors.navyDark.withValues(alpha: 0.03),
-                            blurRadius: 4,
-                            offset: const Offset(0, 1),
-                          ),
-                        ]
-                      : null,
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Title & Status Badge
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                title,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.w700,
-                                  color: isEnabled
-                                      ? AppColors.navyDark
-                                      : const Color(0xFF94A3B8),
-                                ),
-                              ),
-                              Text(
-                                subtitle,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 10.5,
-                                  color: isEnabled
-                                      ? AppColors.lightSubText
-                                      : const Color(0xFF94A3B8),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 7, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: !isEnabled
-                                ? const Color(0xFFE2E8F0)
-                                : (hasDate
-                                    ? const Color(0xFFE0F2FE)
-                                    : AppColors.navyMid
-                                        .withValues(alpha: 0.08)),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                !isEnabled
-                                    ? Icons.lock_outline_rounded
-                                    : (hasDate
-                                        ? Icons.check_circle_outline_rounded
-                                        : Icons.edit_calendar_rounded),
-                                size: 12,
-                                color: !isEnabled
-                                    ? const Color(0xFF64748B)
-                                    : AppColors.navyMid,
-                              ),
-                              const SizedBox(width: 3),
-                              Text(
-                                !isEnabled
-                                    ? 'Locked'
-                                    : (hasDate ? 'Recorded' : 'Active'),
-                                style: GoogleFonts.poppins(
-                                  fontSize: 9.5,
-                                  fontWeight: FontWeight.w600,
-                                  color: !isEnabled
-                                      ? const Color(0xFF64748B)
-                                      : AppColors.navyMid,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    // Date picker fields row
-                    if (isCompact)
-                      Column(
+                child: isCompact
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          Row(
+                            children: [
+                              Expanded(child: titleBlock),
+                              badge,
+                            ],
+                          ),
+                          const SizedBox(height: 8),
                           _buildScrutinyDateField(
                             label: 'Send Date',
                             fieldKey: sendKey,
@@ -8857,31 +9603,38 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                             label: 'Grant Date',
                             fieldKey: grantKey,
                             enabled: isEnabled,
+                            afterKey: sendKey,
                           ),
                         ],
                       )
-                    else
-                      Row(
+                    : Row(
                         children: [
-                          Expanded(
-                            child: _buildScrutinyDateField(
-                              label: 'Send Date',
-                              fieldKey: sendKey,
-                              enabled: isEnabled,
-                            ),
-                          ),
+                          Expanded(flex: 5, child: titleBlock),
                           const SizedBox(width: 12),
                           Expanded(
+                            flex: 4,
                             child: _buildScrutinyDateField(
-                              label: 'Grant Date',
-                              fieldKey: grantKey,
+                              label: 'Send date',
+                              fieldKey: sendKey,
                               enabled: isEnabled,
+                              inline: true,
                             ),
                           ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            flex: 4,
+                            child: _buildScrutinyDateField(
+                              label: 'Grant date',
+                              fieldKey: grantKey,
+                              enabled: isEnabled,
+                              inline: true,
+                              afterKey: sendKey,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          SizedBox(width: 82, child: Center(child: badge)),
                         ],
                       ),
-                  ],
-                ),
               ),
             ),
           ],
@@ -8890,34 +9643,73 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     );
   }
 
+  /// Clears a Grant date that is now before its step's Send date
+  /// (e.g. the Send date was moved later). The same day is kept.
+  void _dropGrantsNotAfterSend() {
+    for (final e in _scrutinyGrantSendKeys.entries) {
+      final grant = _parseDmy(_controllers[e.key]?.text);
+      final send = _parseDmy(_controllers[e.value]?.text);
+      if (grant != null && send != null && grant.isBefore(send)) {
+        _controllers[e.key]?.clear();
+        _values[e.key] = '';
+      }
+    }
+  }
+
+  /// Grant date key -> its Send date key, filled as the steps are drawn.
+  final Map<String, String> _scrutinyGrantSendKeys = {};
+
+  /// [afterKey]: the Send date of the same step. A Grant date can only be
+  /// picked once that is set, starting on that same day.
   Widget _buildScrutinyDateField({
     required String label,
     required String fieldKey,
     required bool enabled,
+    bool inline = false,
+    String? afterKey,
   }) {
     final ctrl = _controllers.putIfAbsent(fieldKey, () {
       final v = _values[fieldKey]?.toString() ?? '';
       return TextEditingController(text: v);
     });
     final val = ctrl.text.trim();
+    if (afterKey != null) _scrutinyGrantSendKeys[fieldKey] = afterKey;
+    final afterDate = afterKey == null
+        ? null
+        : _parseDmy(
+            _controllers[afterKey]?.text ?? _values[afterKey]?.toString());
+    // Grant date waits for its Send date (a saved one stays shown)
+    final waiting =
+        enabled && afterKey != null && afterDate == null && val.isEmpty;
+    if (waiting) enabled = false;
+    // Inline (one-line card): no label above; the box reads "Send date"
+    // until a date is picked, then "Send date: 23/11/2026"
+    final shown = waiting
+        ? 'Add send date first'
+        : inline
+            ? (val.isNotEmpty ? '$label: $val' : (enabled ? label : 'Locked'))
+            : (val.isNotEmpty ? val : (enabled ? 'Select Date' : 'Locked'));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: GoogleFonts.poppins(
-            fontSize: 10.5,
-            fontWeight: FontWeight.w600,
-            color: enabled ? AppColors.navyDark : const Color(0xFF94A3B8),
+        if (!inline)
+          Text(
+            label,
+            style: GoogleFonts.poppins(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w600,
+              color: enabled ? AppColors.navyDark : const Color(0xFF94A3B8),
+            ),
           ),
-        ),
-        const SizedBox(height: 3),
+        if (!inline) const SizedBox(height: 3),
         InkWell(
           onTap: (enabled && !widget.readOnly)
               ? () async {
-                  await _pickCustodyDate(context, ctrl);
+                  await _pickDateForController(context, ctrl,
+                      firstDate: afterDate);
                   _values[fieldKey] = ctrl.text.trim();
+                  _dropGrantsNotAfterSend();
                   setState(() {});
                 }
               : null,
@@ -8943,7 +9735,9 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                 const SizedBox(width: 7),
                 Expanded(
                   child: Text(
-                    val.isNotEmpty ? val : (enabled ? 'Select Date' : 'Locked'),
+                    shown,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.poppins(
                       fontSize: 11.5,
                       fontWeight:
@@ -10363,7 +11157,14 @@ class _PreventivePersonCard extends StatefulWidget {
 }
 
 class _PreventivePersonCardState extends State<_PreventivePersonCard> {
+  /// Dropdown value for "Other": the officer types the Section / Act.
+  static const _otherValue = '__other__';
+
   String? _selectedSection;
+
+  /// "Other" is picked; [_selectedSection] is then the typed text.
+  bool _isOther = false;
+  late TextEditingController _otherCtrl;
   late TextEditingController _dateCtrl;
   late TextEditingController _outwardCtrl;
   late TextEditingController _numberCtrl;
@@ -10380,7 +11181,13 @@ class _PreventivePersonCardState extends State<_PreventivePersonCard> {
   void didUpdateWidget(covariant _PreventivePersonCard oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.initialAction != widget.initialAction) {
-      _initFromAction(widget.initialAction);
+      final a = widget.initialAction;
+      // Our own save / remove coming back from the parent: the card already
+      // shows it (and keeps "Other" open while its box is being cleared)
+      if (identical(a, _lastSent) || (a == null && _selectedSection == null)) {
+        return;
+      }
+      _initFromAction(a);
     }
   }
 
@@ -10390,6 +11197,11 @@ class _PreventivePersonCardState extends State<_PreventivePersonCard> {
     if (_selectedSection != null && _selectedSection!.isEmpty) {
       _selectedSection = null;
     }
+    // A saved provision that is not in the list was typed under "Other"
+    _isOther = _selectedSection != null &&
+        widget.choices.isNotEmpty &&
+        !widget.choices.contains(_selectedSection);
+    _otherCtrl = TextEditingController(text: _isOther ? _selectedSection : '');
     _dateCtrl = TextEditingController(
       text: (action?['action_date'] ?? action?['actionDate'])?.toString() ?? '',
     );
@@ -10421,12 +11233,16 @@ class _PreventivePersonCardState extends State<_PreventivePersonCard> {
     _numberCtrl.dispose();
     _bondDateCtrl.dispose();
     _bondCancelDateCtrl.dispose();
+    _otherCtrl.dispose();
     super.dispose();
   }
 
+  /// The last action map this card sent up.
+  Map<String, dynamic>? _lastSent;
+
   void _notifySave() {
     if (_selectedSection == null || _selectedSection!.isEmpty) return;
-    widget.onSaveAction({
+    widget.onSaveAction(_lastSent = {
       'name': widget.personName,
       'person_name': widget.personName,
       'accusedName': widget.personName,
@@ -10448,6 +11264,8 @@ class _PreventivePersonCardState extends State<_PreventivePersonCard> {
   void _handleRemove() {
     setState(() {
       _selectedSection = null;
+      _isOther = false;
+      _otherCtrl.clear();
       _dateCtrl.clear();
       _outwardCtrl.clear();
       _numberCtrl.clear();
@@ -10500,15 +11318,81 @@ class _PreventivePersonCardState extends State<_PreventivePersonCard> {
     }
   }
 
+  void _onDropdownChanged(String? v) {
+    if (v == _otherValue) {
+      final typed = _otherCtrl.text.trim();
+      setState(() {
+        _isOther = true;
+        _selectedSection = typed.isEmpty ? null : typed;
+      });
+      if (typed.isEmpty) {
+        widget.onRemoveAction();
+      } else {
+        _notifySave();
+      }
+      return;
+    }
+    setState(() => _isOther = false);
+    _onSectionChanged(v);
+  }
+
+  void _onOtherTyped(String val) {
+    final typed = val.trim();
+    setState(() => _selectedSection = typed.isEmpty ? null : typed);
+    if (typed.isEmpty) {
+      widget.onRemoveAction();
+    } else {
+      _notifySave();
+    }
+  }
+
+  /// Type-in box shown when "Other" is picked.
+  Widget? _buildOtherField() {
+    if (!_isOther) return null;
+    return TextFormField(
+      key: ValueKey('prev_other_${widget.personName}'),
+      controller: _otherCtrl,
+      readOnly: widget.readOnly,
+      maxLength: 100,
+      style: GoogleFonts.poppins(
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        color: AppColors.navyDark,
+      ),
+      onChanged: _onOtherTyped,
+      decoration: InputDecoration(
+        labelText: 'Specify Section / Act',
+        hintText: 'e.g. 129 BNSS r/w ...',
+        counterText: '',
+        labelStyle:
+            GoogleFonts.poppins(fontSize: 12, color: AppColors.lightSubText),
+        hintStyle:
+            GoogleFonts.poppins(fontSize: 12, color: AppColors.lightSubText),
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          borderSide: const BorderSide(color: AppColors.lightBorder),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          borderSide: const BorderSide(color: AppColors.lightBorder),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          borderSide: const BorderSide(color: AppColors.navyMid, width: 1.5),
+        ),
+      ),
+    );
+  }
+
   Widget _buildDropdown() {
     final allChoices = List<String>.from(widget.choices);
-    if (_selectedSection != null &&
-        _selectedSection!.isNotEmpty &&
-        !allChoices.contains(_selectedSection)) {
-      allChoices.insert(0, _selectedSection!);
-    }
-    final currentVal =
-        allChoices.contains(_selectedSection) ? _selectedSection : null;
+    final String? currentVal = _isOther
+        ? _otherValue
+        : (allChoices.contains(_selectedSection) ? _selectedSection : null);
     return DropdownButtonFormField<String?>(
       key: ValueKey('drop_${widget.personName}_$currentVal'),
       initialValue: currentVal,
@@ -10555,124 +11439,180 @@ class _PreventivePersonCardState extends State<_PreventivePersonCard> {
               value: c,
               child: Text(c),
             )),
+        const DropdownMenuItem<String?>(
+          value: _otherValue,
+          child: Text('Other (type)'),
+        ),
       ],
-      onChanged: widget.readOnly ? null : _onSectionChanged,
+      onChanged: widget.readOnly ? null : _onDropdownChanged,
     );
   }
 
+  /// Field name above its box, like the other form cards.
+  Widget _labelled(String label, Widget field, {bool required = false}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // One line, shrunk a little if the box is narrow, never cut off
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text.rich(
+            TextSpan(
+              text: label,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColors.navyDark,
+              ),
+              children: [
+                if (required)
+                  const TextSpan(
+                    text: ' *',
+                    style: TextStyle(
+                      color: AppColors.dangerRed,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+              ],
+            ),
+            maxLines: 1,
+            softWrap: false,
+          ),
+        ),
+        const SizedBox(height: 8),
+        field,
+      ],
+    );
+  }
+
+  /// [compact]: the five-on-one-line PC layout (hint "Select date",
+  /// smaller padding, calendar icon close to the right edge).
   Widget _buildDateField(String label, TextEditingController ctrl,
-      {bool required = false}) {
-    return TextFormField(
-      controller: ctrl,
-      readOnly: true,
-      onTap: widget.readOnly ? null : () => _pickDate(ctrl),
-      style: GoogleFonts.poppins(
-        fontSize: 13,
-        fontWeight: FontWeight.w500,
-        color: AppColors.navyDark,
-      ),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle:
-            GoogleFonts.poppins(fontSize: 12, color: AppColors.lightSubText),
-        filled: true,
-        fillColor: Colors.white,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        suffixIcon: IconButton(
-          icon: const Icon(Icons.calendar_month_rounded,
-              size: 20, color: AppColors.navyMid),
-          onPressed: widget.readOnly ? null : () => _pickDate(ctrl),
-          tooltip: 'Select date',
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.lightBorder),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.lightBorder),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.navyMid, width: 1.5),
-        ),
-      ),
-    );
+      {bool required = false, bool compact = false}) {
+    return _labelled(
+        label,
+        required: required,
+        TextFormField(
+          controller: ctrl,
+          readOnly: true,
+          onTap: widget.readOnly ? null : () => _pickDate(ctrl),
+          style: GoogleFonts.poppins(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: AppColors.navyDark,
+          ),
+          decoration: InputDecoration(
+            hintText: compact ? 'Select date' : 'DD/MM/YYYY',
+            hintStyle: GoogleFonts.poppins(
+                fontSize: 12, color: AppColors.lightSubText),
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding: EdgeInsets.symmetric(
+                horizontal: compact ? 10 : 14, vertical: 12),
+            suffixIcon: IconButton(
+              icon: const Icon(Icons.calendar_month_rounded,
+                  size: 20, color: AppColors.navyMid),
+              onPressed: widget.readOnly ? null : () => _pickDate(ctrl),
+              tooltip: 'Select date',
+              padding: compact ? EdgeInsets.zero : null,
+              constraints: compact
+                  ? const BoxConstraints(minWidth: 34, minHeight: 34)
+                  : null,
+            ),
+            suffixIconConstraints: compact
+                ? const BoxConstraints(minWidth: 34, minHeight: 34)
+                : null,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              borderSide: const BorderSide(color: AppColors.lightBorder),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              borderSide: const BorderSide(color: AppColors.lightBorder),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              borderSide:
+                  const BorderSide(color: AppColors.navyMid, width: 1.5),
+            ),
+          ),
+        ));
   }
 
-  Widget _buildOutwardField() {
-    return TextFormField(
-      controller: _outwardCtrl,
-      readOnly: widget.readOnly,
-      style: GoogleFonts.poppins(
-        fontSize: 13,
-        fontWeight: FontWeight.w500,
-        color: AppColors.navyDark,
-      ),
-      onChanged: (_) => _notifySave(),
-      decoration: InputDecoration(
-        labelText: 'Outward Number (Optional)',
-        hintText: 'e.g. OUT/2026/102',
-        labelStyle:
-            GoogleFonts.poppins(fontSize: 12, color: AppColors.lightSubText),
-        hintStyle:
-            GoogleFonts.poppins(fontSize: 12, color: AppColors.lightSubText),
-        filled: true,
-        fillColor: Colors.white,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.lightBorder),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.lightBorder),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.navyMid, width: 1.5),
-        ),
-      ),
-    );
+  Widget _buildOutwardField({bool compact = false}) {
+    return _labelled(
+        compact ? 'Outward No.' : 'Outward Number',
+        TextFormField(
+          controller: _outwardCtrl,
+          readOnly: widget.readOnly,
+          style: GoogleFonts.poppins(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: AppColors.navyDark,
+          ),
+          onChanged: (_) => _notifySave(),
+          decoration: InputDecoration(
+            hintText: 'OUT/2026/102',
+            hintStyle: GoogleFonts.poppins(
+                fontSize: 12, color: AppColors.lightSubText),
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding: EdgeInsets.symmetric(
+                horizontal: compact ? 10 : 14, vertical: 12),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              borderSide: const BorderSide(color: AppColors.lightBorder),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              borderSide: const BorderSide(color: AppColors.lightBorder),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              borderSide:
+                  const BorderSide(color: AppColors.navyMid, width: 1.5),
+            ),
+          ),
+        ));
   }
 
-  Widget _buildNumberField() {
-    return TextFormField(
-      controller: _numberCtrl,
-      readOnly: widget.readOnly,
-      style: GoogleFonts.poppins(
-        fontSize: 13,
-        fontWeight: FontWeight.w500,
-        color: AppColors.navyDark,
-      ),
-      onChanged: (_) => _notifySave(),
-      decoration: InputDecoration(
-        labelText: 'Preventive Number (Optional)',
-        hintText: 'Enter Preventive Number...',
-        labelStyle:
-            GoogleFonts.poppins(fontSize: 12, color: AppColors.lightSubText),
-        hintStyle:
-            GoogleFonts.poppins(fontSize: 12, color: AppColors.lightSubText),
-        filled: true,
-        fillColor: Colors.white,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.lightBorder),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.lightBorder),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.navyMid, width: 1.5),
-        ),
-      ),
-    );
+  Widget _buildNumberField({bool compact = false}) {
+    return _labelled(
+        compact ? 'Preventive No.' : 'Preventive Number',
+        TextFormField(
+          controller: _numberCtrl,
+          readOnly: widget.readOnly,
+          style: GoogleFonts.poppins(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: AppColors.navyDark,
+          ),
+          onChanged: (_) => _notifySave(),
+          decoration: InputDecoration(
+            hintText: compact ? 'Number' : 'Enter preventive number',
+            hintStyle: GoogleFonts.poppins(
+                fontSize: 12, color: AppColors.lightSubText),
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding: EdgeInsets.symmetric(
+                horizontal: compact ? 10 : 14, vertical: 12),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              borderSide: const BorderSide(color: AppColors.lightBorder),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              borderSide: const BorderSide(color: AppColors.lightBorder),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              borderSide:
+                  const BorderSide(color: AppColors.navyMid, width: 1.5),
+            ),
+          ),
+        ));
   }
 
   @override
@@ -10776,6 +11716,10 @@ class _PreventivePersonCardState extends State<_PreventivePersonCard> {
                       ),
                       const SizedBox(height: 8),
                       _buildDropdown(),
+                      if (_buildOtherField() case final other?) ...[
+                        const SizedBox(height: 8),
+                        other,
+                      ],
                     ],
                   );
                 }
@@ -10829,6 +11773,10 @@ class _PreventivePersonCardState extends State<_PreventivePersonCard> {
                     ),
                     const SizedBox(width: 12),
                     Expanded(child: _buildDropdown()),
+                    if (_buildOtherField() case final other?) ...[
+                      const SizedBox(width: 12),
+                      Expanded(child: other),
+                    ],
                     if (removeButton != null) ...[
                       const SizedBox(width: 6),
                       removeButton,
@@ -10846,6 +11794,30 @@ class _PreventivePersonCardState extends State<_PreventivePersonCard> {
               LayoutBuilder(
                 builder: (context, constraints) {
                   final isWide = constraints.maxWidth > 650;
+                  // PC: all five on one line, short one-line names
+                  if (MediaQuery.sizeOf(context).width >= 1000 &&
+                      constraints.maxWidth >= 600) {
+                    final cells = [
+                      _buildDateField('Action Date', _dateCtrl,
+                          required: true, compact: true),
+                      _buildOutwardField(compact: true),
+                      _buildNumberField(compact: true),
+                      _buildDateField('Bond Date', _bondDateCtrl,
+                          compact: true),
+                      _buildDateField(
+                          'Bond Cancellation Date', _bondCancelDateCtrl,
+                          compact: true),
+                    ];
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        for (var i = 0; i < cells.length; i++) ...[
+                          if (i > 0) const SizedBox(width: 8),
+                          Expanded(child: cells[i]),
+                        ],
+                      ],
+                    );
+                  }
                   if (isWide) {
                     return Column(
                       children: [
@@ -10853,8 +11825,7 @@ class _PreventivePersonCardState extends State<_PreventivePersonCard> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(
-                                child: _buildDateField(
-                                    'Action Date *', _dateCtrl,
+                                child: _buildDateField('Action Date', _dateCtrl,
                                     required: true)),
                             const SizedBox(width: 12),
                             Expanded(child: _buildOutwardField()),
@@ -10873,6 +11844,9 @@ class _PreventivePersonCardState extends State<_PreventivePersonCard> {
                             Expanded(
                                 child: _buildDateField('Bond Cancellation Date',
                                     _bondCancelDateCtrl)),
+                            // Same 3 columns as the line above
+                            const SizedBox(width: 12),
+                            const Expanded(child: SizedBox()),
                           ],
                         ),
                       ],
@@ -10894,7 +11868,7 @@ class _PreventivePersonCardState extends State<_PreventivePersonCard> {
                     return Column(
                       children: [
                         pair(
-                            _buildDateField('Action Date *', _dateCtrl,
+                            _buildDateField('Action Date', _dateCtrl,
                                 required: true),
                             _buildOutwardField()),
                         pair(_buildNumberField(),
@@ -10908,7 +11882,7 @@ class _PreventivePersonCardState extends State<_PreventivePersonCard> {
                   } else {
                     return Column(
                       children: [
-                        _buildDateField('Action Date *', _dateCtrl,
+                        _buildDateField('Action Date', _dateCtrl,
                             required: true),
                         const SizedBox(height: 12),
                         _buildOutwardField(),
@@ -10944,6 +11918,18 @@ class _CustodyAccusedCard extends StatefulWidget {
   final ValueChanged<Map<String, dynamic>> onChanged;
   final VoidCallback? onRemovePerson;
 
+  /// Only the fields (PCR, MCR and what they reveal): no card or name
+  /// header, for use inside the Arrest & Custody record.
+  final bool bare;
+
+  /// Cells placed before PCR on its line (e.g. Arrested date and
+  /// Intimation), so the four share one line.
+  final List<Widget> leadingCells;
+
+  /// Shown right under that line (e.g. the Intimation details), above the
+  /// MCR options.
+  final Widget? belowFirstRow;
+
   const _CustodyAccusedCard({
     super.key,
     required this.personName,
@@ -10956,6 +11942,9 @@ class _CustodyAccusedCard extends StatefulWidget {
     required this.onToggleExpand,
     required this.onChanged,
     this.onRemovePerson,
+    this.bare = false,
+    this.leadingCells = const [],
+    this.belowFirstRow,
   });
 
   @override
@@ -11175,8 +12164,519 @@ class _CustodyAccusedCardState extends State<_CustodyAccusedCard> {
     return parts.isEmpty ? null : parts.join(' · ');
   }
 
+  /// Bordered box of one custody option (PR Bond, Jail or Bail).
+  Widget _custodyOptionBox(bool on, Widget child) => Container(
+        decoration: BoxDecoration(
+          color: on ? AppColors.navyMid.withValues(alpha: 0.04) : Colors.white,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          border: Border.all(
+            color: on ? AppColors.navyMid : AppColors.lightBorder,
+            width: on ? 1.5 : 1.0,
+          ),
+        ),
+        child: child,
+      );
+
+  /// Surety details (opened by Bail). PC: four fields per line, no PAN box
+  /// (Name | Age | Gender | Occupation, Mobile | Aadhaar | Relation |
+  /// Address); a PAN saved earlier is kept. Phone / tablet as before: three,
+  /// two or one per line, with PAN. Labels sit above the boxes on one line
+  /// each, so every box starts at the same height.
+  /// The Surety details card, so Bail can scroll it into view.
+  final GlobalKey _suretyCardKey = GlobalKey();
+
+  /// After Bail opens the surety card, scroll just enough that the whole
+  /// card is on screen (nothing moves if it already is).
+  void _scrollSuretyIntoView() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final ctx = _suretyCardKey.currentContext;
+      if (ctx == null || !mounted) return;
+      Scrollable.ensureVisible(
+        ctx,
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeOutCubic,
+        alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
+      );
+    });
+  }
+
+  Widget _buildSuretyCard() {
+    InputDecoration deco(String hint) => InputDecoration(
+          hintText: hint,
+          hintStyle: GoogleFonts.poppins(
+              fontSize: 12.5, color: const Color(0xFF94A3B8)),
+          isDense: true,
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            borderSide: const BorderSide(color: AppColors.lightBorder),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            borderSide: const BorderSide(color: AppColors.lightBorder),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            borderSide: const BorderSide(color: AppColors.navyMid, width: 1.5),
+          ),
+        );
+    final textStyle =
+        GoogleFonts.poppins(fontSize: 13, color: AppColors.navyDark);
+
+    Widget labelled(String label, Widget field) => Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // One line, shrunk to fit if needed ("Relation with accused"
+            // in a narrow column), so the boxes below stay level
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(label,
+                  maxLines: 1,
+                  softWrap: false,
+                  style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF334155))),
+            ),
+            const SizedBox(height: 4),
+            field,
+          ],
+        );
+
+    Widget text(String label, TextEditingController ctrl, String hint,
+            {TextInputType? keyboard,
+            TextCapitalization caps = TextCapitalization.none}) =>
+        labelled(
+          label,
+          TextFormField(
+            controller: ctrl,
+            readOnly: widget.readOnly,
+            keyboardType: keyboard,
+            textCapitalization: caps,
+            style: textStyle,
+            decoration: deco(hint),
+            onChanged: (_) => _notifyChange(),
+          ),
+        );
+
+    Widget dropdown(String label, String? value, List<String> items,
+            String hint, ValueChanged<String> onPick) =>
+        labelled(
+          label,
+          DropdownButtonFormField<String>(
+            initialValue: items.contains(value) ? value : null,
+            isExpanded: true,
+            decoration: deco(hint),
+            hint: Text(hint,
+                style: GoogleFonts.poppins(
+                    fontSize: 12.5, color: const Color(0xFF94A3B8))),
+            items: items
+                .map((v) => DropdownMenuItem<String>(
+                    value: v, child: Text(v, style: textStyle)))
+                .toList(),
+            onChanged: widget.readOnly
+                ? null
+                : (v) {
+                    if (v == null) return;
+                    setState(() => onPick(v));
+                    _notifyChange();
+                  },
+          ),
+        );
+
+    final genders = widget.genderOptions.isNotEmpty
+        ? widget.genderOptions
+        : const ['Male', 'Female', 'Transgender'];
+    // PC: no PAN box, four per line. Phone / tablet keep the PAN box.
+    List<Widget> cellsFor(bool pc) => [
+          text('Name', _suretyNameCtrl, 'Full name'),
+          text('Age', _suretyAgeCtrl, 'e.g. 45',
+              keyboard: TextInputType.number),
+          dropdown('Gender', _suretyGender, genders, 'Select gender',
+              (v) => _suretyGender = v),
+          text('Occupation', _suretyOccCtrl, 'Occupation'),
+          text('Mobile', _suretyMobileCtrl, '10-digit number',
+              keyboard: TextInputType.phone),
+          text('Aadhaar', _suretyAadhaarCtrl, 'XXXX XXXX XXXX',
+              keyboard: TextInputType.number),
+          if (!pc)
+            text('PAN', _suretyPanCtrl, 'ABCDE1234F',
+                caps: TextCapitalization.characters),
+          dropdown(
+              'Relation with accused',
+              _suretyRelation,
+              widget.relationChoices,
+              'Select relation',
+              (v) => _suretyRelation = v),
+          text('Address', _suretyAddressCtrl, 'Residential address'),
+        ];
+
+    return Container(
+      key: _suretyCardKey,
+      margin: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.lightBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 26,
+                height: 26,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.navyMid.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.verified_user_outlined,
+                    size: 16, color: AppColors.navyMid),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Surety details',
+                style: GoogleFonts.poppins(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.navyDark),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          LayoutBuilder(builder: (context, c) {
+            final pc =
+                MediaQuery.sizeOf(context).width >= 1000 && c.maxWidth >= 600;
+            final perLine =
+                pc ? 4 : (c.maxWidth >= 600 ? 3 : (c.maxWidth >= 380 ? 2 : 1));
+            final cells = cellsFor(pc);
+            final rows = <Widget>[];
+            for (var i = 0; i < cells.length; i += perLine) {
+              rows.add(Padding(
+                padding: EdgeInsets.only(
+                    bottom: i + perLine < cells.length ? 10 : 0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    for (var j = 0; j < perLine; j++) ...[
+                      if (j > 0) const SizedBox(width: 12),
+                      Expanded(
+                        child: i + j < cells.length
+                            ? cells[i + j]
+                            : const SizedBox.shrink(),
+                      ),
+                    ],
+                  ],
+                ),
+              ));
+            }
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: rows,
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  /// PCR, MCR and the fields MCR reveals.
+  Widget _inlineForm() => Padding(
+        padding: EdgeInsets.all(widget.bare ? 0 : 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Row 1: [leading cells] PCR Days & MCR Toggle
+            Row(
+              children: [
+                for (final cell in widget.leadingCells) ...[
+                  Expanded(child: cell),
+                  const SizedBox(width: 14),
+                ],
+                Expanded(
+                  child: TextFormField(
+                    controller: _pcrDaysCtrl,
+                    readOnly: widget.readOnly,
+                    keyboardType: TextInputType.number,
+                    // Optional; when filled, whole days up to 3 digits
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(3),
+                    ],
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    validator: (v) {
+                      final t = v?.trim() ?? '';
+                      if (t.isEmpty) return null;
+                      return RegExp(r'^\d{1,3}$').hasMatch(t)
+                          ? null
+                          : 'Enter up to 3 digits';
+                    },
+                    style: GoogleFonts.poppins(
+                        fontSize: 13, color: AppColors.navyDark),
+                    decoration: _fieldDeco('PCR (00 Day)', 'e.g. 7'),
+                    onChanged: (_) => _notifyChange(),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                      border: Border.all(
+                        color:
+                            _isMcr ? AppColors.navyMid : AppColors.lightBorder,
+                        width: _isMcr ? 1.5 : 1.0,
+                      ),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: CheckboxListTile(
+                        value: _isMcr,
+                        activeColor: AppColors.navyMid,
+                        title: Text(
+                          'MCR',
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.navyDark,
+                          ),
+                        ),
+                        controlAffinity: ListTileControlAffinity.leading,
+                        onChanged: widget.readOnly
+                            ? null
+                            : (val) {
+                                setState(() {
+                                  _isMcr = val ?? false;
+                                  if (!_isMcr) {
+                                    _isPrBond = false;
+                                    _isJail = false;
+                                    _isBail = false;
+                                  }
+                                });
+                                _notifyChange();
+                              },
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (widget.belowFirstRow != null) widget.belowFirstRow!,
+
+            // MCR Options
+            if (_isMcr) ...[
+              const SizedBox(height: 12),
+              Text(
+                'MCR OPTIONS',
+                style: GoogleFonts.poppins(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF64748B),
+                  letterSpacing: 1.0,
+                ),
+              ),
+              const SizedBox(height: 8),
+
+              // PR Bond | Jail | Bail on one line (one can be
+              // picked); the picked one's date or surety details
+              // open below the line
+              Row(
+                children: [
+                  Expanded(
+                    child: _custodyOptionBox(
+                      _isPrBond,
+                      Material(
+                        color: Colors.transparent,
+                        child: RadioListTile<String>(
+                          value: 'PR_BOND',
+                          groupValue: _isPrBond
+                              ? 'PR_BOND'
+                              : (_isJail ? 'JAIL' : (_isBail ? 'BAIL' : null)),
+                          activeColor: AppColors.navyMid,
+                          title: Text(
+                            'PR Bond',
+                            style: GoogleFonts.poppins(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.navyDark),
+                          ),
+                          onChanged: widget.readOnly
+                              ? null
+                              : (v) {
+                                  setState(() {
+                                    final next = !_isPrBond;
+                                    _isPrBond = next;
+                                    if (next) {
+                                      _isJail = false;
+                                      _isBail = false;
+                                      if (_prBondDateCtrl.text.isEmpty) {
+                                        _prBondDateCtrl.text =
+                                            DateFormat('dd/MM/yyyy')
+                                                .format(DateTime.now());
+                                      }
+                                    } else {
+                                      _prBondDateCtrl.clear();
+                                    }
+                                  });
+                                  _notifyChange();
+                                },
+                          controlAffinity: ListTileControlAffinity.leading,
+                          dense: true,
+                          contentPadding:
+                              const EdgeInsets.only(left: 4, right: 8),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _custodyOptionBox(
+                      _isJail,
+                      Material(
+                        color: Colors.transparent,
+                        child: RadioListTile<String>(
+                          value: 'JAIL',
+                          groupValue: _isPrBond
+                              ? 'PR_BOND'
+                              : (_isJail ? 'JAIL' : (_isBail ? 'BAIL' : null)),
+                          activeColor: AppColors.navyMid,
+                          title: Text(
+                            'Jail',
+                            style: GoogleFonts.poppins(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.navyDark),
+                          ),
+                          onChanged: widget.readOnly
+                              ? null
+                              : (v) {
+                                  setState(() {
+                                    final next = !_isJail;
+                                    _isJail = next;
+                                    if (next) {
+                                      _isPrBond = false;
+                                      _isBail = false;
+                                      if (_jailDateCtrl.text.isEmpty) {
+                                        _jailDateCtrl.text =
+                                            DateFormat('dd/MM/yyyy')
+                                                .format(DateTime.now());
+                                      }
+                                    } else {
+                                      _jailDateCtrl.clear();
+                                    }
+                                  });
+                                  _notifyChange();
+                                },
+                          controlAffinity: ListTileControlAffinity.leading,
+                          dense: true,
+                          contentPadding:
+                              const EdgeInsets.only(left: 4, right: 8),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _custodyOptionBox(
+                      _isBail,
+                      Material(
+                        color: Colors.transparent,
+                        child: RadioListTile<String>(
+                          value: 'BAIL',
+                          groupValue: _isPrBond
+                              ? 'PR_BOND'
+                              : (_isJail ? 'JAIL' : (_isBail ? 'BAIL' : null)),
+                          activeColor: AppColors.navyMid,
+                          title: Text(
+                            'Bail',
+                            style: GoogleFonts.poppins(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.navyDark),
+                          ),
+                          onChanged: widget.readOnly
+                              ? null
+                              : (v) {
+                                  setState(() {
+                                    final next = !_isBail;
+                                    _isBail = next;
+                                    if (next) {
+                                      _isPrBond = false;
+                                      _isJail = false;
+                                    }
+                                  });
+                                  _notifyChange();
+                                  if (_isBail) _scrollSuretyIntoView();
+                                },
+                          controlAffinity: ListTileControlAffinity.leading,
+                          dense: true,
+                          contentPadding:
+                              const EdgeInsets.only(left: 4, right: 8),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              if (_isPrBond)
+                Padding(
+                  padding: const EdgeInsets.only(top: 10),
+                  child: InkWell(
+                    onTap: widget.readOnly
+                        ? null
+                        : () => _pickDate(_prBondDateCtrl),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    child: IgnorePointer(
+                      child: TextFormField(
+                        controller: _prBondDateCtrl,
+                        style: GoogleFonts.poppins(
+                            fontSize: 13, color: AppColors.navyDark),
+                        decoration: _fieldDeco('Date (dd/mm/yyyy)').copyWith(
+                          suffixIcon: const Icon(Icons.calendar_month_rounded,
+                              size: 18, color: AppColors.navyMid),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              if (_isJail)
+                Padding(
+                  padding: const EdgeInsets.only(top: 10),
+                  child: InkWell(
+                    onTap:
+                        widget.readOnly ? null : () => _pickDate(_jailDateCtrl),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    child: IgnorePointer(
+                      child: TextFormField(
+                        controller: _jailDateCtrl,
+                        style: GoogleFonts.poppins(
+                            fontSize: 13, color: AppColors.navyDark),
+                        decoration: _fieldDeco('Date (dd/mm/yyyy)').copyWith(
+                          suffixIcon: const Icon(Icons.calendar_month_rounded,
+                              size: 18, color: AppColors.navyMid),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              if (_isBail) _buildSuretyCard(),
+            ],
+          ],
+        ),
+      );
+
   @override
   Widget build(BuildContext context) {
+    if (widget.bare) return _inlineForm();
     final statusSummary = _getStatusSummary();
 
     return Container(
@@ -11275,587 +12775,7 @@ class _CustodyAccusedCardState extends State<_CustodyAccusedCard> {
           // Inline Form
           if (widget.isExpanded) ...[
             const Divider(height: 1, color: AppColors.lightBorder),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Row 1: PCR Days & MCR Toggle
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: _pcrDaysCtrl,
-                          readOnly: widget.readOnly,
-                          keyboardType: TextInputType.number,
-                          // Optional; when filled, whole days up to 3 digits
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                            LengthLimitingTextInputFormatter(3),
-                          ],
-                          autovalidateMode: AutovalidateMode.onUserInteraction,
-                          validator: (v) {
-                            final t = v?.trim() ?? '';
-                            if (t.isEmpty) return null;
-                            return RegExp(r'^\d{1,3}$').hasMatch(t)
-                                ? null
-                                : 'Enter up to 3 digits';
-                          },
-                          style: GoogleFonts.poppins(
-                              fontSize: 13, color: AppColors.navyDark),
-                          decoration: _fieldDeco('PCR (00 Day)', 'e.g. 7'),
-                          onChanged: (_) => _notifyChange(),
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF8FAFC),
-                            borderRadius: BorderRadius.circular(AppRadius.md),
-                            border: Border.all(
-                              color: _isMcr
-                                  ? AppColors.navyMid
-                                  : AppColors.lightBorder,
-                              width: _isMcr ? 1.5 : 1.0,
-                            ),
-                          ),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: CheckboxListTile(
-                              value: _isMcr,
-                              activeColor: AppColors.navyMid,
-                              title: Text(
-                                'MCR',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.navyDark,
-                                ),
-                              ),
-                              controlAffinity: ListTileControlAffinity.leading,
-                              onChanged: widget.readOnly
-                                  ? null
-                                  : (val) {
-                                      setState(() {
-                                        _isMcr = val ?? false;
-                                        if (!_isMcr) {
-                                          _isPrBond = false;
-                                          _isJail = false;
-                                          _isBail = false;
-                                        }
-                                      });
-                                      _notifyChange();
-                                    },
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  // MCR Options
-                  if (_isMcr) ...[
-                    const SizedBox(height: 12),
-                    Text(
-                      'MCR OPTIONS',
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF64748B),
-                        letterSpacing: 1.0,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-
-                    // PR Bond Option
-                    Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      decoration: BoxDecoration(
-                        color: _isPrBond
-                            ? AppColors.navyMid.withValues(alpha: 0.04)
-                            : Colors.white,
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                        border: Border.all(
-                          color: _isPrBond
-                              ? AppColors.navyMid
-                              : AppColors.lightBorder,
-                          width: _isPrBond ? 1.5 : 1.0,
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          Material(
-                            color: Colors.transparent,
-                            child: RadioListTile<String>(
-                              value: 'PR_BOND',
-                              groupValue: _isPrBond
-                                  ? 'PR_BOND'
-                                  : (_isJail
-                                      ? 'JAIL'
-                                      : (_isBail ? 'BAIL' : null)),
-                              activeColor: AppColors.navyMid,
-                              title: Text(
-                                'PR Bond',
-                                style: GoogleFonts.poppins(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.navyDark),
-                              ),
-                              onChanged: widget.readOnly
-                                  ? null
-                                  : (v) {
-                                      setState(() {
-                                        final next = !_isPrBond;
-                                        _isPrBond = next;
-                                        if (next) {
-                                          _isJail = false;
-                                          _isBail = false;
-                                          if (_prBondDateCtrl.text.isEmpty) {
-                                            _prBondDateCtrl.text =
-                                                DateFormat('dd/MM/yyyy')
-                                                    .format(DateTime.now());
-                                          }
-                                        } else {
-                                          _prBondDateCtrl.clear();
-                                        }
-                                      });
-                                      _notifyChange();
-                                    },
-                              controlAffinity: ListTileControlAffinity.leading,
-                            ),
-                          ),
-                          if (_isPrBond)
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
-                              child: InkWell(
-                                onTap: widget.readOnly
-                                    ? null
-                                    : () => _pickDate(_prBondDateCtrl),
-                                borderRadius:
-                                    BorderRadius.circular(AppRadius.md),
-                                child: IgnorePointer(
-                                  child: TextFormField(
-                                    controller: _prBondDateCtrl,
-                                    style: GoogleFonts.poppins(
-                                        fontSize: 13,
-                                        color: AppColors.navyDark),
-                                    decoration: _fieldDeco('Date (dd/mm/yyyy)')
-                                        .copyWith(
-                                      suffixIcon: const Icon(
-                                          Icons.calendar_month_rounded,
-                                          size: 18,
-                                          color: AppColors.navyMid),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-
-                    // Jail Option
-                    Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      decoration: BoxDecoration(
-                        color: _isJail
-                            ? AppColors.navyMid.withValues(alpha: 0.04)
-                            : Colors.white,
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                        border: Border.all(
-                          color: _isJail
-                              ? AppColors.navyMid
-                              : AppColors.lightBorder,
-                          width: _isJail ? 1.5 : 1.0,
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          Material(
-                            color: Colors.transparent,
-                            child: RadioListTile<String>(
-                              value: 'JAIL',
-                              groupValue: _isPrBond
-                                  ? 'PR_BOND'
-                                  : (_isJail
-                                      ? 'JAIL'
-                                      : (_isBail ? 'BAIL' : null)),
-                              activeColor: AppColors.navyMid,
-                              title: Text(
-                                'Jail',
-                                style: GoogleFonts.poppins(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.navyDark),
-                              ),
-                              onChanged: widget.readOnly
-                                  ? null
-                                  : (v) {
-                                      setState(() {
-                                        final next = !_isJail;
-                                        _isJail = next;
-                                        if (next) {
-                                          _isPrBond = false;
-                                          _isBail = false;
-                                          if (_jailDateCtrl.text.isEmpty) {
-                                            _jailDateCtrl.text =
-                                                DateFormat('dd/MM/yyyy')
-                                                    .format(DateTime.now());
-                                          }
-                                        } else {
-                                          _jailDateCtrl.clear();
-                                        }
-                                      });
-                                      _notifyChange();
-                                    },
-                              controlAffinity: ListTileControlAffinity.leading,
-                            ),
-                          ),
-                          if (_isJail)
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
-                              child: InkWell(
-                                onTap: widget.readOnly
-                                    ? null
-                                    : () => _pickDate(_jailDateCtrl),
-                                borderRadius:
-                                    BorderRadius.circular(AppRadius.md),
-                                child: IgnorePointer(
-                                  child: TextFormField(
-                                    controller: _jailDateCtrl,
-                                    style: GoogleFonts.poppins(
-                                        fontSize: 13,
-                                        color: AppColors.navyDark),
-                                    decoration: _fieldDeco('Date (dd/mm/yyyy)')
-                                        .copyWith(
-                                      suffixIcon: const Icon(
-                                          Icons.calendar_month_rounded,
-                                          size: 18,
-                                          color: AppColors.navyMid),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-
-                    // Bail Option
-                    Container(
-                      decoration: BoxDecoration(
-                        color: _isBail
-                            ? AppColors.navyMid.withValues(alpha: 0.04)
-                            : Colors.white,
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                        border: Border.all(
-                          color: _isBail
-                              ? AppColors.navyMid
-                              : AppColors.lightBorder,
-                          width: _isBail ? 1.5 : 1.0,
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Material(
-                            color: Colors.transparent,
-                            child: RadioListTile<String>(
-                              value: 'BAIL',
-                              groupValue: _isPrBond
-                                  ? 'PR_BOND'
-                                  : (_isJail
-                                      ? 'JAIL'
-                                      : (_isBail ? 'BAIL' : null)),
-                              activeColor: AppColors.navyMid,
-                              title: Text(
-                                'Bail',
-                                style: GoogleFonts.poppins(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.navyDark),
-                              ),
-                              onChanged: widget.readOnly
-                                  ? null
-                                  : (v) {
-                                      setState(() {
-                                        final next = !_isBail;
-                                        _isBail = next;
-                                        if (next) {
-                                          _isPrBond = false;
-                                          _isJail = false;
-                                        }
-                                      });
-                                      _notifyChange();
-                                    },
-                              controlAffinity: ListTileControlAffinity.leading,
-                            ),
-                          ),
-
-                          // Collapsible Surety KYC Fields
-                          if (_isBail)
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
-                              child: Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF8FAFC),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                      color: const Color(0xFFCBD5E1)),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'SURETY NAME',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w700,
-                                        color: const Color(0xFF64748B),
-                                        letterSpacing: 1.1,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 10),
-                                    TextFormField(
-                                      controller: _suretyNameCtrl,
-                                      readOnly: widget.readOnly,
-                                      style: GoogleFonts.poppins(
-                                          fontSize: 13,
-                                          color: AppColors.navyDark),
-                                      decoration: _fieldDeco(
-                                          'Surety Name', 'Full Name'),
-                                      onChanged: (_) => _notifyChange(),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: TextFormField(
-                                            controller: _suretyAgeCtrl,
-                                            readOnly: widget.readOnly,
-                                            keyboardType: TextInputType.number,
-                                            style: GoogleFonts.poppins(
-                                                fontSize: 13,
-                                                color: AppColors.navyDark),
-                                            decoration: _fieldDeco(
-                                                'Surety Age', 'e.g. 45'),
-                                            onChanged: (_) => _notifyChange(),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                'Surety Gender',
-                                                style: GoogleFonts.poppins(
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: const Color(
-                                                        0xFF334155)),
-                                              ),
-                                              const SizedBox(height: 6),
-                                              Wrap(
-                                                spacing: 8,
-                                                children: (widget.genderOptions
-                                                            .isNotEmpty
-                                                        ? widget.genderOptions
-                                                        : const [
-                                                            'Male',
-                                                            'Female',
-                                                            'Transgender'
-                                                          ])
-                                                    .map((g) {
-                                                  final isSel =
-                                                      _suretyGender == g;
-                                                  return InkWell(
-                                                    onTap: widget.readOnly
-                                                        ? null
-                                                        : () {
-                                                            setState(() =>
-                                                                _suretyGender =
-                                                                    g);
-                                                            _notifyChange();
-                                                          },
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            16),
-                                                    child: Container(
-                                                      padding: const EdgeInsets
-                                                          .symmetric(
-                                                          horizontal: 12,
-                                                          vertical: 6),
-                                                      decoration: BoxDecoration(
-                                                        color: isSel
-                                                            ? AppColors.navyMid
-                                                                .withValues(
-                                                                    alpha: 0.1)
-                                                            : Colors.white,
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(16),
-                                                        border: Border.all(
-                                                          color: isSel
-                                                              ? AppColors
-                                                                  .navyMid
-                                                              : const Color(
-                                                                  0xFFCBD5E1),
-                                                          width:
-                                                              isSel ? 1.5 : 1.0,
-                                                        ),
-                                                      ),
-                                                      child: Text(
-                                                        g,
-                                                        style:
-                                                            GoogleFonts.poppins(
-                                                          fontSize: 11.5,
-                                                          fontWeight: isSel
-                                                              ? FontWeight.w600
-                                                              : FontWeight.w500,
-                                                          color: isSel
-                                                              ? AppColors
-                                                                  .navyDark
-                                                              : const Color(
-                                                                  0xFF64748B),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  );
-                                                }).toList(),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 12),
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: TextFormField(
-                                            controller: _suretyOccCtrl,
-                                            readOnly: widget.readOnly,
-                                            style: GoogleFonts.poppins(
-                                                fontSize: 13,
-                                                color: AppColors.navyDark),
-                                            decoration: _fieldDeco(
-                                                'Surety Occupation',
-                                                'Occupation'),
-                                            onChanged: (_) => _notifyChange(),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: TextFormField(
-                                            controller: _suretyMobileCtrl,
-                                            readOnly: widget.readOnly,
-                                            keyboardType: TextInputType.phone,
-                                            style: GoogleFonts.poppins(
-                                                fontSize: 13,
-                                                color: AppColors.navyDark),
-                                            decoration: _fieldDeco(
-                                                'Surety Mobile No.',
-                                                '10-digit mobile'),
-                                            onChanged: (_) => _notifyChange(),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 12),
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: TextFormField(
-                                            controller: _suretyAadhaarCtrl,
-                                            readOnly: widget.readOnly,
-                                            keyboardType: TextInputType.number,
-                                            style: GoogleFonts.poppins(
-                                                fontSize: 13,
-                                                color: AppColors.navyDark),
-                                            decoration: _fieldDeco(
-                                                'Surety Aadhaar No.',
-                                                '12-digit number'),
-                                            onChanged: (_) => _notifyChange(),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: TextFormField(
-                                            controller: _suretyPanCtrl,
-                                            readOnly: widget.readOnly,
-                                            textCapitalization:
-                                                TextCapitalization.characters,
-                                            style: GoogleFonts.poppins(
-                                                fontSize: 13,
-                                                color: AppColors.navyDark),
-                                            decoration: _fieldDeco(
-                                                'Surety PAN No.',
-                                                'PAN Card No.'),
-                                            onChanged: (_) => _notifyChange(),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 12),
-                                    TextFormField(
-                                      controller: _suretyAddressCtrl,
-                                      readOnly: widget.readOnly,
-                                      maxLines: 2,
-                                      style: GoogleFonts.poppins(
-                                          fontSize: 13,
-                                          color: AppColors.navyDark),
-                                      decoration: _fieldDeco('Surety Address',
-                                          'Residential Address'),
-                                      onChanged: (_) => _notifyChange(),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    DropdownButtonFormField<String>(
-                                      initialValue: widget.relationChoices
-                                              .contains(_suretyRelation)
-                                          ? _suretyRelation
-                                          : null,
-                                      decoration:
-                                          _fieldDeco('Relation with Accused'),
-                                      hint: Text('Relation with Accused',
-                                          style: GoogleFonts.poppins(
-                                              fontSize: 13,
-                                              color: const Color(0xFF94A3B8))),
-                                      isExpanded: true,
-                                      items: widget.relationChoices
-                                          .map((r) => DropdownMenuItem<String>(
-                                                value: r,
-                                                child: Text(r,
-                                                    style: GoogleFonts.poppins(
-                                                        fontSize: 13,
-                                                        color: AppColors
-                                                            .navyDark)),
-                                              ))
-                                          .toList(),
-                                      onChanged: widget.readOnly
-                                          ? null
-                                          : (val) {
-                                              if (val != null) {
-                                                setState(() =>
-                                                    _suretyRelation = val);
-                                                _notifyChange();
-                                              }
-                                            },
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
+            _inlineForm(),
           ],
         ],
       ),
