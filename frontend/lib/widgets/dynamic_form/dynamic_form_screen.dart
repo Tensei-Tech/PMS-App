@@ -4056,7 +4056,9 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                   ),
                   Padding(
                     padding: EdgeInsets.symmetric(
-                        horizontal: steps[step].isEmpty ? 0 : _tabArrowGutter),
+                        horizontal: (steps[step].isEmpty || isCompact)
+                            ? 0
+                            : _tabArrowGutter),
                     child: nav,
                   ),
                 ],
@@ -5759,16 +5761,17 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     final btnShape = RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md));
     final btnPad = EdgeInsets.symmetric(
-        horizontal: isPhone ? 12 : 18, vertical: isPhone ? 10 : 13);
-    final btnText =
-        GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600);
+        horizontal: isPhone ? 8 : 18, vertical: isPhone ? 9 : 13);
+    final btnText = GoogleFonts.poppins(
+        fontSize: isPhone ? 12 : 13, fontWeight: FontWeight.w600);
 
     final prevBtn = prev == null
         ? null
         : OutlinedButton.icon(
             onPressed: () => _goTo(prev!.$1, prev.$2),
-            icon: const Icon(Icons.arrow_back_rounded, size: 17),
-            label: Text(isPhone ? 'Back' : 'Previous', style: btnText),
+            icon: const Icon(Icons.arrow_back_rounded, size: 16),
+            label: Text(isPhone ? 'Back' : 'Previous',
+                maxLines: 1, overflow: TextOverflow.ellipsis, style: btnText),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.navyDark,
               side: const BorderSide(color: AppColors.lightBorder),
@@ -5782,9 +5785,10 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         : ElevatedButton.icon(
             onPressed: () => _goTo(next!.$1, next.$2),
             iconAlignment: IconAlignment.end,
-            icon: const Icon(Icons.arrow_forward_rounded, size: 17),
+            icon: const Icon(Icons.arrow_forward_rounded, size: 16),
             label: Text(
               'Next',
+              maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: btnText,
             ),
@@ -5802,14 +5806,18 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
             width: 16,
             height: 16,
             child: CircularProgressIndicator(strokeWidth: 2))
-        : const Icon(Icons.check_circle_outline_rounded, size: 17);
+        : const Icon(Icons.check_circle_outline_rounded, size: 16);
+    final effectiveSubmitLabel = isPhone && isEdit ? 'Update' : _submitLabel;
     final Widget? submitBtn = widget.readOnly
         ? null
         : isLast
             ? ElevatedButton.icon(
                 onPressed: _isSubmitting ? null : _submitForm,
                 icon: submitIcon,
-                label: Text(_submitLabel, style: btnText),
+                label: Text(effectiveSubmitLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: btnText),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.navyMid,
                   foregroundColor: Colors.white,
@@ -5821,7 +5829,10 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
             : OutlinedButton.icon(
                 onPressed: _isSubmitting ? null : _submitForm,
                 icon: submitIcon,
-                label: Text(_submitLabel, style: btnText),
+                label: Text(effectiveSubmitLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: btnText),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.navyMid,
                   side: const BorderSide(color: AppColors.navyMid),
@@ -5878,7 +5889,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               border: Border.all(color: AppColors.lightBorder),
             ),
       child: isPhone
-          // Phone: progress on top, buttons on one line under it
+          // Phone: progress on top, buttons split evenly on one line without overflow
           ? Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -5886,9 +5897,18 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                 const SizedBox(height: 10),
                 Row(
                   children: [
-                    if (prevBtn != null) prevBtn,
-                    const Spacer(),
-                    ...rightButtons,
+                    if (prevBtn != null) ...[
+                      Expanded(child: prevBtn),
+                      const SizedBox(width: 8),
+                    ],
+                    if (submitBtn != null && !isLast) ...[
+                      Expanded(child: submitBtn),
+                      const SizedBox(width: 8),
+                    ],
+                    if (nextBtn != null)
+                      Expanded(child: nextBtn),
+                    if (isLast && submitBtn != null)
+                      Expanded(child: submitBtn),
                   ],
                 ),
               ],
