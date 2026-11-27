@@ -173,9 +173,7 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
           SizedBox(
-            height: isCompact
-                ? 36
-                : MediaQuery.sizeOf(context).height * 0.15,
+            height: isCompact ? 36 : MediaQuery.sizeOf(context).height * 0.15,
           ),
           Center(
             child: Column(
@@ -737,8 +735,7 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
             padding: EdgeInsets.symmetric(horizontal: isCompact ? 4 : 12),
             child: TabBar(
               isScrollable: !isCompact,
-              tabAlignment:
-                  isCompact ? TabAlignment.fill : TabAlignment.start,
+              tabAlignment: isCompact ? TabAlignment.fill : TabAlignment.start,
               controller: _tabController,
               labelColor: AppColors.navyMid,
               unselectedLabelColor: AppColors.lightSubText,
@@ -765,13 +762,12 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
                     mainAxisAlignment: MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.category_outlined,
-                          size: isCompact ? 14 : 16),
+                      Icon(Icons.category_outlined, size: isCompact ? 14 : 16),
                       SizedBox(width: isCompact ? 4 : 8),
-                      Flexible(
+                      const Flexible(
                         child: FittedBox(
                           fit: BoxFit.scaleDown,
-                          child: const Text('Case Wise'),
+                          child: Text('Case Wise'),
                         ),
                       ),
                     ],
@@ -785,10 +781,10 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
                     children: [
                       Icon(Icons.schedule_rounded, size: isCompact ? 14 : 16),
                       SizedBox(width: isCompact ? 4 : 8),
-                      Flexible(
+                      const Flexible(
                         child: FittedBox(
                           fit: BoxFit.scaleDown,
-                          child: const Text('Time Wise'),
+                          child: Text('Time Wise'),
                         ),
                       ),
                     ],
@@ -802,10 +798,10 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
                     children: [
                       Icon(Icons.badge_outlined, size: isCompact ? 14 : 16),
                       SizedBox(width: isCompact ? 4 : 8),
-                      Flexible(
+                      const Flexible(
                         child: FittedBox(
                           fit: BoxFit.scaleDown,
-                          child: const Text('IO Wise'),
+                          child: Text('IO Wise'),
                         ),
                       ),
                     ],

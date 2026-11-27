@@ -1003,11 +1003,11 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
                       columnSpacing: colSpacing,
                       horizontalMargin: horizMargin,
                       headingRowColor:
-                          WidgetStateProperty.all(const Color(0xFFF8FAFC)),
+                          WidgetStateProperty.all(AppColors.navyMid),
                       headingTextStyle: GoogleFonts.poppins(
                         fontSize: isMobile ? 11.5 : 12,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.navyDark,
+                        color: Colors.white,
                       ),
                       dataRowMinHeight: 52,
                       dataRowMaxHeight: 64,
@@ -1188,37 +1188,5 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
         );
       },
     );
-  }
-
-  (Color, Color, Color, IconData) _getStatusStyle(ModuleRecord r) {
-    if (LicenceProvider.isApprovedRecord(r)) {
-      return (
-        const Color(0xFFECFDF5),
-        const Color(0xFFA7F3D0),
-        const Color(0xFF047857),
-        Icons.verified_rounded,
-      );
-    } else if (LicenceProvider.isRejectedRecord(r)) {
-      return (
-        const Color(0xFFFEF2F2),
-        const Color(0xFFFECACA),
-        const Color(0xFFDC2626),
-        Icons.cancel_rounded,
-      );
-    } else if (LicenceProvider.isReturnedRecord(r)) {
-      return (
-        const Color(0xFFF5F3FF),
-        const Color(0xFFDDD6FE),
-        const Color(0xFF7C3AED),
-        Icons.assignment_return_rounded,
-      );
-    } else {
-      return (
-        const Color(0xFFFFFBEB),
-        const Color(0xFFFDE68A),
-        const Color(0xFFD97706),
-        Icons.hourglass_top_rounded,
-      );
-    }
   }
 }
