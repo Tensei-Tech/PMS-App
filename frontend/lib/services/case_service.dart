@@ -50,12 +50,6 @@ class CaseService {
   final Map<String, List<ModuleRecord>> _casesCache = {};
   final Map<String, DateTime> _casesCacheTime = {};
 
-  /// Clears in-memory cases cache on logout / user switch.
-  void clearCache() {
-    _casesCache.clear();
-    _casesCacheTime.clear();
-  }
-
   /// Fetch cases for a specific module and station from Django PostgreSQL backend
   Future<List<ModuleRecord>> fetchCases({
     required String moduleKey,
