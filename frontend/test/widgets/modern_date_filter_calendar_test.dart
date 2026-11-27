@@ -197,13 +197,19 @@ void main() {
       await tester.tap(find.text('Range'));
       await tester.pumpAndSettle();
 
-      // Tap on This Week preset chip
-      expect(find.text('This Week'), findsOneWidget);
-      await tester.tap(find.text('This Week'));
+      // Default Range preset is Under 1 month; all Time Wise pills are shown
+      expect(find.text('Under 1 month'), findsWidgets);
+      expect(find.text('1 to 3 months'), findsOneWidget);
+      expect(find.text('3 to 6 months'), findsOneWidget);
+      expect(find.text('6 to 12 months'), findsOneWidget);
+      expect(find.text('More than 1 year'), findsOneWidget);
+      expect(find.text('Under 3 months (Total)'), findsOneWidget);
+
+      await tester.tap(find.text('1 to 3 months'));
       await tester.pumpAndSettle();
 
       expect(activeRange, isNotNull);
-      expect(activePreset, 'This Week');
+      expect(activePreset, '1 to 3 months');
     });
 
     testWidgets(

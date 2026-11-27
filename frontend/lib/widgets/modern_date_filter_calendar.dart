@@ -315,7 +315,7 @@ class _ModernDateFilterCalendarState extends State<ModernDateFilterCalendar> {
 
 /// The internal Popover Card with:
 /// - Streamlined 3-Option Segment Bar: [ Today | Range | Custom ] and Trash icon
-/// - Sub-chips for Range mode: [ This Week | This Month | Last 30 Days | This Year ]
+/// - Sub-chips for Range mode: [ Under 1 month | 1 to 3 months | 3 to 6 months | 6 to 12 months | More than 1 year | Under 3 months (Total) ]
 /// - Full interactive Month Calendar with distinct connected range ribbon
 /// - Footer status summary & Done button
 class _ModernCalendarPopoverCard extends StatefulWidget {
@@ -401,6 +401,15 @@ class _ModernCalendarPopoverCardState
     widget.onApply(_selectedRange, _presetLabel);
   }
 
+  static const List<String> _rangePresets = [
+    'Under 1 month',
+    '1 to 3 months',
+    '3 to 6 months',
+    '6 to 12 months',
+    'More than 1 year',
+    'Under 3 months (Total)',
+  ];
+
   void _applyRangePreset(String label) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -408,24 +417,30 @@ class _ModernCalendarPopoverCardState
     DateTime end = today;
 
     switch (label) {
-      case 'This Week':
-        start = DateTime(
-          today.year,
-          today.month,
-          today.day - (today.weekday - 1),
-        );
+      case 'Under 1 month':
+        start = today.subtract(const Duration(days: 30));
         break;
-      case 'This Month':
-        start = DateTime(now.year, now.month, 1);
+      case '1 to 3 months':
+        start = today.subtract(const Duration(days: 90));
+        end = today.subtract(const Duration(days: 30));
         break;
-      case 'Last 30 Days':
-        start = DateTime(today.year, today.month, today.day - 29);
+      case '3 to 6 months':
+        start = today.subtract(const Duration(days: 180));
+        end = today.subtract(const Duration(days: 90));
         break;
-      case 'This Year':
-        start = DateTime(now.year, 1, 1);
+      case '6 to 12 months':
+        start = today.subtract(const Duration(days: 365));
+        end = today.subtract(const Duration(days: 180));
+        break;
+      case 'More than 1 year':
+        start = DateTime(2000, 1, 1);
+        end = today.subtract(const Duration(days: 365));
+        break;
+      case 'Under 3 months (Total)':
+        start = today.subtract(const Duration(days: 90));
         break;
       default:
-        start = DateTime(now.year, now.month, 1);
+        start = today.subtract(const Duration(days: 30));
     }
 
     setState(() {
@@ -647,7 +662,10 @@ class _ModernCalendarPopoverCardState
             if (mode == ModernDateFilterMode.today) {
               _applyToday();
             } else if (mode == ModernDateFilterMode.range) {
-              _applyRangePreset(_presetLabel ?? 'This Month');
+              final preset = _rangePresets.contains(_presetLabel)
+                  ? _presetLabel!
+                  : _rangePresets.first;
+              _applyRangePreset(preset);
             } else {
               setState(() {
                 _mode = ModernDateFilterMode.custom;
@@ -688,41 +706,36 @@ class _ModernCalendarPopoverCardState
   }
 
   Widget _buildRangePresetChips() {
-    const presets = ['This Week', 'This Month', 'Last 30 Days', 'This Year'];
-
-    return Row(
-      children: presets.map((label) {
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      children: _rangePresets.map((label) {
         final isSelected = _presetLabel == label;
-        return Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 2),
-            child: InkWell(
-              onTap: () => _applyRangePreset(label),
-              borderRadius: BorderRadius.circular(6),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 150),
-                padding: const EdgeInsets.symmetric(vertical: 5),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
+        return MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: InkWell(
+            onTap: () => _applyRangePreset(label),
+            borderRadius: BorderRadius.circular(16),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? const Color(0xFF1976D2)
+                    : const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
                   color: isSelected
                       ? const Color(0xFF1976D2)
-                      : const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color: isSelected
-                        ? const Color(0xFF1976D2)
-                        : const Color(0xFFE2E8F0),
-                  ),
+                      : const Color(0xFFE2E8F0),
                 ),
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.poppins(
-                    fontSize: 10,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                    color: isSelected ? Colors.white : AppColors.navyDark,
-                  ),
+              ),
+              child: Text(
+                label,
+                style: GoogleFonts.poppins(
+                  fontSize: 10.5,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: isSelected ? Colors.white : AppColors.navyDark,
                 ),
               ),
             ),
