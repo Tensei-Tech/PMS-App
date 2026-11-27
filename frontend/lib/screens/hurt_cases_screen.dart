@@ -870,6 +870,7 @@ class _HurtCasesScreenState extends State<HurtCasesScreen> {
         ModernDateFilterCalendar(
           selectedDateRange: _selectedDateRange,
           datePresetLabel: _datePresetLabel,
+          activeDates: visibleRecords.map(_recordTargetDate).toSet(),
           onDateRangeChanged: (range) {
             setState(() {
               _selectedDateRange = range;

@@ -774,7 +774,7 @@ class _AbscondedCasesScreenState extends State<AbscondedCasesScreen> {
     _openForm();
   }
 
-  Widget _buildDateAndSortControls() {
+  Widget _buildDateAndSortControls(List<ModuleRecord> records) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -782,6 +782,7 @@ class _AbscondedCasesScreenState extends State<AbscondedCasesScreen> {
         ModernDateFilterCalendar(
           selectedDateRange: _selectedDateRange,
           datePresetLabel: _datePresetLabel,
+          activeDates: records.map(_recordTargetDate).toSet(),
           onDateRangeChanged: (range) {
             setState(() {
               _selectedDateRange = range;
@@ -1103,7 +1104,7 @@ class _AbscondedCasesScreenState extends State<AbscondedCasesScreen> {
                   ),
                 ),
                 const Spacer(),
-                _buildDateAndSortControls(),
+                _buildDateAndSortControls(statusRecords),
               ],
             ),
           ),

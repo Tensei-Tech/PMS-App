@@ -2415,6 +2415,7 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
     return ModernDateFilterCalendar(
       selectedDateRange: _selectedDateRange,
       datePresetLabel: _datePresetLabel,
+      activeDates: widget.cases.map((c) => c.incidentDate).toSet(),
       onDateRangeChanged: (range) {
         setState(() {
           _selectedDateRange = range;

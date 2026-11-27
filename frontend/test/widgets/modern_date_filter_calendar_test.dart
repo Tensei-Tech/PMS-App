@@ -391,5 +391,43 @@ void main() {
       expect(find.text('Custom'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
+
+    testWidgets('shows dot indicator under dates present in activeDates',
+        (tester) async {
+      tester.view.physicalSize = const Size(1200, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      final today = DateTime.now();
+      final d1 = DateTime(today.year, today.month, 1, 14, 30);
+      final d2 = DateTime(today.year, today.month, today.day, 9, 15);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Align(
+              alignment: Alignment.topLeft,
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: ModernDateFilterCalendar(
+                  selectedDateRange: null,
+                  activeDates: {d1, d2},
+                  onDateRangeChanged: (_) {},
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Date Filter'));
+      await tester.pumpAndSettle();
+
+      // Only the 2 dates with cases in the current month get a dot indicator.
+      expect(
+        find.byKey(const Key('date-case-dot')),
+        findsNWidgets(today.day == 1 ? 1 : 2),
+      );
+    });
   });
 }

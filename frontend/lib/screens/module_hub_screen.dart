@@ -706,7 +706,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               widget.moduleKey != 'sam_warrant' &&
               widget.moduleKey != 'pending')
             _buildStatsRow(totalCount, disposalCount, pendingCount),
-          if (isTheftOrFormIVStyle) _buildToolbar(displayRecords.length),
+          if (isTheftOrFormIVStyle)
+            _buildToolbar(displayRecords.length, allRecords),
           Expanded(
             child: RefreshIndicator(
               color: AppColors.navyMid,
@@ -3248,7 +3249,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     );
   }
 
-  Widget _buildToolbar(int count) {
+  Widget _buildToolbar(int count, List<ModuleRecord> allRecords) {
     final hasDateFilter = _selectedDateRange != null;
     final dateText = hasDateFilter
         ? '${DateFormat('dd/MM/yy').format(_selectedDateRange!.start)} - ${DateFormat('dd/MM/yy').format(_selectedDateRange!.end)}'
@@ -3370,6 +3371,11 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               ModernDateFilterCalendar(
                 selectedDateRange: _selectedDateRange,
                 datePresetLabel: _datePresetLabel,
+                activeDates: allRecords
+                    .map((r) => _dateField == FormIVDateField.incidentDate
+                        ? r.incidentDate
+                        : r.createdAt)
+                    .toSet(),
                 onDateRangeChanged: (range) {
                   setState(() {
                     _selectedDateRange = range;

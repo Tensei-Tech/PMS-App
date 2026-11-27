@@ -1273,6 +1273,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
         ModernDateFilterCalendar(
           selectedDateRange: _selectedDateRange,
           datePresetLabel: _datePresetLabel,
+          activeDates: visibleRecords?.map(_recordTargetDate).toSet(),
           onDateRangeChanged: (range) {
             setState(() {
               _selectedDateRange = range;

@@ -36,6 +36,9 @@ class ModernDateFilterCalendar extends StatefulWidget {
   final double fontSize;
   final String? customEmptyLabel;
 
+  /// Optional dates that have cases filed, shown as a subtle dot under the day.
+  final Set<DateTime>? activeDates;
+
   const ModernDateFilterCalendar({
     super.key,
     required this.selectedDateRange,
@@ -48,6 +51,7 @@ class ModernDateFilterCalendar extends StatefulWidget {
     this.height = 38.0,
     this.fontSize = 12.0,
     this.customEmptyLabel,
+    this.activeDates,
   });
 
   @override
@@ -96,6 +100,7 @@ class _ModernDateFilterCalendarState extends State<ModernDateFilterCalendar> {
         builder: (ctx) => _ModernCalendarPopoverCard(
           initialRange: widget.selectedDateRange,
           initialPresetLabel: widget.datePresetLabel,
+          activeDates: widget.activeDates,
           onApply: (range, preset) {
             widget.onDateRangeChanged(range);
             widget.onPresetLabelChanged?.call(preset);
@@ -148,6 +153,7 @@ class _ModernDateFilterCalendarState extends State<ModernDateFilterCalendar> {
                   child: _ModernCalendarPopoverCard(
                     initialRange: widget.selectedDateRange,
                     initialPresetLabel: widget.datePresetLabel,
+                    activeDates: widget.activeDates,
                     onApply: (range, preset) {
                       widget.onDateRangeChanged(range);
                       widget.onPresetLabelChanged?.call(preset);
@@ -321,6 +327,7 @@ class _ModernDateFilterCalendarState extends State<ModernDateFilterCalendar> {
 class _ModernCalendarPopoverCard extends StatefulWidget {
   final DateTimeRange? initialRange;
   final String? initialPresetLabel;
+  final Set<DateTime>? activeDates;
   final void Function(DateTimeRange? range, String? preset) onApply;
   final VoidCallback onClose;
   final bool isDialog;
@@ -328,6 +335,7 @@ class _ModernCalendarPopoverCard extends StatefulWidget {
   const _ModernCalendarPopoverCard({
     required this.initialRange,
     required this.initialPresetLabel,
+    this.activeDates,
     required this.onApply,
     required this.onClose,
     required this.isDialog,
@@ -349,10 +357,17 @@ class _ModernCalendarPopoverCardState
   DateTime? _rangeStart;
   DateTime? _rangeEnd;
   bool _isSelectingSecondDate = false;
+  late Set<DateTime> _activeDates;
+
+  static Set<DateTime> _normalizeDates(Set<DateTime>? dates) {
+    if (dates == null || dates.isEmpty) return const {};
+    return {for (final d in dates) DateTime(d.year, d.month, d.day)};
+  }
 
   @override
   void initState() {
     super.initState();
+    _activeDates = _normalizeDates(widget.activeDates);
     _selectedRange = widget.initialRange;
     _presetLabel = widget.initialPresetLabel;
 
@@ -976,19 +991,43 @@ class _ModernCalendarPopoverCardState
       fontWeight = FontWeight.w700;
     }
 
+    final hasCases = _activeDates.contains(date);
+    final isStrongSelected =
+        isSingleSelected || isSelectedStart || isSelectedEnd;
+
     return InkWell(
       onTap: () => _onDayTapped(date),
       borderRadius: BorderRadius.circular(8),
       child: Container(
         alignment: Alignment.center,
         decoration: containerDec,
-        child: Text(
-          '${date.day}',
-          style: GoogleFonts.poppins(
-            fontSize: 12,
-            fontWeight: fontWeight,
-            color: textColor,
-          ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Text(
+              '${date.day}',
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: fontWeight,
+                color: textColor,
+              ),
+            ),
+            if (hasCases)
+              Positioned(
+                bottom: 3,
+                child: Container(
+                  key: const Key('date-case-dot'),
+                  width: 4.5,
+                  height: 4.5,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isStrongSelected
+                        ? Colors.white
+                        : const Color(0xFF1976D2),
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );

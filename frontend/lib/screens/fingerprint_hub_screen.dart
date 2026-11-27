@@ -1054,6 +1054,7 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
     return ModernDateFilterCalendar(
       selectedDateRange: _selectedDateRange,
       datePresetLabel: _datePresetLabel,
+      activeDates: _caseRecords?.map((r) => r.incidentDate).toSet(),
       onDateRangeChanged: (range) {
         setState(() {
           _selectedDateRange = range;
