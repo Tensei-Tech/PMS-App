@@ -3,7 +3,6 @@ import '../widgets/module_hub_screen_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:printing/printing.dart';
 import '../services/api_service.dart';
 import '../services/api_config.dart';
 import '../theme/app_theme.dart';
