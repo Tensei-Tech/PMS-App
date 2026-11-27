@@ -195,8 +195,7 @@ class LicenceStatusCards extends StatelessWidget {
                         style: GoogleFonts.poppins(
                           fontSize: countFontSize,
                           fontWeight: FontWeight.w700,
-                          color:
-                              isSelected ? accentColor : AppColors.navyDark,
+                          color: isSelected ? accentColor : AppColors.navyDark,
                         ),
                       ),
                     ],

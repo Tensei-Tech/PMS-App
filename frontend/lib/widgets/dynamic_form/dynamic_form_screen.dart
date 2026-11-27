@@ -4062,9 +4062,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
           if (shownSteps.length > 1)
             Padding(
               padding: EdgeInsets.symmetric(
-                  horizontal: (steps[step].isEmpty || isCompact)
-                      ? 0
-                      : _tabArrowGutter),
+                  horizontal:
+                      (steps[step].isEmpty || isCompact) ? 0 : _tabArrowGutter),
               child: _buildStepTabs(shownSteps, step, isCompact),
             ),
           // Box only as tall as its section, the bar right under it; a long
@@ -5340,8 +5339,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               onTap: () => _goTo(shown[n], 0),
               borderRadius: BorderRadius.circular(8),
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
@@ -5888,8 +5886,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                   elevation: 0,
                   shape: btnShape,
                   padding: btnPad,
-                  minimumSize:
-                      isPhone ? const Size(0, 38) : const Size(64, 44),
+                  minimumSize: isPhone ? const Size(0, 38) : const Size(64, 44),
                   tapTargetSize:
                       isPhone ? MaterialTapTargetSize.shrinkWrap : null,
                 ),
@@ -5902,8 +5899,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                   side: const BorderSide(color: AppColors.navyMid),
                   shape: btnShape,
                   padding: btnPad,
-                  minimumSize:
-                      isPhone ? const Size(0, 38) : const Size(64, 44),
+                  minimumSize: isPhone ? const Size(0, 38) : const Size(64, 44),
                   tapTargetSize:
                       isPhone ? MaterialTapTargetSize.shrinkWrap : null,
                 ),
@@ -5974,10 +5970,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                       Expanded(child: submitBtn),
                       const SizedBox(width: 6),
                     ],
-                    if (nextBtn != null)
-                      Expanded(child: nextBtn),
-                    if (isLast && submitBtn != null)
-                      Expanded(child: submitBtn),
+                    if (nextBtn != null) Expanded(child: nextBtn),
+                    if (isLast && submitBtn != null) Expanded(child: submitBtn),
                   ],
                 ),
               ],
