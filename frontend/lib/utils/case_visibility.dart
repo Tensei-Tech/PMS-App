@@ -65,7 +65,19 @@ class CaseVisibility {
     required String uid,
     String? officerName,
     required CaseVisibilityMode mode,
+    String? stationName,
   }) {
+    // If user is bound to a specific station (not ALL / state-level),
+    // records from a different station are not visible
+    if (stationName != null &&
+        stationName.trim().isNotEmpty &&
+        stationName.trim().toUpperCase() != 'ALL' &&
+        record.stationName.trim().isNotEmpty &&
+        record.stationName.trim().toLowerCase() !=
+            stationName.trim().toLowerCase()) {
+      return false;
+    }
+
     if (mode == CaseVisibilityMode.stationWide) return true;
 
     final creator = record.createdBy.trim();
@@ -90,8 +102,8 @@ class CaseVisibility {
     required String uid,
     String? officerName,
     required CaseVisibilityMode mode,
+    String? stationName,
   }) {
-    if (mode == CaseVisibilityMode.stationWide) return records;
     return records
         .where(
           (r) => isRecordVisible(
@@ -99,6 +111,7 @@ class CaseVisibility {
             uid: uid,
             officerName: officerName,
             mode: mode,
+            stationName: stationName,
           ),
         )
         .toList();
@@ -114,6 +127,7 @@ class CaseVisibility {
       uid: auth.uid,
       officerName: auth.displayName,
       mode: resolveFor(auth),
+      stationName: auth.activeStation,
     );
   }
 
@@ -127,6 +141,7 @@ class CaseVisibility {
       uid: auth.uid,
       officerName: auth.displayName,
       mode: resolveFor(auth),
+      stationName: auth.activeStation,
     );
   }
 

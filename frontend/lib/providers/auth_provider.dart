@@ -15,6 +15,7 @@ import '../models/user_model.dart';
 import 'package:image_picker/image_picker.dart';
 import '../services/permission_service.dart';
 import '../services/dynamic_options_service.dart';
+import '../services/case_service.dart';
 import '../utils/app_data_cache.dart';
 
 void _secureLog(String message) {
@@ -846,6 +847,7 @@ class AuthProvider extends ChangeNotifier {
   Future<void> signOutToLogin() async {
     await ApiService().clearAuthToken();
     DynamicOptionsService().clearCache();
+    CaseService().clearCache();
     AppDataCache.clearAll();
     _isSessionActive = false;
     _isRegistered = true;
@@ -866,6 +868,7 @@ class AuthProvider extends ChangeNotifier {
     await ApiService().clearAuthToken();
     await _secure.deleteAll();
     DynamicOptionsService().clearCache();
+    CaseService().clearCache();
     AppDataCache.clearAll();
 
     if (savedEmail != null) {
@@ -956,6 +959,8 @@ class AuthProvider extends ChangeNotifier {
     await ApiService().clearAuthToken();
     await _secure.delete(key: ApiConstants.jwtAccessTokenKey);
     await _secure.delete(key: ApiConstants.jwtRefreshTokenKey);
+    DynamicOptionsService().clearCache();
+    CaseService().clearCache();
     AppDataCache.clearAll();
     _clearProfileState();
     notifyListeners();

@@ -671,11 +671,11 @@ class _PassportHubScreenState extends State<PassportHubScreen> {
                       horizontalMargin: isPhone ? 8 : 24,
                       columnSpacing: isPhone ? 10 : 28,
                       headingRowColor:
-                          WidgetStateProperty.all(const Color(0xFFF8FAFC)),
+                          WidgetStateProperty.all(AppColors.navyMid),
                       headingTextStyle: GoogleFonts.poppins(
                         fontSize: isPhone ? 11 : 12,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.navyDark,
+                        color: Colors.white,
                       ),
                       dataRowMinHeight: isPhone ? 48 : 52,
                       dataRowMaxHeight: isPhone ? 56 : 64,
@@ -687,22 +687,45 @@ class _PassportHubScreenState extends State<PassportHubScreen> {
                         DataColumn(
                           label: Text(
                             TranslationHelper.translate(context, 'Month'),
+                            style: GoogleFonts.poppins(
+                              fontSize: isPhone ? 11 : 12,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                         if (showTotal)
                           DataColumn(
                             label: Text(
-                                TranslationHelper.translate(context, 'Total')),
+                              TranslationHelper.translate(context, 'Total'),
+                              style: GoogleFonts.poppins(
+                                fontSize: isPhone ? 11 : 12,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
                         if (showVerified)
                           DataColumn(
-                            label: Text(TranslationHelper.translate(
-                                context, 'Verified')),
+                            label: Text(
+                              TranslationHelper.translate(context, 'Verified'),
+                              style: GoogleFonts.poppins(
+                                fontSize: isPhone ? 11 : 12,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
                         if (showPending)
                           DataColumn(
-                            label: Text(TranslationHelper.translate(
-                                context, 'Pending')),
+                            label: Text(
+                              TranslationHelper.translate(context, 'Pending'),
+                              style: GoogleFonts.poppins(
+                                fontSize: isPhone ? 11 : 12,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
                       ],
                       rows: groups.map((g) {
@@ -755,94 +778,31 @@ class _PassportHubScreenState extends State<PassportHubScreen> {
                             ),
                             if (showTotal)
                               DataCell(
-                                Container(
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: isPhone ? 6 : 10,
-                                      vertical: isPhone ? 4 : 5),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFEFF6FF),
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                        color: const Color(0xFFBFDBFE)),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.inventory_2_outlined,
-                                          size: isPhone ? 12 : 14,
-                                          color: const Color(0xFF1D4ED8)),
-                                      SizedBox(width: isPhone ? 4 : 6),
-                                      Text(
-                                        '${g.totalCount}',
-                                        style: GoogleFonts.poppins(
-                                          fontSize: isPhone ? 11 : 12,
-                                          fontWeight: FontWeight.w700,
-                                          color: const Color(0xFF1D4ED8),
-                                        ),
-                                      ),
-                                    ],
+                                Text(
+                                  '${g.totalCount}',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: isPhone ? 11 : 12,
+                                    fontWeight: FontWeight.w700,
                                   ),
                                 ),
                               ),
                             if (showVerified)
                               DataCell(
-                                Container(
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: isPhone ? 6 : 10,
-                                      vertical: isPhone ? 4 : 5),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFECFDF5),
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                        color: const Color(0xFFA7F3D0)),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.check_circle_rounded,
-                                          size: isPhone ? 12 : 14,
-                                          color: const Color(0xFF047857)),
-                                      SizedBox(width: isPhone ? 4 : 6),
-                                      Text(
-                                        '${g.verifiedCount}',
-                                        style: GoogleFonts.poppins(
-                                          fontSize: isPhone ? 11 : 12,
-                                          fontWeight: FontWeight.w700,
-                                          color: const Color(0xFF047857),
-                                        ),
-                                      ),
-                                    ],
+                                Text(
+                                  '${g.verifiedCount}',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: isPhone ? 11 : 12,
+                                    fontWeight: FontWeight.w700,
                                   ),
                                 ),
                               ),
                             if (showPending)
                               DataCell(
-                                Container(
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: isPhone ? 6 : 10,
-                                      vertical: isPhone ? 4 : 5),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFFFFBEB),
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                        color: const Color(0xFFFDE68A)),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.hourglass_top_rounded,
-                                          size: isPhone ? 12 : 14,
-                                          color: const Color(0xFFD97706)),
-                                      SizedBox(width: isPhone ? 4 : 6),
-                                      Text(
-                                        '${g.pendingCount}',
-                                        style: GoogleFonts.poppins(
-                                          fontSize: isPhone ? 11 : 12,
-                                          fontWeight: FontWeight.w700,
-                                          color: const Color(0xFFD97706),
-                                        ),
-                                      ),
-                                    ],
+                                Text(
+                                  '${g.pendingCount}',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: isPhone ? 11 : 12,
+                                    fontWeight: FontWeight.w700,
                                   ),
                                 ),
                               ),

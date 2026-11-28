@@ -176,11 +176,11 @@ class _SubTabStrip extends StatelessWidget implements PreferredSizeWidget {
                   width: segmentWidth,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: AppColors.navyDark,
+                      color: AppColors.navyMid,
                       borderRadius: BorderRadius.circular(8),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.navyDark.withValues(alpha: 0.12),
+                          color: AppColors.navyMid.withValues(alpha: 0.2),
                           blurRadius: 4,
                           offset: const Offset(0, 1.5),
                         ),
@@ -205,7 +205,7 @@ class _SubTabStrip extends StatelessWidget implements PreferredSizeWidget {
   Widget _segment(BuildContext context, int i) {
     final tab = scope.tabs[i];
     final selected = i == scope.selected;
-    final fg = selected ? Colors.white : AppColors.navyDark;
+    final fg = selected ? Colors.white : AppColors.navyMid;
     return Semantics(
       selected: selected,
       button: true,

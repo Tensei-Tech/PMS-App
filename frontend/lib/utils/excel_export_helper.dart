@@ -354,7 +354,7 @@ class ExcelExportHelper {
   }
 
   /// Exports Pending cases to CSV/Excel format with requested columns:
-  /// Sr. No., Cr. No., SEC & ACT, Head, IO Name, Police station
+  /// Sr. No., Cr. No., SEC & ACT, Head, IO Name, Reason of Pending
   static void exportPendingToExcel({
     required List<Map<String, String>> dataset,
     String filename = 'Pending_Cases.csv',
@@ -438,14 +438,14 @@ class ExcelExportHelper {
         rows.add([sr, cr, secAct, head, io]);
       }
     } else {
-      // Pending cases: Sr. No., Cr. No., SEC & ACT, Head, IO Name, Police station
+      // Pending cases: Sr. No., Cr. No., SEC & ACT, Head, IO Name, Reason of Pending
       rows.add([
         'Sr. No.',
         'Cr. No.',
         'SEC & ACT',
         'Head',
         'IO Name',
-        'Police station',
+        'Reason of Pending',
       ]);
       for (var i = 0; i < dataset.length; i++) {
         final r = dataset[i];
@@ -457,11 +457,16 @@ class ExcelExportHelper {
         final head =
             r['head']?.trim().isNotEmpty == true ? r['head']!.trim() : '—';
         final io = r['io']?.trim().isNotEmpty == true ? r['io']!.trim() : '—';
-        final station =
-            (r['station'] ?? r['police_station'])?.trim().isNotEmpty == true
-                ? (r['station'] ?? r['police_station'])!.trim()
-                : '—';
-        rows.add([sr, cr, secAct, head, io, station]);
+        final reason = (r['reason'] ??
+                        r['pending_reason'] ??
+                        r['reason_for_pending'])
+                    ?.trim()
+                    .isNotEmpty ==
+                true
+            ? (r['reason'] ?? r['pending_reason'] ?? r['reason_for_pending'])!
+                .trim()
+            : '—';
+        rows.add([sr, cr, secAct, head, io, reason]);
       }
     }
 

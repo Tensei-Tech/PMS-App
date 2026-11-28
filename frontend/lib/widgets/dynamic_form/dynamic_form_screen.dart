@@ -123,11 +123,26 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   /// Sub-steps from the last build, to jump to a section with an error.
   List<List<_SubStep>> _lastSteps = const [];
 
-  void _goTo(int step, int sub) => setState(() {
-        _untickBoxesWithoutDate();
-        _formStep = step;
-        _formSub = sub;
-      });
+  final Map<int, GlobalKey> _stepTabKeys = {};
+
+  void _goTo(int step, int sub) {
+    setState(() {
+      _untickBoxesWithoutDate();
+      _formStep = step;
+      _formSub = sub;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final ctx = _stepTabKeys[step]?.currentContext;
+      if (ctx != null && ctx.mounted) {
+        Scrollable.ensureVisible(
+          ctx,
+          alignment: 0.5,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
+  }
 
   /// Checkboxes that need their date ("<key>_date", shown inside the
   /// box's card once ticked): Murder Post-Mortem & FSL.
@@ -4047,7 +4062,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
           if (shownSteps.length > 1)
             Padding(
               padding: EdgeInsets.symmetric(
-                  horizontal: steps[step].isEmpty ? 0 : _tabArrowGutter),
+                  horizontal:
+                      (steps[step].isEmpty || isCompact) ? 0 : _tabArrowGutter),
               child: _buildStepTabs(shownSteps, step, isCompact),
             ),
           // Box only as tall as its section, the bar right under it; a long
@@ -4067,7 +4083,9 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                   ),
                   Padding(
                     padding: EdgeInsets.symmetric(
-                        horizontal: steps[step].isEmpty ? 0 : _tabArrowGutter),
+                        horizontal: (steps[step].isEmpty || isCompact)
+                            ? 0
+                            : _tabArrowGutter),
                     child: nav,
                   ),
                 ],
@@ -5275,6 +5293,115 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     const doneBg = Color(0xFFE8F5E9);
     final at = shown.indexOf(current);
 
+    if (isCompact) {
+      Widget compactTab(int n) {
+        final isOn = n == at;
+        final isDone = n < at;
+        final badge = Container(
+          width: 20,
+          height: 20,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: isOn ? AppColors.navyMid : (isDone ? doneBg : Colors.white),
+            border: Border.all(
+              color: isOn
+                  ? AppColors.navyMid
+                  : (isDone
+                      ? doneFg.withValues(alpha: 0.5)
+                      : AppColors.lightBorder),
+            ),
+          ),
+          child: isDone
+              ? const Icon(Icons.check_rounded, size: 12, color: doneFg)
+              : Text(
+                  '${n + 1}',
+                  style: GoogleFonts.poppins(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w600,
+                    color: isOn ? Colors.white : AppColors.lightSubText,
+                  ),
+                ),
+        );
+        return KeyedSubtree(
+          key: _stepTabKeys.putIfAbsent(shown[n], GlobalKey.new),
+          child: Material(
+            color: isOn ? Colors.white : Colors.transparent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+              side: isOn
+                  ? const BorderSide(color: AppColors.lightBorder)
+                  : BorderSide.none,
+            ),
+            elevation: isOn ? 1 : 0,
+            shadowColor: AppColors.navyDark.withValues(alpha: 0.15),
+            child: InkWell(
+              onTap: () => _goTo(shown[n], 0),
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    badge,
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          _stepHints[shown[n]],
+                          maxLines: 1,
+                          softWrap: false,
+                          style: GoogleFonts.poppins(
+                            fontSize: 11.5,
+                            fontWeight:
+                                isOn ? FontWeight.w700 : FontWeight.w600,
+                            color: isOn
+                                ? AppColors.navyDark
+                                : (isDone ? doneFg : AppColors.lightSubText),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+
+      return Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          border: Border.all(color: AppColors.lightBorder),
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(3),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF1F5F9),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Row(
+            children: [
+              for (var n = 0; n < shown.length; n++) ...[
+                if (n > 0) const SizedBox(width: 4),
+                Expanded(
+                  flex: _stepHints[shown[n]].length <= 4 ? 3 : 5,
+                  child: compactTab(n),
+                ),
+              ],
+            ],
+          ),
+        ),
+      );
+    }
+
     Widget tab(int n) {
       final isOn = n == at;
       final isDone = n < at;
@@ -5584,17 +5711,21 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     );
 
     // Arrows outside the panel, in gutters as wide as the indent of the
-    // step header and the bottom bar, so all three line up
+    // step header and the bottom bar, so all three line up.
+    // The left arrow is hidden on the very first sub-step (current == 0)
+    // so the user is not confused by a disabled back arrow on page 1.
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
           width: _tabArrowGutter,
-          child: Align(
-            alignment: Alignment.topLeft,
-            child: arrow(Icons.chevron_left_rounded, 'Previous section',
-                current > 0 ? () => _goTo(step, current - 1) : null),
-          ),
+          child: current > 0
+              ? Align(
+                  alignment: Alignment.topLeft,
+                  child: arrow(Icons.chevron_left_rounded, 'Previous section',
+                      () => _goTo(step, current - 1)),
+                )
+              : const SizedBox.shrink(),
         ),
         Expanded(child: panel),
         SizedBox(
@@ -5662,41 +5793,64 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     final btnShape = RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md));
     final btnPad = EdgeInsets.symmetric(
-        horizontal: isPhone ? 12 : 18, vertical: isPhone ? 10 : 13);
-    final btnText =
-        GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600);
+        horizontal: isPhone ? 6 : 18, vertical: isPhone ? 8 : 13);
+    final btnText = GoogleFonts.poppins(
+        fontSize: isPhone ? 12 : 13, fontWeight: FontWeight.w600);
 
     final prevBtn = prev == null
         ? null
-        : OutlinedButton.icon(
+        : OutlinedButton(
             onPressed: () => _goTo(prev!.$1, prev.$2),
-            icon: const Icon(Icons.arrow_back_rounded, size: 17),
-            label: Text(isPhone ? 'Back' : 'Previous', style: btnText),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.navyDark,
               side: const BorderSide(color: AppColors.lightBorder),
               shape: btnShape,
               padding: btnPad,
+              minimumSize: isPhone ? const Size(0, 38) : const Size(64, 44),
+              tapTargetSize: isPhone ? MaterialTapTargetSize.shrinkWrap : null,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.arrow_back_rounded, size: isPhone ? 15 : 16),
+                SizedBox(width: isPhone ? 4 : 8),
+                Flexible(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(isPhone ? 'Back' : 'Previous', style: btnText),
+                  ),
+                ),
+              ],
             ),
           );
 
     final nextBtn = next == null
         ? null
-        : ElevatedButton.icon(
+        : ElevatedButton(
             onPressed: () => _goTo(next!.$1, next.$2),
-            iconAlignment: IconAlignment.end,
-            icon: const Icon(Icons.arrow_forward_rounded, size: 17),
-            label: Text(
-              'Next',
-              overflow: TextOverflow.ellipsis,
-              style: btnText,
-            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.navyMid,
               foregroundColor: Colors.white,
               elevation: 0,
               shape: btnShape,
               padding: btnPad,
+              minimumSize: isPhone ? const Size(0, 38) : const Size(64, 44),
+              tapTargetSize: isPhone ? MaterialTapTargetSize.shrinkWrap : null,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text('Next', style: btnText),
+                  ),
+                ),
+                SizedBox(width: isPhone ? 4 : 8),
+                Icon(Icons.arrow_forward_rounded, size: isPhone ? 15 : 16),
+              ],
             ),
           );
 
@@ -5705,32 +5859,51 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
             width: 16,
             height: 16,
             child: CircularProgressIndicator(strokeWidth: 2))
-        : const Icon(Icons.check_circle_outline_rounded, size: 17);
+        : Icon(Icons.check_circle_outline_rounded, size: isPhone ? 15 : 16);
+    final effectiveSubmitLabel = isPhone && isEdit ? 'Update' : _submitLabel;
+    final submitChild = Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        submitIcon,
+        SizedBox(width: isPhone ? 4 : 8),
+        Flexible(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(effectiveSubmitLabel, style: btnText),
+          ),
+        ),
+      ],
+    );
     final Widget? submitBtn = widget.readOnly
         ? null
         : isLast
-            ? ElevatedButton.icon(
+            ? ElevatedButton(
                 onPressed: _isSubmitting ? null : _submitForm,
-                icon: submitIcon,
-                label: Text(_submitLabel, style: btnText),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.navyMid,
                   foregroundColor: Colors.white,
                   elevation: 0,
                   shape: btnShape,
                   padding: btnPad,
+                  minimumSize: isPhone ? const Size(0, 38) : const Size(64, 44),
+                  tapTargetSize:
+                      isPhone ? MaterialTapTargetSize.shrinkWrap : null,
                 ),
+                child: submitChild,
               )
-            : OutlinedButton.icon(
+            : OutlinedButton(
                 onPressed: _isSubmitting ? null : _submitForm,
-                icon: submitIcon,
-                label: Text(_submitLabel, style: btnText),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.navyMid,
                   side: const BorderSide(color: AppColors.navyMid),
                   shape: btnShape,
                   padding: btnPad,
+                  minimumSize: isPhone ? const Size(0, 38) : const Size(64, 44),
+                  tapTargetSize:
+                      isPhone ? MaterialTapTargetSize.shrinkWrap : null,
                 ),
+                child: submitChild,
               );
 
     final progress = Column(
@@ -5781,7 +5954,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               border: Border.all(color: AppColors.lightBorder),
             ),
       child: isPhone
-          // Phone: progress on top, buttons on one line under it
+          // Phone: progress on top, buttons split evenly on one line without overflow
           ? Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -5789,9 +5962,16 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                 const SizedBox(height: 10),
                 Row(
                   children: [
-                    if (prevBtn != null) prevBtn,
-                    const Spacer(),
-                    ...rightButtons,
+                    if (prevBtn != null) ...[
+                      Expanded(child: prevBtn),
+                      const SizedBox(width: 6),
+                    ],
+                    if (submitBtn != null && !isLast) ...[
+                      Expanded(child: submitBtn),
+                      const SizedBox(width: 6),
+                    ],
+                    if (nextBtn != null) Expanded(child: nextBtn),
+                    if (isLast && submitBtn != null) Expanded(child: submitBtn),
                   ],
                 ),
               ],

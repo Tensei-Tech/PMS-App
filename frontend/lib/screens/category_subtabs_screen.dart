@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../modules/form_iv/providers/form_iv_provider.dart';
 import '../modules/licence/screens/licence_hub_screen.dart';
+import '../modules/passport/providers/passport_provider.dart';
 import '../modules/passport/screens/passport_hub_screen.dart';
 import '../modules/pvr/providers/pvr_provider.dart';
 import '../modules/pvr/screens/pvr_hub_screen.dart';
@@ -121,7 +122,18 @@ class DashboardSubtabs {
               mode: FormIVSelectionMode.browse,
             );
       case 'passport':
-        return (_) => PassportHubScreen(stationName: stationName);
+        return (context) {
+          PassportProvider? existing;
+          try {
+            existing = context.read<PassportProvider>();
+          } catch (_) {}
+          return existing != null
+              ? PassportHubScreen(stationName: stationName)
+              : ChangeNotifierProvider(
+                  create: (_) => PassportProvider(),
+                  child: PassportHubScreen(stationName: stationName),
+                );
+        };
       case 'licence':
         return (_) => LicenceHubScreen(stationName: stationName);
       case 'pvr':
@@ -332,16 +344,20 @@ class ModuleTabsScreen extends StatelessWidget {
   /// When set, overrides the default column count from [subtabColumns].
   final int? columnsOverride;
 
+  /// When true, opens directly into [SubTabHost] showing the tabs at the top.
+  final bool openFirstTab;
+
   const ModuleTabsScreen({
     super.key,
     required this.title,
     required this.tabs,
     this.columnsOverride,
+    this.openFirstTab = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    if (tabs.length == 2) {
+    if (openFirstTab || tabs.length == 2) {
       return SubTabHost(
         tabs: [
           for (final (name, icon, page) in tabs) SubTab(name, icon, page),
@@ -407,11 +423,23 @@ class PassportLicenceScreen extends StatelessWidget {
     return ModuleTabsScreen(
       title: passportLabel,
       columnsOverride: 3,
+      openFirstTab: true,
       tabs: DashboardSubtabs.moduleTabs('passport', stationName, [
         (
           passportTabLabel,
           Icons.badge_rounded,
-          (_) => PassportHubScreen(stationName: stationName),
+          (context) {
+            PassportProvider? existing;
+            try {
+              existing = context.read<PassportProvider>();
+            } catch (_) {}
+            return existing != null
+                ? PassportHubScreen(stationName: stationName)
+                : ChangeNotifierProvider(
+                    create: (_) => PassportProvider(),
+                    child: PassportHubScreen(stationName: stationName),
+                  );
+          },
         ),
         (
           pvrLabel,

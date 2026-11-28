@@ -63,7 +63,7 @@ ChangeNotifierProxyProvider<AuthProvider, T>
           visibilityMode: CaseVisibility.resolveFor(auth),
         );
       } else if (!auth.isSessionActive) {
-        p.clearStationContext(clearRecords: false);
+        p.clearStationContext(clearRecords: true);
       }
       return p;
     },

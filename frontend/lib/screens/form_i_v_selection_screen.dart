@@ -1755,56 +1755,81 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
                   alignment: Alignment.center,
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 1600),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Row(
-                            children: [
-                              Flexible(
-                                child: Text(
-                                  TranslationHelper.translate(
-                                    context,
-                                    _selectedCategory!,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.navyDark,
-                                  ),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final isCompact = constraints.maxWidth < 600;
+                        final categoryTitle = Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                TranslationHelper.translate(
+                                  context,
+                                  _selectedCategory!,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.navyDark,
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 2,
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE8F1FC),
+                                borderRadius: BorderRadius.circular(
+                                  AppRadius.full,
                                 ),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFE8F1FC),
-                                  borderRadius: BorderRadius.circular(
-                                    AppRadius.full,
-                                  ),
+                              ),
+                              child: Text(
+                                '${visibleRecords.length}',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF1976D2),
                                 ),
-                                child: Text(
-                                  '${visibleRecords.length}',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                    color: const Color(0xFF1976D2),
-                                  ),
+                              ),
+                            ),
+                          ],
+                        );
+
+                        if (isCompact) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              categoryTitle,
+                              const SizedBox(height: 6),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child:
+                                      _buildDateAndSortControls(visibleRecords),
                                 ),
                               ),
                             ],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: _buildDateAndSortControls(visibleRecords),
-                        ),
-                      ],
+                          );
+                        }
+
+                        return Row(
+                          children: [
+                            Expanded(child: categoryTitle),
+                            const SizedBox(width: 8),
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: _buildDateAndSortControls(visibleRecords),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ),
                 ),

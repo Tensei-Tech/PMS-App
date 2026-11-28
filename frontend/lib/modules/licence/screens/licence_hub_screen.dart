@@ -784,11 +784,11 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
                       columnSpacing: colSpacing,
                       horizontalMargin: horizMargin,
                       headingRowColor:
-                          WidgetStateProperty.all(const Color(0xFFF8FAFC)),
+                          WidgetStateProperty.all(AppColors.navyMid),
                       headingTextStyle: GoogleFonts.poppins(
                         fontSize: isMobile ? 11.5 : 12,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.navyDark,
+                        color: Colors.white,
                       ),
                       dataRowMinHeight: 52,
                       dataRowMaxHeight: 64,
@@ -966,9 +966,9 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
                                       TranslationHelper.translate(
                                           context, statusLabel),
                                       style: GoogleFonts.poppins(
-                                        fontSize: 11.0,
+                                        fontSize: 11.5,
                                         fontWeight: FontWeight.w600,
-                                        color: statusFg,
+                                        color: AppColors.navyDark,
                                       ),
                                     ),
                                   ],
