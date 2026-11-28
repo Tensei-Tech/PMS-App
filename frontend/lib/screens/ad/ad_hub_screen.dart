@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../services/ad_service.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/category_icon_helper.dart';
 import '../../utils/translation_helper.dart';
 import '../../widgets/custom_pdf_preview_dialog.dart';
 import '../../widgets/dynamic_form/dynamic_form_screen.dart';
@@ -293,7 +294,6 @@ class _AdHubScreenState extends State<AdHubScreen>
       ),
       body: Column(
         children: [
-          _buildSubCategoryBar(),
           _buildStatusTabBar(),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
@@ -323,58 +323,141 @@ class _AdHubScreenState extends State<AdHubScreen>
   }
 
   /// Sub-tabs (Suicide / Other ...) from the A.D. tab's child categories.
-  /// Sub-tabs (Suicide / Other ...) styled with clean pill buttons.
-  Widget _buildSubCategoryBar() {
+  /// Segmented switch matching the modern sub-tab strip across other hubs.
+  Widget _buildSubCategorySegmentedTrack({double? maxWidth}) {
     final subs = _subCategories;
-    if (subs.isEmpty) return const SizedBox.shrink();
+    final count = subs.length;
+    if (count == 0) return const SizedBox.shrink();
+
+    final selectedIndex = subs.indexWhere((c) => c['code'] == _category);
+    final safeIndex =
+        (selectedIndex >= 0 && selectedIndex < count) ? selectedIndex : 0;
+
+    final targetWidth =
+        maxWidth ?? (count <= 2 ? 260.0 : (count * 130.0).clamp(260.0, 480.0));
+
     return Container(
-      width: double.infinity,
-      color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      child: Wrap(
-        spacing: 10,
-        runSpacing: 8,
-        children: [
-          for (final c in subs) ...[
-            Builder(builder: (context) {
-              final isSelected = c['code'] == _category;
-              return InkWell(
-                onTap: () {
-                  if (c['code'] != _category) {
-                    _selectCategory(c['code'].toString());
-                  }
-                },
-                borderRadius: BorderRadius.circular(20),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 180),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+      height: 38,
+      width: targetWidth,
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      padding: const EdgeInsets.all(3),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final segmentWidth = constraints.maxWidth / count;
+          return Stack(
+            children: [
+              // Sliding pill behind the selected tab
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOutCubic,
+                left: segmentWidth * safeIndex,
+                top: 0,
+                bottom: 0,
+                width: segmentWidth,
+                child: Container(
                   decoration: BoxDecoration(
-                    color: isSelected ? AppColors.navyMid : Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: isSelected
-                          ? AppColors.navyMid
-                          : const Color(0xFFE2E8F0),
-                      width: 1.2,
-                    ),
-                  ),
-                  child: Text(
-                    TranslationHelper.translate(context, c['name'].toString()),
-                    style: GoogleFonts.poppins(
-                      fontSize: 12.5,
-                      fontWeight:
-                          isSelected ? FontWeight.w600 : FontWeight.w500,
-                      color: isSelected ? Colors.white : AppColors.navyDark,
-                    ),
+                    color: AppColors.navyDark,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.navyDark.withValues(alpha: 0.12),
+                        blurRadius: 4,
+                        offset: const Offset(0, 1.5),
+                      ),
+                    ],
                   ),
                 ),
-              );
-            }),
-          ],
-        ],
+              ),
+              Row(
+                children: [
+                  for (var i = 0; i < count; i++)
+                    Expanded(
+                      child: _buildSubCategorySegment(
+                        context,
+                        subs[i],
+                        i == safeIndex,
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          );
+        },
       ),
     );
+  }
+
+  Widget _buildSubCategorySegment(
+    BuildContext context,
+    Map<String, dynamic> category,
+    bool isSelected,
+  ) {
+    final fg = isSelected ? Colors.white : AppColors.navyDark;
+    final name = category['name']?.toString() ?? '';
+    final code = category['code']?.toString() ?? '';
+
+    return Semantics(
+      selected: isSelected,
+      button: true,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(8),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8),
+          mouseCursor: SystemMouseCursors.click,
+          onTap: () {
+            if (code != _category) {
+              _selectCategory(code);
+            }
+          },
+          child: SizedBox.expand(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildSubCategoryIcon(
+                    name,
+                    fg.withValues(alpha: isSelected ? 1.0 : 0.75),
+                  ),
+                  const SizedBox(width: 7),
+                  Flexible(
+                    child: AnimatedDefaultTextStyle(
+                      duration: const Duration(milliseconds: 200),
+                      style: GoogleFonts.poppins(
+                        fontSize: 12.5,
+                        fontWeight:
+                            isSelected ? FontWeight.w600 : FontWeight.w500,
+                        color: fg.withValues(alpha: isSelected ? 1.0 : 0.85),
+                      ),
+                      child: Text(
+                        TranslationHelper.translate(context, name),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubCategoryIcon(String label, Color color) {
+    final lower = label.trim().toLowerCase();
+    if (lower.contains('suicide')) {
+      return Icon(Icons.local_hospital_rounded, size: 15, color: color);
+    } else if (lower.contains('other')) {
+      return Icon(Icons.category_rounded, size: 15, color: color);
+    }
+    return CategoryIconHelper.buildWidget(label, color: color, size: 15);
   }
 
   /// Status tab bar styled with exact colors matching Form I-V cases.
@@ -411,7 +494,7 @@ class _AdHubScreenState extends State<AdHubScreen>
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isMobile = constraints.maxWidth < 600;
+        final isNarrow = constraints.maxWidth < 850;
 
         Widget buildTabItem(
           ({
@@ -427,7 +510,7 @@ class _AdHubScreenState extends State<AdHubScreen>
           final tabContent = Container(
             padding: EdgeInsets.symmetric(
               vertical: 12,
-              horizontal: isMobile ? 4 : 12,
+              horizontal: isNarrow ? 4 : 12,
             ),
             decoration: BoxDecoration(
               border: Border(
@@ -449,7 +532,7 @@ class _AdHubScreenState extends State<AdHubScreen>
                   Text(
                     TranslationHelper.translate(context, item.label),
                     style: GoogleFonts.poppins(
-                      fontSize: isMobile ? 12.5 : 13.5,
+                      fontSize: isNarrow ? 12.5 : 13.5,
                       fontWeight:
                           isSelected ? FontWeight.w700 : FontWeight.w500,
                       color: isSelected
@@ -470,7 +553,7 @@ class _AdHubScreenState extends State<AdHubScreen>
                     child: Text(
                       '${item.count}',
                       style: GoogleFonts.poppins(
-                        fontSize: isMobile ? 10.5 : 11,
+                        fontSize: isNarrow ? 10.5 : 11,
                         fontWeight: FontWeight.w700,
                         color: item.badgeFg,
                       ),
@@ -503,25 +586,39 @@ class _AdHubScreenState extends State<AdHubScreen>
               bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
             ),
           ),
-          child: Row(
-            children: [
-              if (isMobile)
-                Expanded(
-                  child: Row(
-                    children:
-                        tabs.map((t) => buildTabItem(t, expand: true)).toList(),
-                  ),
+          child: isNarrow
+              ? Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_subCategories.isNotEmpty) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        child: Center(
+                          child: _buildSubCategorySegmentedTrack(maxWidth: 380),
+                        ),
+                      ),
+                      const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                    ],
+                    Row(
+                      children: tabs
+                          .map((t) => buildTabItem(t, expand: true))
+                          .toList(),
+                    ),
+                  ],
                 )
-              else ...[
-                const SizedBox(width: 16),
-                for (final t in tabs) ...[
-                  buildTabItem(t, expand: false),
-                  const SizedBox(width: 16),
-                ],
-                const Spacer(),
-              ],
-            ],
-          ),
+              : Row(
+                  children: [
+                    const SizedBox(width: 16),
+                    for (final t in tabs) ...[
+                      buildTabItem(t, expand: false),
+                      const SizedBox(width: 16),
+                    ],
+                    const Spacer(),
+                    _buildSubCategorySegmentedTrack(),
+                    const SizedBox(width: 16),
+                  ],
+                ),
         );
       },
     );

@@ -17,8 +17,9 @@ import '../utils/arrested_table_firestore_mapper.dart';
 import '../utils/excel_export_helper.dart';
 import '../utils/case_visibility.dart';
 import '../widgets/arrested_cases_demo_data_table.dart';
+import '../widgets/summary_category_filter_bar.dart';
 
-class ArrestedSummaryScreen extends StatelessWidget {
+class ArrestedSummaryScreen extends StatefulWidget {
   const ArrestedSummaryScreen({
     super.key,
     this.liveRows,
@@ -30,6 +31,13 @@ class ArrestedSummaryScreen extends StatelessWidget {
 
   /// Station scope for arrested Firestore read (ignored when [liveRows] is used).
   final String stationName;
+
+  @override
+  State<ArrestedSummaryScreen> createState() => _ArrestedSummaryScreenState();
+}
+
+class _ArrestedSummaryScreenState extends State<ArrestedSummaryScreen> {
+  String _selectedCategory = 'All';
 
   static bool _usingExplicitLive(List<Map<String, String>>? live) =>
       live != null && live.isNotEmpty;
@@ -86,6 +94,20 @@ class ArrestedSummaryScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildCategoryFilterBar(List<Map<String, String>> dataset) {
+    final counts = <String, int>{};
+    for (final r in dataset) {
+      final bucket = _bucketForRow(r);
+      counts[bucket] = (counts[bucket] ?? 0) + 1;
+    }
+    return SummaryCategoryFilterBar(
+      totalCount: dataset.length,
+      categoryCounts: counts,
+      selectedCategory: _selectedCategory,
+      onSelected: (cat) => setState(() => _selectedCategory = cat),
+    );
+  }
+
   Widget _builtContent(
     BuildContext context, {
     required List<Map<String, String>> dataset,
@@ -93,200 +115,297 @@ class ArrestedSummaryScreen extends StatelessWidget {
     required bool showDemoNote,
   }) {
     const title = 'Arrested Cases — Summary';
-    final anyRows = dataset.isNotEmpty;
+    final categories = _getUniqueCategories(dataset);
+    final isFiltered =
+        _selectedCategory != 'All' && categories.contains(_selectedCategory);
+    final visibleDataset =
+        isFiltered ? _rowsForBucket(dataset, _selectedCategory) : dataset;
+    final anyRows = visibleDataset.isNotEmpty;
 
-    Widget sectionBlock(String bucketLabel) {
-      final rows = _rowsForBucket(dataset, bucketLabel);
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Text(
-                bucketLabel,
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.navyDark,
-                ),
-              ),
-            ),
-            if (rows.isEmpty)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Text(
-                  'No cases',
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.lightSubText,
-                  ),
-                ),
-              )
-            else
-              ArrestedCasesDemoDataTable(
-                isAd: false,
-                realDataRows: rows,
-              ),
-          ],
-        ),
-      );
+    final Map<String, List<Map<String, String>>> groupedMap = {};
+    if (!isFiltered) {
+      for (final cat in categories) {
+        final catRows = _rowsForBucket(dataset, cat);
+        if (catRows.isNotEmpty) {
+          groupedMap[cat] = catRows;
+        }
+      }
     }
 
     return Scaffold(
       backgroundColor: AppColors.lightBg,
       body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AppColors.lightBorder),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.03),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isMobile = constraints.maxWidth < 650;
+
+            final backButton = MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.lightBorder),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.03),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
                       ),
-                      child: const Icon(Icons.arrow_back_rounded,
-                          color: AppColors.navyDark, size: 20),
-                    ),
+                    ],
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.navyDark,
-                              height: 1.15,
-                            ),
+                  child: const Icon(Icons.arrow_back_rounded,
+                      color: AppColors.navyDark, size: 20),
+                ),
+              ),
+            );
+
+            final totalBadge = Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: AppColors.navyMid.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                isFiltered
+                    ? '${visibleDataset.length} of ${dataset.length}'
+                    : '${dataset.length} Total',
+                style: GoogleFonts.poppins(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.navyMid,
+                ),
+              ),
+            );
+
+            final excelButton = MouseRegion(
+              cursor: !anyRows
+                  ? SystemMouseCursors.basic
+                  : SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap: !anyRows
+                    ? null
+                    : () {
+                        ExcelExportHelper.exportArrestedToExcel(
+                          dataset: visibleDataset,
+                          filename: 'Arrested_Summary_Export.csv',
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                                'Arrested Summary exported to Excel successfully.'),
+                            backgroundColor: Color(0xFF107C41),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: AppColors.navyMid.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            '${dataset.length} Total',
-                            style: GoogleFonts.poppins(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.navyMid,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                        );
+                      },
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: !anyRows
+                        ? Colors.grey.shade400
+                        : const Color(0xFF107C41),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  const SizedBox(width: 10),
-                  GestureDetector(
-                    onTap: !anyRows
-                        ? null
-                        : () {
-                            ExcelExportHelper.exportArrestedToExcel(
-                              dataset: dataset,
-                              filename: 'Arrested_Summary_All_Periods.csv',
-                            );
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                    'Arrested Summary exported to Excel successfully.'),
-                                backgroundColor: Color(0xFF107C41),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.table_chart_rounded,
+                          color: Colors.white, size: 18),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Excel',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          height: 1.15,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+
+            final pdfButton = MouseRegion(
+              cursor: !anyRows
+                  ? SystemMouseCursors.basic
+                  : SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap:
+                    !anyRows ? null : () => _exportPdf(context, visibleDataset),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.navyMid,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.download_rounded,
+                          color: Colors.white, size: 18),
+                      const SizedBox(width: 6),
+                      Text(
+                        'PDF',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          height: 1.15,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+
+            final headerWidget = isMobile
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          backButton,
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              title,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.navyDark,
+                                height: 1.2,
                               ),
-                            );
-                          },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: !anyRows
-                            ? Colors.grey.shade400
-                            : const Color(0xFF107C41),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.table_chart_rounded,
-                              color: Colors.white, size: 18),
-                          const SizedBox(width: 6),
-                          Text(
-                            'Excel',
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                              height: 1.15,
                             ),
                           ),
+                          const SizedBox(width: 8),
+                          totalBadge,
                         ],
                       ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: !anyRows ? null : () => _exportPdf(context, dataset),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: AppColors.navyMid,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          const Icon(Icons.download_rounded,
-                              color: Colors.white, size: 18),
-                          const SizedBox(width: 6),
-                          Text(
-                            'PDF',
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                              height: 1.15,
-                            ),
-                          ),
+                          excelButton,
+                          const SizedBox(width: 8),
+                          pdfButton,
                         ],
                       ),
-                    ),
-                  ),
-                ],
+                    ],
+                  )
+                : Row(
+                    children: [
+                      backButton,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                title,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.navyDark,
+                                  height: 1.15,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            totalBadge,
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      excelButton,
+                      const SizedBox(width: 8),
+                      pdfButton,
+                    ],
+                  );
+
+            return Padding(
+              padding: EdgeInsets.fromLTRB(
+                isMobile ? 12 : 24,
+                isMobile ? 10 : 20,
+                isMobile ? 12 : 24,
+                16,
               ),
-            ),
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  for (final label in _getUniqueCategories(dataset))
-                    sectionBlock(label),
+                  headerWidget,
+                  const SizedBox(height: 14),
+                  _buildCategoryFilterBar(dataset),
+                  Expanded(
+                    child: !anyRows
+                        ? Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(20),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.navyMid
+                                        .withValues(alpha: 0.06),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.lock_person_outlined,
+                                    size: 48,
+                                    color: AppColors.navyMid,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'No Cases Found',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.navyDark,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  'There are currently no arrested cases matching this category.',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 13,
+                                    color: AppColors.lightSubText,
+                                  ),
+                                ),
+                                if (isFiltered) ...[
+                                  const SizedBox(height: 14),
+                                  TextButton.icon(
+                                    onPressed: () => setState(
+                                        () => _selectedCategory = 'All'),
+                                    icon: const Icon(Icons.refresh_rounded,
+                                        size: 16),
+                                    label: const Text('View All Categories'),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          )
+                        : ArrestedCasesDemoDataTable(
+                            isAd: false,
+                            realDataRows: isFiltered ? visibleDataset : null,
+                            groupedData: isFiltered ? null : groupedMap,
+                          ),
+                  ),
                 ],
               ),
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
@@ -294,17 +413,17 @@ class ArrestedSummaryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (_usingExplicitLive(liveRows)) {
+    if (_usingExplicitLive(widget.liveRows)) {
       return _builtContent(
         context,
-        dataset: liveRows!,
+        dataset: widget.liveRows!,
         firedFromFirestoreExclusive: true,
         showDemoNote: false,
       );
     }
 
     return _LiveArrestedSummaryLoader(
-      fallbackStation: stationName,
+      fallbackStation: widget.stationName,
       buildContent: _builtContent,
     );
   }

@@ -308,7 +308,7 @@ class _CustomPdfPreviewDialogState extends State<CustomPdfPreviewDialog>
                             const SizedBox(height: 16),
                             Text(
                               'Rendering Document Preview...',
-                              style: GoogleFonts.inter(
+                              style: GoogleFonts.poppins(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
                                 color: AppColors.lightSubText,
@@ -337,7 +337,7 @@ class _CustomPdfPreviewDialogState extends State<CustomPdfPreviewDialog>
                               const SizedBox(height: 6),
                               Text(
                                 '$error',
-                                style: GoogleFonts.inter(
+                                style: GoogleFonts.poppins(
                                   fontSize: 12,
                                   color: AppColors.lightSubText,
                                 ),

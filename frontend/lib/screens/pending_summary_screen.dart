@@ -17,9 +17,10 @@ import '../utils/pending_table_firestore_mapper.dart';
 import '../utils/case_visibility.dart';
 import '../widgets/custom_pdf_preview_dialog.dart';
 import '../widgets/pending_cases_demo_data_table.dart';
+import '../widgets/summary_category_filter_bar.dart';
 import 'pending_hub_screen.dart';
 
-class PendingSummaryScreen extends StatelessWidget {
+class PendingSummaryScreen extends StatefulWidget {
   const PendingSummaryScreen({
     super.key,
     this.liveRows,
@@ -47,6 +48,13 @@ class PendingSummaryScreen extends StatelessWidget {
 
   /// Whether this screen displays undetected cases
   final bool isUndetected;
+
+  @override
+  State<PendingSummaryScreen> createState() => _PendingSummaryScreenState();
+}
+
+class _PendingSummaryScreenState extends State<PendingSummaryScreen> {
+  String _selectedCategory = 'All';
 
   static bool _usingExplicitLive(List<Map<String, String>>? live) =>
       live != null && live.isNotEmpty;
@@ -95,13 +103,13 @@ class PendingSummaryScreen extends StatelessWidget {
             : '—',
         'Head': r['head']?.trim().isNotEmpty == true ? r['head']!.trim() : '—',
       };
-      if (isAbsconded) {
+      if (widget.isAbsconded) {
         rowMap['Accused Name (फरार आरोपी)'] =
             r['accused']?.trim().isNotEmpty == true
                 ? r['accused']!.trim()
                 : '—';
       }
-      if (isVictim) {
+      if (widget.isVictim) {
         rowMap['Name'] = r['victim_name']?.trim().isNotEmpty == true
             ? r['victim_name']!.trim()
             : '—';
@@ -112,7 +120,7 @@ class PendingSummaryScreen extends StatelessWidget {
       }
       rowMap['IO Name'] =
           r['io']?.trim().isNotEmpty == true ? r['io']!.trim() : '—';
-      if (!isUndetected && !isAbsconded) {
+      if (!widget.isUndetected && !widget.isAbsconded) {
         rowMap['Police Station'] = r['station']?.trim().isNotEmpty == true
             ? r['station']!.trim()
             : '—';
@@ -125,11 +133,11 @@ class PendingSummaryScreen extends StatelessWidget {
       'Cr. No.',
       'Sec & Act',
       'Head',
-      if (isAbsconded) 'Accused Name (फरार आरोपी)',
-      if (isVictim) 'Name',
-      if (isVictim) 'Injured/Deceased',
+      if (widget.isAbsconded) 'Accused Name (फरार आरोपी)',
+      if (widget.isVictim) 'Name',
+      if (widget.isVictim) 'Injured/Deceased',
       'IO Name',
-      if (!isUndetected && !isAbsconded) 'Police Station',
+      if (!widget.isUndetected && !widget.isAbsconded) 'Police Station',
     ];
 
     final theme = await PdfUnicodeFonts.openSansTheme();
@@ -149,316 +157,320 @@ class PendingSummaryScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildCategoryFilterBar(List<Map<String, String>> dataset) {
+    final counts = <String, int>{};
+    for (final r in dataset) {
+      final bucket = _bucketForRow(r);
+      counts[bucket] = (counts[bucket] ?? 0) + 1;
+    }
+    return SummaryCategoryFilterBar(
+      totalCount: dataset.length,
+      categoryCounts: counts,
+      selectedCategory: _selectedCategory,
+      onSelected: (cat) => setState(() => _selectedCategory = cat),
+    );
+  }
+
   Widget _builtContent(
     BuildContext context, {
     required List<Map<String, String>> dataset,
     required bool firedFromFirestoreExclusive,
     required bool showDemoNote,
   }) {
-    final anyRows = dataset.isNotEmpty;
+    final categories = _getUniqueCategories(dataset);
+    final isFiltered =
+        _selectedCategory != 'All' && categories.contains(_selectedCategory);
+    final visibleDataset =
+        isFiltered ? _rowsForBucket(dataset, _selectedCategory) : dataset;
+    final anyRows = visibleDataset.isNotEmpty;
 
-    Widget sectionBlock(String bucketLabel) {
-      final rows = _rowsForBucket(dataset, bucketLabel);
-      if (rows.isEmpty) return const SizedBox.shrink();
-      return Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: const BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(color: Color(0xFFF0F2F5)),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: AppColors.navyMid.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Icon(
-                      Icons.category_outlined,
-                      size: 16,
-                      color: AppColors.navyMid,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      bucketLabel,
-                      style: GoogleFonts.poppins(
-                        fontSize: 14.5,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navyDark,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: AppColors.navyMid.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      '${rows.length} ${rows.length == 1 ? 'Case' : 'Cases'}',
-                      style: GoogleFonts.poppins(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navyMid,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: PendingCasesDemoDataTable(
-                isAd: false,
-                realDataRows: rows,
-                isAbsconded: isAbsconded,
-                isVictim: isVictim,
-                isUndetected: isUndetected,
-              ),
-            ),
-          ],
-        ),
-      );
+    final Map<String, List<Map<String, String>>> groupedMap = {};
+    if (!isFiltered) {
+      for (final cat in categories) {
+        final catRows = _rowsForBucket(dataset, cat);
+        if (catRows.isNotEmpty) {
+          groupedMap[cat] = catRows;
+        }
+      }
     }
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F8FF),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  InkWell(
-                    onTap: () => Navigator.pop(context),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isMobile = constraints.maxWidth < 650;
+
+            final backButton = MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(10),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AppColors.lightBorder),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.03),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
+                    border: Border.all(color: AppColors.lightBorder),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.03),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
                       ),
-                      child: const Icon(Icons.arrow_back_rounded,
-                          color: AppColors.navyDark, size: 20),
-                    ),
+                    ],
                   ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.poppins(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.navyDark,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppColors.navyMid.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            '${dataset.length} Total',
-                            style: GoogleFonts.poppins(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.navyMid,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  GestureDetector(
-                    onTap: !anyRows
-                        ? null
-                        : () {
-                            ExcelExportHelper.exportPendingToExcel(
-                              dataset: dataset,
-                              filename: 'Pending_Summary_All_Periods.csv',
-                              isAbsconded: isAbsconded,
-                              isVictim: isVictim,
-                              isUndetected: isUndetected,
-                            );
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                    'Pending Summary exported to Excel successfully.'),
-                                backgroundColor: Color(0xFF107C41),
-                              ),
-                            );
-                          },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: !anyRows
-                            ? Colors.grey.shade400
-                            : const Color(0xFF107C41),
-                        borderRadius: BorderRadius.circular(8),
-                        boxShadow: !anyRows
-                            ? []
-                            : [
-                                BoxShadow(
-                                  color: const Color(0xFF107C41)
-                                      .withValues(alpha: 0.25),
-                                  blurRadius: 4,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.table_chart_rounded,
-                              color: Colors.white, size: 16),
-                          const SizedBox(width: 6),
-                          Text(
-                            'Excel',
-                            style: GoogleFonts.poppins(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: !anyRows ? null : () => _exportPdf(context, dataset),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 8),
-                      decoration: BoxDecoration(
-                        color:
-                            !anyRows ? Colors.grey.shade400 : AppColors.navyMid,
-                        borderRadius: BorderRadius.circular(8),
-                        boxShadow: !anyRows
-                            ? []
-                            : [
-                                BoxShadow(
-                                  color:
-                                      AppColors.navyMid.withValues(alpha: 0.25),
-                                  blurRadius: 4,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.picture_as_pdf_rounded,
-                              color: Colors.white, size: 16),
-                          const SizedBox(width: 6),
-                          Text(
-                            'PDF',
-                            style: GoogleFonts.poppins(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+                  child: const Icon(Icons.arrow_back_rounded,
+                      color: AppColors.navyDark, size: 20),
+                ),
               ),
-              const SizedBox(height: 20),
-              Expanded(
-                child: !anyRows
-                    ? Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(20),
-                              decoration: BoxDecoration(
-                                color:
-                                    AppColors.navyMid.withValues(alpha: 0.06),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.inventory_2_outlined,
-                                size: 48,
-                                color: AppColors.navyMid,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'No Cases Found',
+            );
+
+            final totalBadge = Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.navyMid.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                isFiltered
+                    ? '${visibleDataset.length} of ${dataset.length}'
+                    : '${dataset.length} Total',
+                style: GoogleFonts.poppins(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.navyMid,
+                ),
+              ),
+            );
+
+            final excelButton = MouseRegion(
+              cursor: !anyRows
+                  ? SystemMouseCursors.basic
+                  : SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap: !anyRows
+                    ? null
+                    : () {
+                        ExcelExportHelper.exportPendingToExcel(
+                          dataset: visibleDataset,
+                          filename: 'Pending_Summary_Export.csv',
+                          isAbsconded: widget.isAbsconded,
+                          isVictim: widget.isVictim,
+                          isUndetected: widget.isUndetected,
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                                'Pending Summary exported to Excel successfully.'),
+                            backgroundColor: Color(0xFF107C41),
+                          ),
+                        );
+                      },
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: !anyRows
+                        ? Colors.grey.shade400
+                        : const Color(0xFF107C41),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.table_chart_rounded,
+                          color: Colors.white, size: 16),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Excel',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+
+            final pdfButton = MouseRegion(
+              cursor: !anyRows
+                  ? SystemMouseCursors.basic
+                  : SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap:
+                    !anyRows ? null : () => _exportPdf(context, visibleDataset),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: !anyRows ? Colors.grey.shade400 : AppColors.navyMid,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.picture_as_pdf_rounded,
+                          color: Colors.white, size: 16),
+                      const SizedBox(width: 6),
+                      Text(
+                        'PDF',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+
+            final headerWidget = isMobile
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          backButton,
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              widget.title,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.poppins(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
                                 color: AppColors.navyDark,
+                                height: 1.2,
                               ),
                             ),
-                            const SizedBox(height: 6),
-                            Text(
-                              'There are currently no cases matching this category.',
-                              style: GoogleFonts.poppins(
-                                fontSize: 13,
-                                color: AppColors.lightSubText,
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                    : ListView(
-                        padding: const EdgeInsets.only(bottom: 24),
-                        children: [
-                          for (final label in _getUniqueCategories(dataset))
-                            sectionBlock(label),
-                          // Clean live data only
+                          ),
+                          const SizedBox(width: 8),
+                          totalBadge,
                         ],
                       ),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          excelButton,
+                          const SizedBox(width: 8),
+                          pdfButton,
+                        ],
+                      ),
+                    ],
+                  )
+                : Row(
+                    children: [
+                      backButton,
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                widget.title,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.navyDark,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            totalBadge,
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      excelButton,
+                      const SizedBox(width: 8),
+                      pdfButton,
+                    ],
+                  );
+
+            return Padding(
+              padding: EdgeInsets.fromLTRB(
+                isMobile ? 14 : 24,
+                isMobile ? 12 : 20,
+                isMobile ? 14 : 24,
+                16,
               ),
-            ],
-          ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  headerWidget,
+                  const SizedBox(height: 14),
+                  _buildCategoryFilterBar(dataset),
+                  Expanded(
+                    child: !anyRows
+                        ? Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(20),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.navyMid
+                                        .withValues(alpha: 0.06),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.inventory_2_outlined,
+                                    size: 48,
+                                    color: AppColors.navyMid,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'No Cases Found',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.navyDark,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  'There are currently no cases matching this category.',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 13,
+                                    color: AppColors.lightSubText,
+                                  ),
+                                ),
+                                if (isFiltered) ...[
+                                  const SizedBox(height: 14),
+                                  TextButton.icon(
+                                    onPressed: () => setState(
+                                        () => _selectedCategory = 'All'),
+                                    icon: const Icon(Icons.refresh_rounded,
+                                        size: 16),
+                                    label: const Text('View All Categories'),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          )
+                        : PendingCasesDemoDataTable(
+                            isAd: false,
+                            realDataRows: isFiltered ? visibleDataset : null,
+                            groupedData: isFiltered ? null : groupedMap,
+                            isAbsconded: widget.isAbsconded,
+                            isVictim: widget.isVictim,
+                            isUndetected: widget.isUndetected,
+                          ),
+                  ),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );
@@ -466,17 +478,17 @@ class PendingSummaryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (_usingExplicitLive(liveRows)) {
+    if (_usingExplicitLive(widget.liveRows)) {
       return _builtContent(
         context,
-        dataset: liveRows!,
+        dataset: widget.liveRows!,
         firedFromFirestoreExclusive: true,
         showDemoNote: false,
       );
     }
 
     return _LivePendingSummaryLoader(
-      fallbackStation: stationName,
+      fallbackStation: widget.stationName,
       buildContent: _builtContent,
     );
   }

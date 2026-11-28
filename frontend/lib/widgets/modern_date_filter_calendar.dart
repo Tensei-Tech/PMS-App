@@ -36,6 +36,9 @@ class ModernDateFilterCalendar extends StatefulWidget {
   final double fontSize;
   final String? customEmptyLabel;
 
+  /// Optional dates that have cases filed, shown as a subtle dot under the day.
+  final Set<DateTime>? activeDates;
+
   const ModernDateFilterCalendar({
     super.key,
     required this.selectedDateRange,
@@ -45,9 +48,10 @@ class ModernDateFilterCalendar extends StatefulWidget {
     this.isNewestFirst,
     this.onSortOrderChanged,
     this.showSortCompanion = false,
-    this.height = 36.0,
+    this.height = 38.0,
     this.fontSize = 12.0,
     this.customEmptyLabel,
+    this.activeDates,
   });
 
   @override
@@ -96,6 +100,7 @@ class _ModernDateFilterCalendarState extends State<ModernDateFilterCalendar> {
         builder: (ctx) => _ModernCalendarPopoverCard(
           initialRange: widget.selectedDateRange,
           initialPresetLabel: widget.datePresetLabel,
+          activeDates: widget.activeDates,
           onApply: (range, preset) {
             widget.onDateRangeChanged(range);
             widget.onPresetLabelChanged?.call(preset);
@@ -148,6 +153,7 @@ class _ModernDateFilterCalendarState extends State<ModernDateFilterCalendar> {
                   child: _ModernCalendarPopoverCard(
                     initialRange: widget.selectedDateRange,
                     initialPresetLabel: widget.datePresetLabel,
+                    activeDates: widget.activeDates,
                     onApply: (range, preset) {
                       widget.onDateRangeChanged(range);
                       widget.onPresetLabelChanged?.call(preset);
@@ -231,15 +237,18 @@ class _ModernDateFilterCalendarState extends State<ModernDateFilterCalendar> {
             ),
             if (isFiltered) ...[
               const SizedBox(width: 4),
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: _clearFilter,
-                child: Padding(
-                  padding: const EdgeInsets.all(2),
-                  child: Icon(
-                    Icons.close_rounded,
-                    size: 14,
-                    color: Colors.red.shade700,
+              MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: _clearFilter,
+                  child: Padding(
+                    padding: const EdgeInsets.all(2),
+                    child: Icon(
+                      Icons.close_rounded,
+                      size: 14,
+                      color: Colors.red.shade700,
+                    ),
                   ),
                 ),
               ),
@@ -312,12 +321,13 @@ class _ModernDateFilterCalendarState extends State<ModernDateFilterCalendar> {
 
 /// The internal Popover Card with:
 /// - Streamlined 3-Option Segment Bar: [ Today | Range | Custom ] and Trash icon
-/// - Sub-chips for Range mode: [ This Week | This Month | Last 30 Days | This Year ]
+/// - Sub-chips for Range mode: [ Under 1 month | 1 to 3 months | 3 to 6 months | 6 to 12 months | More than 1 year | Under 3 months (Total) ]
 /// - Full interactive Month Calendar with distinct connected range ribbon
 /// - Footer status summary & Done button
 class _ModernCalendarPopoverCard extends StatefulWidget {
   final DateTimeRange? initialRange;
   final String? initialPresetLabel;
+  final Set<DateTime>? activeDates;
   final void Function(DateTimeRange? range, String? preset) onApply;
   final VoidCallback onClose;
   final bool isDialog;
@@ -325,6 +335,7 @@ class _ModernCalendarPopoverCard extends StatefulWidget {
   const _ModernCalendarPopoverCard({
     required this.initialRange,
     required this.initialPresetLabel,
+    this.activeDates,
     required this.onApply,
     required this.onClose,
     required this.isDialog,
@@ -346,10 +357,17 @@ class _ModernCalendarPopoverCardState
   DateTime? _rangeStart;
   DateTime? _rangeEnd;
   bool _isSelectingSecondDate = false;
+  late Set<DateTime> _activeDates;
+
+  static Set<DateTime> _normalizeDates(Set<DateTime>? dates) {
+    if (dates == null || dates.isEmpty) return const {};
+    return {for (final d in dates) DateTime(d.year, d.month, d.day)};
+  }
 
   @override
   void initState() {
     super.initState();
+    _activeDates = _normalizeDates(widget.activeDates);
     _selectedRange = widget.initialRange;
     _presetLabel = widget.initialPresetLabel;
 
@@ -398,6 +416,15 @@ class _ModernCalendarPopoverCardState
     widget.onApply(_selectedRange, _presetLabel);
   }
 
+  static const List<String> _rangePresets = [
+    'Under 1 month',
+    '1 to 3 months',
+    '3 to 6 months',
+    '6 to 12 months',
+    'More than 1 year',
+    'Under 3 months (Total)',
+  ];
+
   void _applyRangePreset(String label) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -405,24 +432,30 @@ class _ModernCalendarPopoverCardState
     DateTime end = today;
 
     switch (label) {
-      case 'This Week':
-        start = DateTime(
-          today.year,
-          today.month,
-          today.day - (today.weekday - 1),
-        );
+      case 'Under 1 month':
+        start = today.subtract(const Duration(days: 30));
         break;
-      case 'This Month':
-        start = DateTime(now.year, now.month, 1);
+      case '1 to 3 months':
+        start = today.subtract(const Duration(days: 90));
+        end = today.subtract(const Duration(days: 30));
         break;
-      case 'Last 30 Days':
-        start = DateTime(today.year, today.month, today.day - 29);
+      case '3 to 6 months':
+        start = today.subtract(const Duration(days: 180));
+        end = today.subtract(const Duration(days: 90));
         break;
-      case 'This Year':
-        start = DateTime(now.year, 1, 1);
+      case '6 to 12 months':
+        start = today.subtract(const Duration(days: 365));
+        end = today.subtract(const Duration(days: 180));
+        break;
+      case 'More than 1 year':
+        start = DateTime(2000, 1, 1);
+        end = today.subtract(const Duration(days: 365));
+        break;
+      case 'Under 3 months (Total)':
+        start = today.subtract(const Duration(days: 90));
         break;
       default:
-        start = DateTime(now.year, now.month, 1);
+        start = today.subtract(const Duration(days: 30));
     }
 
     setState(() {
@@ -596,34 +629,41 @@ class _ModernCalendarPopoverCardState
 
         const SizedBox(width: 8),
 
-        // Trash / Clear Button
-        Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: hasFilter ? _clearFilter : null,
-            borderRadius: BorderRadius.circular(8),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
-              height: 36,
-              width: 36,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: hasFilter
-                    ? const Color(0xFFFEE2E2)
-                    : const Color(0xFFF8FAFC),
+        // Clear Filter Button
+        Tooltip(
+          message: 'Clear date filter',
+          child: MouseRegion(
+            cursor:
+                hasFilter ? SystemMouseCursors.click : SystemMouseCursors.basic,
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: hasFilter ? _clearFilter : null,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: hasFilter
-                      ? const Color(0xFFFCA5A5)
-                      : const Color(0xFFE2E8F0),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 150),
+                  height: 36,
+                  width: 36,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: hasFilter
+                        ? const Color(0xFFF1F5F9)
+                        : const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: hasFilter
+                          ? const Color(0xFFCBD5E1)
+                          : const Color(0xFFE2E8F0),
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.close_rounded,
+                    size: 18,
+                    color: hasFilter
+                        ? AppColors.navyDark
+                        : const Color(0xFF94A3B8),
+                  ),
                 ),
-              ),
-              child: Icon(
-                Icons.delete_outline_rounded,
-                size: 18,
-                color: hasFilter
-                    ? const Color(0xFFDC2626)
-                    : const Color(0xFF94A3B8),
               ),
             ),
           ),
@@ -636,42 +676,50 @@ class _ModernCalendarPopoverCardState
     final isSelected = _mode == mode;
 
     return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          if (mode == ModernDateFilterMode.today) {
-            _applyToday();
-          } else if (mode == ModernDateFilterMode.range) {
-            _applyRangePreset(_presetLabel ?? 'This Month');
-          } else {
-            setState(() {
-              _mode = ModernDateFilterMode.custom;
-              _isSelectingSecondDate = false;
-            });
-          }
-        },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: isSelected ? Colors.white : Colors.transparent,
-            borderRadius: BorderRadius.circular(6),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.06),
-                      blurRadius: 4,
-                      offset: const Offset(0, 1),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Text(
-            title,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-              color:
-                  isSelected ? const Color(0xFF1976D2) : AppColors.lightSubText,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            if (mode == ModernDateFilterMode.today) {
+              _applyToday();
+            } else if (mode == ModernDateFilterMode.range) {
+              final preset = _rangePresets.contains(_presetLabel)
+                  ? _presetLabel!
+                  : _rangePresets.first;
+              _applyRangePreset(preset);
+            } else {
+              setState(() {
+                _mode = ModernDateFilterMode.custom;
+                _isSelectingSecondDate = false;
+              });
+            }
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: isSelected ? Colors.white : Colors.transparent,
+              borderRadius: BorderRadius.circular(6),
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.06),
+                        blurRadius: 4,
+                        offset: const Offset(0, 1),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Text(
+              title,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                color: isSelected
+                    ? const Color(0xFF1976D2)
+                    : AppColors.lightSubText,
+              ),
             ),
           ),
         ),
@@ -680,41 +728,36 @@ class _ModernCalendarPopoverCardState
   }
 
   Widget _buildRangePresetChips() {
-    const presets = ['This Week', 'This Month', 'Last 30 Days', 'This Year'];
-
-    return Row(
-      children: presets.map((label) {
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      children: _rangePresets.map((label) {
         final isSelected = _presetLabel == label;
-        return Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 2),
-            child: InkWell(
-              onTap: () => _applyRangePreset(label),
-              borderRadius: BorderRadius.circular(6),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 150),
-                padding: const EdgeInsets.symmetric(vertical: 5),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
+        return MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: InkWell(
+            onTap: () => _applyRangePreset(label),
+            borderRadius: BorderRadius.circular(16),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? const Color(0xFF1976D2)
+                    : const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
                   color: isSelected
                       ? const Color(0xFF1976D2)
-                      : const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color: isSelected
-                        ? const Color(0xFF1976D2)
-                        : const Color(0xFFE2E8F0),
-                  ),
+                      : const Color(0xFFE2E8F0),
                 ),
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.poppins(
-                    fontSize: 10,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                    color: isSelected ? Colors.white : AppColors.navyDark,
-                  ),
+              ),
+              child: Text(
+                label,
+                style: GoogleFonts.poppins(
+                  fontSize: 10.5,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: isSelected ? Colors.white : AppColors.navyDark,
                 ),
               ),
             ),
@@ -736,7 +779,7 @@ class _ModernCalendarPopoverCardState
         Text(
           monthStr,
           style: GoogleFonts.poppins(
-            fontSize: 13.5,
+            fontSize: 14.0,
             fontWeight: FontWeight.w700,
             color: AppColors.navyDark,
           ),
@@ -854,7 +897,7 @@ class _ModernCalendarPopoverCardState
 
     return GridView.count(
       crossAxisCount: 7,
-      childAspectRatio: 1.15,
+      childAspectRatio: 1.05,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       mainAxisSpacing: 3,
@@ -955,19 +998,49 @@ class _ModernCalendarPopoverCardState
       fontWeight = FontWeight.w700;
     }
 
+    final hasCases = _activeDates.contains(date);
+    final isStrongSelected =
+        isSingleSelected || isSelectedStart || isSelectedEnd;
+
     return InkWell(
       onTap: () => _onDayTapped(date),
       borderRadius: BorderRadius.circular(8),
       child: Container(
         alignment: Alignment.center,
         decoration: containerDec,
-        child: Text(
-          '${date.day}',
-          style: GoogleFonts.poppins(
-            fontSize: 12,
-            fontWeight: fontWeight,
-            color: textColor,
-          ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              '${date.day}',
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                height: 1.05,
+                fontWeight: fontWeight,
+                color: textColor,
+              ),
+            ),
+            const SizedBox(height: 3),
+            SizedBox(
+              height: 5,
+              child: hasCases
+                  ? Center(
+                      child: Container(
+                        key: const Key('date-case-dot'),
+                        width: 5,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: isStrongSelected
+                              ? Colors.white
+                              : const Color(0xFF1976D2),
+                        ),
+                      ),
+                    )
+                  : null,
+            ),
+          ],
         ),
       ),
     );
@@ -1001,7 +1074,7 @@ class _ModernCalendarPopoverCardState
             summaryText,
             overflow: TextOverflow.ellipsis,
             style: GoogleFonts.poppins(
-              fontSize: 11.5,
+              fontSize: 12.0,
               fontWeight: FontWeight.w600,
               color: AppColors.navyMid,
             ),

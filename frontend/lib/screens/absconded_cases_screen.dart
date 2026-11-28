@@ -1,5 +1,6 @@
 // ignore_for_file: unused_element, unused_local_variable
 import '../widgets/modern_date_filter_calendar.dart';
+import '../widgets/modern_date_sort_button.dart';
 // lib/screens/absconded_cases_screen.dart
 // Absconded cases screen matching Form I-V style UI:
 // Status tabs (Total / Pending / Disposal), Date Calendar picker & sort,
@@ -261,7 +262,7 @@ class _AbscondedCasesScreenState extends State<AbscondedCasesScreen> {
                                       'Filter cases by date and change sort order',
                                     ),
                                     style: GoogleFonts.poppins(
-                                      fontSize: 11.5,
+                                      fontSize: 12.0,
                                       color: AppColors.lightSubText,
                                     ),
                                   ),
@@ -582,7 +583,7 @@ class _AbscondedCasesScreenState extends State<AbscondedCasesScreen> {
                                     'Clear Filter',
                                   ),
                                   style: GoogleFonts.poppins(
-                                    fontSize: 12.5,
+                                    fontSize: 12.0,
                                     fontWeight: FontWeight.w600,
                                     color: Colors.red.shade700,
                                   ),
@@ -646,7 +647,7 @@ class _AbscondedCasesScreenState extends State<AbscondedCasesScreen> {
         child: Text(
           TranslationHelper.translate(context, label),
           style: GoogleFonts.poppins(
-            fontSize: 11.5,
+            fontSize: 12.0,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
             color: isSelected ? Colors.white : AppColors.navyDark,
           ),
@@ -697,7 +698,7 @@ class _AbscondedCasesScreenState extends State<AbscondedCasesScreen> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.poppins(
-                      fontSize: 11.5,
+                      fontSize: 12.0,
                       fontWeight:
                           isSelected ? FontWeight.w700 : FontWeight.w500,
                       color: isSelected
@@ -773,7 +774,7 @@ class _AbscondedCasesScreenState extends State<AbscondedCasesScreen> {
     _openForm();
   }
 
-  Widget _buildDateAndSortControls() {
+  Widget _buildDateAndSortControls(List<ModuleRecord> records) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -781,6 +782,7 @@ class _AbscondedCasesScreenState extends State<AbscondedCasesScreen> {
         ModernDateFilterCalendar(
           selectedDateRange: _selectedDateRange,
           datePresetLabel: _datePresetLabel,
+          activeDates: records.map(_recordTargetDate).toSet(),
           onDateRangeChanged: (range) {
             setState(() {
               _selectedDateRange = range;
@@ -803,9 +805,13 @@ class _AbscondedCasesScreenState extends State<AbscondedCasesScreen> {
         ),
         const SizedBox(width: 8),
 
-        // Sort by Date Toggle & Menu Button
-        PopupMenuButton<String>(
-          tooltip: TranslationHelper.translate(context, 'Sort by Date'),
+        // Modern Date Sort Button
+        ModernDateSortButton(
+          selectedKey: _dateField == FormIVDateField.createdAt
+              ? 'newest_created'
+              : (_dateSortOrder == FormIVDateSortOrder.newestFirst
+                  ? 'newest_incident'
+                  : 'oldest_incident'),
           onSelected: (val) {
             setState(() {
               switch (val) {
@@ -821,140 +827,9 @@ class _AbscondedCasesScreenState extends State<AbscondedCasesScreen> {
                   _dateField = FormIVDateField.createdAt;
                   _dateSortOrder = FormIVDateSortOrder.newestFirst;
                   break;
-                case 'oldest_created':
-                  _dateField = FormIVDateField.createdAt;
-                  _dateSortOrder = FormIVDateSortOrder.oldestFirst;
-                  break;
               }
             });
           },
-          itemBuilder: (context) => [
-            PopupMenuItem(
-              value: 'newest_incident',
-              child: Row(
-                children: [
-                  Icon(
-                    _dateField == FormIVDateField.incidentDate &&
-                            _dateSortOrder == FormIVDateSortOrder.newestFirst
-                        ? Icons.check_circle_rounded
-                        : Icons.radio_button_unchecked_rounded,
-                    size: 16,
-                    color: const Color(0xFF1976D2),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Incident Date (Newest first)',
-                    style: GoogleFonts.poppins(fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-            PopupMenuItem(
-              value: 'oldest_incident',
-              child: Row(
-                children: [
-                  Icon(
-                    _dateField == FormIVDateField.incidentDate &&
-                            _dateSortOrder == FormIVDateSortOrder.oldestFirst
-                        ? Icons.check_circle_rounded
-                        : Icons.radio_button_unchecked_rounded,
-                    size: 16,
-                    color: const Color(0xFF1976D2),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Incident Date (Oldest first)',
-                    style: GoogleFonts.poppins(fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-            const PopupMenuDivider(),
-            PopupMenuItem(
-              value: 'newest_created',
-              child: Row(
-                children: [
-                  Icon(
-                    _dateField == FormIVDateField.createdAt &&
-                            _dateSortOrder == FormIVDateSortOrder.newestFirst
-                        ? Icons.check_circle_rounded
-                        : Icons.radio_button_unchecked_rounded,
-                    size: 16,
-                    color: const Color(0xFF1976D2),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Filing Date (Newest first)',
-                    style: GoogleFonts.poppins(fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-            PopupMenuItem(
-              value: 'oldest_created',
-              child: Row(
-                children: [
-                  Icon(
-                    _dateField == FormIVDateField.createdAt &&
-                            _dateSortOrder == FormIVDateSortOrder.oldestFirst
-                        ? Icons.check_circle_rounded
-                        : Icons.radio_button_unchecked_rounded,
-                    size: 16,
-                    color: const Color(0xFF1976D2),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Filing Date (Oldest first)',
-                    style: GoogleFonts.poppins(fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-          ],
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFFCBD5E1)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.02),
-                  blurRadius: 4,
-                  offset: const Offset(0, 1),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  _dateSortOrder == FormIVDateSortOrder.newestFirst
-                      ? Icons.arrow_downward_rounded
-                      : Icons.arrow_upward_rounded,
-                  size: 14,
-                  color: AppColors.navyMid,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  _dateSortOrder == FormIVDateSortOrder.newestFirst
-                      ? TranslationHelper.translate(context, 'Newest')
-                      : TranslationHelper.translate(context, 'Oldest'),
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.navyDark,
-                  ),
-                ),
-                const SizedBox(width: 2),
-                const Icon(
-                  Icons.arrow_drop_down_rounded,
-                  size: 16,
-                  color: AppColors.lightSubText,
-                ),
-              ],
-            ),
-          ),
         ),
       ],
     );
@@ -986,7 +861,7 @@ class _AbscondedCasesScreenState extends State<AbscondedCasesScreen> {
             child: Text(
               'Filtered by date: $label ($count cases found)',
               style: GoogleFonts.poppins(
-                fontSize: 11.5,
+                fontSize: 12.0,
                 fontWeight: FontWeight.w500,
                 color: const Color(0xFF1E40AF),
               ),
@@ -1050,7 +925,7 @@ class _AbscondedCasesScreenState extends State<AbscondedCasesScreen> {
             Text(
               TranslationHelper.translate(context, 'Crime Head:'),
               style: GoogleFonts.poppins(
-                fontSize: 11.5,
+                fontSize: 12.0,
                 fontWeight: FontWeight.w600,
                 color: AppColors.lightSubText,
               ),
@@ -1106,7 +981,7 @@ class _AbscondedCasesScreenState extends State<AbscondedCasesScreen> {
             Text(
               transLabel,
               style: GoogleFonts.poppins(
-                fontSize: 11.5,
+                fontSize: 12.0,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 color: isSelected ? Colors.white : AppColors.navyDark,
               ),
@@ -1229,7 +1104,7 @@ class _AbscondedCasesScreenState extends State<AbscondedCasesScreen> {
                   ),
                 ),
                 const Spacer(),
-                _buildDateAndSortControls(),
+                _buildDateAndSortControls(statusRecords),
               ],
             ),
           ),
