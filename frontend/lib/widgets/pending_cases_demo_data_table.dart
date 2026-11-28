@@ -58,7 +58,7 @@ class PendingCasesDemoDataTable extends StatelessWidget {
 
           if (isVictim) {
             final otherColW = math.max(colUnitW * 1.15, 120.0);
-            tableWidth = srWidth + (colUnitW * 3) + (otherColW * 4);
+            tableWidth = srWidth + (colUnitW * 3) + (otherColW * 5);
             columnWidths = <int, TableColumnWidth>{
               0: const FixedColumnWidth(srWidth),
               1: FixedColumnWidth(colUnitW),
@@ -68,6 +68,7 @@ class PendingCasesDemoDataTable extends StatelessWidget {
               5: FixedColumnWidth(otherColW),
               6: FixedColumnWidth(otherColW),
               7: FixedColumnWidth(otherColW),
+              8: FixedColumnWidth(otherColW),
             };
           } else if (isAbsconded) {
             final otherColW = math.max(colUnitW * 1.25, 130.0);
@@ -92,14 +93,15 @@ class PendingCasesDemoDataTable extends StatelessWidget {
             };
           } else {
             final otherColW = math.max(colUnitW * 1.35, 140.0);
-            tableWidth = srWidth + (colUnitW * 4) + otherColW;
+            tableWidth = srWidth + (colUnitW * 5) + otherColW;
             columnWidths = <int, TableColumnWidth>{
               0: const FixedColumnWidth(srWidth),
               1: FixedColumnWidth(colUnitW),
               2: FixedColumnWidth(colUnitW),
               3: FixedColumnWidth(colUnitW),
               4: FixedColumnWidth(colUnitW),
-              5: FixedColumnWidth(otherColW),
+              5: FixedColumnWidth(colUnitW),
+              6: FixedColumnWidth(otherColW),
             };
           }
         } else {
@@ -114,6 +116,7 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                   5: FlexColumnWidth(1.0),
                   6: FlexColumnWidth(1.2),
                   7: FlexColumnWidth(1.2),
+                  8: FlexColumnWidth(1.2),
                 }
               : isAbsconded
                   ? const <int, TableColumnWidth>{
@@ -138,7 +141,8 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                           2: FlexColumnWidth(1.2),
                           3: FlexColumnWidth(1.3),
                           4: FlexColumnWidth(1.3),
-                          5: FlexColumnWidth(1.8),
+                          5: FlexColumnWidth(1.3),
+                          6: FlexColumnWidth(1.8),
                         };
         }
 
@@ -241,6 +245,8 @@ class PendingCasesDemoDataTable extends StatelessWidget {
             headerCell('Injured/Deceased', align: Alignment.centerLeft),
           headerCell('IO Name', align: Alignment.centerLeft),
           if (!isUndetected && !isAbsconded)
+            headerCell('Police Station', align: Alignment.centerLeft),
+          if (!isUndetected && !isAbsconded)
             headerCell('Reason of Pending', align: Alignment.centerLeft),
         ];
 
@@ -284,6 +290,8 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                         : '—',
                     align: Alignment.centerLeft),
               dataCell(r['io'] ?? '—', align: Alignment.centerLeft),
+              if (!isUndetected && !isAbsconded)
+                dataCell(r['station'] ?? '—', align: Alignment.centerLeft),
               if (!isUndetected && !isAbsconded)
                 dataCell(
                   (r['reason']?.isNotEmpty == true && r['reason'] != '—')

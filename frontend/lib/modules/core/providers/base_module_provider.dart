@@ -10,9 +10,22 @@ import '../../../utils/ad_disposal_helper.dart';
 class BaseModuleProvider extends ChangeNotifier {
   final String moduleKey;
   CaseService get _caseService => CaseService();
+
+  /// Test hooks that stand in for the backend; null in the app.
+  @visibleForTesting
+  Future<bool> Function(ModuleRecord record, bool isCreate)? saveCaseForTest;
+  @visibleForTesting
+  Future<List<ModuleRecord>> Function()? fetchCasesForTest;
+  @visibleForTesting
+  Future<bool> Function(String id)? deleteCaseForTest;
   Timer? _pollTimer;
   List<ModuleRecord> _records = [];
   final Set<String> _deletedIds = {};
+
+  /// Local edits the backend has not confirmed yet (failed or in-flight save),
+  /// keyed by record id. A refresh only replaces records with what the backend
+  /// returns, so these are laid back on top until a save goes through.
+  final Map<String, ModuleRecord> _unsynced = {};
   String _stationId = '';
   String _uid = '';
   CaseVisibilityMode _visibilityMode = CaseVisibilityMode.ownCasesOnly;
@@ -49,6 +62,7 @@ class BaseModuleProvider extends ChangeNotifier {
     if (clearRecords) {
       _records = [];
       _deletedIds.clear();
+      _unsynced.clear();
     }
     notifyListeners();
   }
@@ -74,6 +88,7 @@ class BaseModuleProvider extends ChangeNotifier {
       _visibilityMode = visibilityMode;
       _records = [];
       _deletedIds.clear();
+      _unsynced.clear();
       _hasFetched = false;
       _pollTimer?.cancel();
       _pollTimer = null;
@@ -94,14 +109,22 @@ class BaseModuleProvider extends ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
     try {
-      final fetched = await _caseService.fetchCases(
-        moduleKey: moduleKey,
-        stationId: _stationId,
-        forceRefresh: forceRefresh,
-      );
+      final fetched = fetchCasesForTest != null
+          ? await fetchCasesForTest!()
+          : await _caseService.fetchCases(
+              moduleKey: moduleKey,
+              stationId: _stationId,
+              forceRefresh: forceRefresh,
+            );
 
       final Map<String, ModuleRecord> merged = {};
       for (final r in fetched) {
+        if (!_deletedIds.contains(r.id)) {
+          merged[r.id] = r;
+        }
+      }
+      // Keep unsaved local edits; the user's version wins over the server's
+      for (final r in _unsynced.values) {
         if (!_deletedIds.contains(r.id)) {
           merged[r.id] = r;
         }
@@ -261,12 +284,7 @@ class BaseModuleProvider extends ChangeNotifier {
     }
     notifyListeners();
 
-    try {
-      await _caseService.saveCase(enriched, isCreate: true);
-    } catch (e) {
-      debugPrint('[$moduleKey] saveCase sync error: $e');
-    }
-    await _fetchCases(forceRefresh: true);
+    await _saveAndRefresh(enriched, isCreate: true);
   }
 
   Future<void> updateRecord(ModuleRecord record) async {
@@ -294,21 +312,46 @@ class BaseModuleProvider extends ChangeNotifier {
     }
     notifyListeners();
 
+    await _saveAndRefresh(enriched, isCreate: false);
+  }
+
+  /// Saves [record] and refetches. If the save fails the record stays in
+  /// [_unsynced], so the refetch does not drop it from the list.
+  Future<void> _saveAndRefresh(ModuleRecord record,
+      {required bool isCreate}) async {
+    _unsynced[record.id] = record;
+    var saved = false;
     try {
-      await _caseService.saveCase(enriched, isCreate: false);
+      saved = saveCaseForTest != null
+          ? await saveCaseForTest!(record, isCreate)
+          : await _caseService.saveCase(record, isCreate: isCreate);
     } catch (e) {
-      debugPrint('[$moduleKey] saveCase update error: $e');
+      debugPrint('[$moduleKey] saveCase error: $e');
+    }
+    if (saved) {
+      _unsynced.remove(record.id);
+    } else {
+      debugPrint('[$moduleKey] saveCase failed for ${record.id}; '
+          'keeping local copy');
     }
     await _fetchCases(forceRefresh: true);
   }
 
+  /// Whether [id] has local changes the backend has not confirmed yet.
+  bool isUnsynced(String id) => _unsynced.containsKey(id);
+
   Future<void> deleteRecord(String id) async {
     _deletedIds.add(id);
+    _unsynced.remove(id);
     _records.removeWhere((r) => r.id == id);
     notifyListeners();
 
     try {
-      await _caseService.deleteCase(id);
+      if (deleteCaseForTest != null) {
+        await deleteCaseForTest!(id);
+      } else {
+        await _caseService.deleteCase(id);
+      }
     } catch (e) {
       debugPrint('[$moduleKey] deleteCase error: $e');
     }

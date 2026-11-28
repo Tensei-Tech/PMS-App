@@ -966,9 +966,9 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
                                       TranslationHelper.translate(
                                           context, statusLabel),
                                       style: GoogleFonts.poppins(
-                                        fontSize: 11.0,
+                                        fontSize: 11.5,
                                         fontWeight: FontWeight.w600,
-                                        color: statusFg,
+                                        color: AppColors.navyDark,
                                       ),
                                     ),
                                   ],
