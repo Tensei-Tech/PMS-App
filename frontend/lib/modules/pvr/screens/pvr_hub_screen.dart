@@ -471,18 +471,6 @@ class _PvrHubScreenState extends State<PvrHubScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => PvrAddEditDialog.show(context, provider: provider),
-        backgroundColor: AppColors.navyMid,
-        icon: const Icon(Icons.add_rounded, color: Colors.white),
-        label: Text(
-          TranslationHelper.translate(context, 'Add PVR Entry'),
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
-      ),
     );
   }
 
@@ -891,11 +879,11 @@ class _PvrHubScreenState extends State<PvrHubScreen> {
                       horizontalMargin: isPhone ? 8 : 24,
                       columnSpacing: isPhone ? 10 : 28,
                       headingRowColor:
-                          WidgetStateProperty.all(const Color(0xFFF8FAFC)),
+                          WidgetStateProperty.all(AppColors.navyMid),
                       headingTextStyle: GoogleFonts.poppins(
                         fontSize: isPhone ? 11 : 12,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.navyDark,
+                        color: Colors.white,
                       ),
                       dataRowMinHeight: isPhone ? 48 : 52,
                       dataRowMaxHeight: isPhone ? 56 : 64,
@@ -907,22 +895,45 @@ class _PvrHubScreenState extends State<PvrHubScreen> {
                         DataColumn(
                           label: Text(
                             TranslationHelper.translate(context, 'Month'),
+                            style: GoogleFonts.poppins(
+                              fontSize: isPhone ? 11 : 12,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                         if (showTotal)
                           DataColumn(
                             label: Text(
-                                TranslationHelper.translate(context, 'Total')),
+                              TranslationHelper.translate(context, 'Total'),
+                              style: GoogleFonts.poppins(
+                                fontSize: isPhone ? 11 : 12,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
                         if (showVerified)
                           DataColumn(
-                            label: Text(TranslationHelper.translate(
-                                context, 'Verified')),
+                            label: Text(
+                              TranslationHelper.translate(context, 'Verified'),
+                              style: GoogleFonts.poppins(
+                                fontSize: isPhone ? 11 : 12,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
                         if (showPending)
                           DataColumn(
-                            label: Text(TranslationHelper.translate(
-                                context, 'Pending')),
+                            label: Text(
+                              TranslationHelper.translate(context, 'Pending'),
+                              style: GoogleFonts.poppins(
+                                fontSize: isPhone ? 11 : 12,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
                       ],
                       rows: groups.map((g) {

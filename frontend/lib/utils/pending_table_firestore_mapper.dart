@@ -231,6 +231,67 @@ String _victimConditionLine(ModuleRecord r) {
   return '';
 }
 
+String _pendingReasonLine(ModuleRecord r) {
+  const keys = [
+    'reason_for_pending',
+    'pending_reason',
+    'pendingReason',
+    'reasonOfPending',
+    'reason_of_pending',
+    'pendency_reason',
+    'reason',
+    'pending_remarks',
+    'reason_for_delay',
+    'delay_reason',
+    'cause_of_delay',
+    'remarks',
+  ];
+
+  for (final k in keys) {
+    final v = r.extraFields[k]?.toString().trim();
+    if (v != null &&
+        v.isNotEmpty &&
+        v != 'null' &&
+        v != 'None' &&
+        v != '—' &&
+        v != '-') {
+      return v;
+    }
+  }
+
+  final nestedMaps = [
+    r.extraFields[kCommonFormExtraFieldsKey],
+    r.extraFields['common_form'],
+    r.extraFields['commonForm'],
+    r.extraFields['dynamic_extra_fields'],
+    r.extraFields['extra_field_values'],
+    r.extraFields['riskAndStatus'],
+  ];
+
+  for (final raw in nestedMaps) {
+    if (raw is Map) {
+      for (final k in keys) {
+        final v = raw[k]?.toString().trim();
+        if (v != null &&
+            v.isNotEmpty &&
+            v != 'null' &&
+            v != 'None' &&
+            v != '—' &&
+            v != '-') {
+          return v;
+        }
+      }
+    }
+  }
+
+  final desc = r.description.trim();
+  if (desc.isNotEmpty && desc != 'null' && desc != 'None' && desc != '—') {
+    return desc;
+  }
+
+  return '—';
+}
+
 final Map<String, ModuleRecord> _pendingRecordCache = {};
 
 void cachePendingModuleRecord(ModuleRecord r) {
@@ -268,6 +329,7 @@ Map<String, String> pendingModuleRecordToTableRow(
     'sections': _sectionsLine(r),
     'accused': r.accused.trim().isEmpty ? '—' : r.accused.trim(),
     'io': io.isEmpty ? '—' : io,
+    'reason': _pendingReasonLine(r),
     'station': r.stationName.trim().isNotEmpty
         ? r.stationName.trim()
         : (((r.extraFields['station_name'] ??

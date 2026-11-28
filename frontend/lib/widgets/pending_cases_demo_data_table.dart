@@ -132,10 +132,10 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                         }
                       : const <int, TableColumnWidth>{
                           0: FixedColumnWidth(65),
-                          1: FlexColumnWidth(1.3),
+                          1: FlexColumnWidth(1.2),
                           2: FlexColumnWidth(1.2),
                           3: FlexColumnWidth(1.3),
-                          4: FlexColumnWidth(1.4),
+                          4: FlexColumnWidth(1.3),
                           5: FlexColumnWidth(1.8),
                         };
         }
@@ -230,7 +230,7 @@ class PendingCasesDemoDataTable extends StatelessWidget {
           if (isVictim) headerCell('Name'),
           if (isVictim) headerCell('Injured/Deceased'),
           headerCell('IO Name'),
-          if (!isUndetected && !isAbsconded) headerCell('Police Station'),
+          if (!isUndetected && !isAbsconded) headerCell('Reason of Pending'),
         ];
 
         TableRow rowFor(int idx, Map<String, String> r) {
@@ -272,7 +272,12 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                     align: Alignment.centerLeft),
               dataCell(r['io'] ?? '—', align: Alignment.centerLeft),
               if (!isUndetected && !isAbsconded)
-                dataCell(r['station'] ?? '—', align: Alignment.centerLeft),
+                dataCell(
+                  (r['reason']?.isNotEmpty == true && r['reason'] != '—')
+                      ? r['reason']!
+                      : '—',
+                  align: Alignment.centerLeft,
+                ),
             ],
           );
         }
@@ -699,6 +704,15 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                                 label: 'Police Station',
                                 value: station,
                               ),
+                              if (row['reason']?.isNotEmpty == true &&
+                                  row['reason'] != '—') ...[
+                                const SizedBox(height: 10),
+                                _infoRow(
+                                  icon: Icons.pending_actions_rounded,
+                                  label: 'Reason of Pending',
+                                  value: row['reason']!,
+                                ),
+                              ],
                               if (period.isNotEmpty) ...[
                                 const SizedBox(height: 10),
                                 _infoRow(
