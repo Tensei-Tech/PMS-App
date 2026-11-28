@@ -14,6 +14,7 @@ import '../utils/excel_export_helper.dart';
 import '../utils/pdf_unicode_fonts.dart';
 import '../utils/translation_helper.dart';
 import '../widgets/dynamic_form/dynamic_form_screen.dart';
+import '../widgets/modern_date_filter_calendar.dart';
 import '../widgets/nafis_cases_data_table.dart';
 import '../widgets/sub_tab_host.dart';
 import 'nafis_summary_screen.dart';
@@ -57,6 +58,7 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
   final TextEditingController _searchCtrl = TextEditingController();
   String _searchQuery = '';
   DateTimeRange? _selectedDateRange;
+  String? _datePresetLabel;
 
   @override
   void initState() {
@@ -503,12 +505,12 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: const Color(0xFF0D9488).withValues(alpha: 0.1),
+                color: AppColors.navyMid.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(
                 Icons.touch_app_rounded,
-                color: Color(0xFF0D9488),
+                color: AppColors.navyMid,
                 size: 22,
               ),
             ),
@@ -531,7 +533,7 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.poppins(
-                      fontSize: 10.5,
+                      fontSize: 11.0,
                       fontWeight: FontWeight.w500,
                       color: AppColors.lightSubText,
                     ),
@@ -542,38 +544,77 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.table_chart_outlined,
-                color: Color(0xFF16A34A)),
-            tooltip: 'Export to Excel',
-            onPressed:
-                visibleRows.isNotEmpty ? () => _exportExcel(visibleRows) : null,
-          ),
-          IconButton(
-            icon: const Icon(Icons.picture_as_pdf_outlined,
-                color: Color(0xFFDC2626)),
-            tooltip: 'Export PDF',
-            onPressed:
-                visibleRows.isNotEmpty ? () => _exportPdf(visibleRows) : null,
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: _buildExportButtons(visibleRows),
+            ),
           ),
         ],
         // NAFIS | Fingerprint switch above these tabs when opened from the
         // NAFIS/Fingerprint dashboard tile.
         bottom: SubTabHost.appBarBottomAbove(
           context,
-          TabBar(
-            controller: _tabController,
-            labelColor: AppColors.navyMid,
-            unselectedLabelColor: AppColors.lightSubText,
-            indicatorColor: AppColors.navyMid,
-            indicatorWeight: 3,
-            labelStyle:
-                GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 13),
-            tabs: const [
-              Tab(text: "Case Wise"),
-              Tab(text: "Time Wise"),
-              Tab(text: "IO Wise"),
-            ],
+          PreferredSize(
+            preferredSize: const Size.fromHeight(48),
+            child: Container(
+              color: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: TabBar(
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
+                controller: _tabController,
+                labelColor: AppColors.navyMid,
+                unselectedLabelColor: AppColors.lightSubText,
+                indicatorColor: AppColors.navyMid,
+                indicatorWeight: 3,
+                indicatorSize: TabBarIndicatorSize.label,
+                labelStyle: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                ),
+                unselectedLabelStyle: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 13,
+                ),
+                tabs: const [
+                  Tab(
+                    iconMargin: EdgeInsets.zero,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.category_outlined, size: 16),
+                        SizedBox(width: 8),
+                        Text('Case Wise'),
+                      ],
+                    ),
+                  ),
+                  Tab(
+                    iconMargin: EdgeInsets.zero,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.schedule_rounded, size: 16),
+                        SizedBox(width: 8),
+                        Text('Time Wise'),
+                      ],
+                    ),
+                  ),
+                  Tab(
+                    iconMargin: EdgeInsets.zero,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.badge_outlined, size: 16),
+                        SizedBox(width: 8),
+                        Text('IO Wise'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -716,7 +757,7 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
                 child: TextField(
                   controller: _searchCtrl,
                   style: GoogleFonts.poppins(
-                      fontSize: 12.5, color: AppColors.navyDark),
+                      fontSize: 13.0, color: AppColors.navyDark),
                   decoration: InputDecoration(
                     isDense: true,
                     filled: true,
@@ -757,23 +798,8 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
               final actionWidgets = [
                 const SizedBox(width: 8),
                 _buildDateFilterMenu(context),
-                const SizedBox(width: 4),
-                IconButton(
-                  tooltip: TranslationHelper.translate(context, 'Export PDF'),
-                  onPressed: visibleRows.isNotEmpty
-                      ? () => _exportPdf(visibleRows)
-                      : null,
-                  icon: const Icon(Icons.picture_as_pdf_outlined,
-                      color: Color(0xFFDC2626), size: 20),
-                ),
-                IconButton(
-                  tooltip: TranslationHelper.translate(context, 'Export Excel'),
-                  onPressed: visibleRows.isNotEmpty
-                      ? () => _exportExcel(visibleRows)
-                      : null,
-                  icon: const Icon(Icons.table_chart_outlined,
-                      color: Color(0xFF16A34A), size: 20),
-                ),
+                const SizedBox(width: 8),
+                ..._buildExportButtons(visibleRows),
               ];
 
               if (isNarrow) {
@@ -976,67 +1002,70 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
     );
   }
 
-  Widget _buildDateFilterMenu(BuildContext context) {
-    return PopupMenuButton<String>(
-      tooltip: TranslationHelper.translate(context, 'Filter by Date'),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      icon: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: _selectedDateRange != null
-              ? const Color(0xFFEFF6FF)
-              : const Color(0xFFF8FAFC),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: _selectedDateRange != null
-                ? const Color(0xFF3B82F6)
-                : const Color(0xFFCBD5E1),
+  List<Widget> _buildExportButtons(List<Map<String, dynamic>> visibleRows) {
+    final enabled = visibleRows.isNotEmpty;
+    return [
+      ElevatedButton.icon(
+        onPressed: enabled ? () => _exportExcel(visibleRows) : null,
+        icon: const Icon(Icons.table_chart_rounded,
+            color: Colors.white, size: 16),
+        label: Text(
+          'Excel',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w600,
+            fontSize: 12.5,
+            color: Colors.white,
           ),
         ),
-        child: Icon(
-          Icons.calendar_today_rounded,
-          size: 16,
-          color: _selectedDateRange != null
-              ? const Color(0xFF3B82F6)
-              : AppColors.navyMid,
+        style: ElevatedButton.styleFrom(
+          backgroundColor:
+              enabled ? const Color(0xFF107C41) : Colors.grey.shade400,
+          disabledBackgroundColor: Colors.grey.shade400,
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         ),
       ),
-      onSelected: (val) async {
-        final now = DateTime.now();
-        if (val == 'all') {
-          setState(() => _selectedDateRange = null);
-        } else if (val == 'today') {
-          setState(
-              () => _selectedDateRange = DateTimeRange(start: now, end: now));
-        } else if (val == 'week') {
-          setState(() => _selectedDateRange = DateTimeRange(
-                start: now.subtract(const Duration(days: 7)),
-                end: now,
-              ));
-        } else if (val == 'month') {
-          setState(() => _selectedDateRange = DateTimeRange(
-                start: now.subtract(const Duration(days: 30)),
-                end: now,
-              ));
-        } else if (val == 'custom') {
-          final range = await showDateRangePicker(
-            context: context,
-            firstDate: DateTime(2000),
-            lastDate: DateTime(2100),
-            initialDateRange: _selectedDateRange,
-          );
-          if (range != null) {
-            setState(() => _selectedDateRange = range);
-          }
-        }
+      const SizedBox(width: 8),
+      ElevatedButton.icon(
+        onPressed: enabled ? () => _exportPdf(visibleRows) : null,
+        icon: const Icon(Icons.picture_as_pdf_rounded,
+            color: Colors.white, size: 16),
+        label: Text(
+          'PDF',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w600,
+            fontSize: 12.5,
+            color: Colors.white,
+          ),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: enabled ? AppColors.navyMid : Colors.grey.shade400,
+          disabledBackgroundColor: Colors.grey.shade400,
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        ),
+      ),
+    ];
+  }
+
+  Widget _buildDateFilterMenu(BuildContext context) {
+    return ModernDateFilterCalendar(
+      selectedDateRange: _selectedDateRange,
+      datePresetLabel: _datePresetLabel,
+      activeDates: _caseRecords?.map((r) => r.incidentDate).toSet(),
+      onDateRangeChanged: (range) {
+        setState(() {
+          _selectedDateRange = range;
+          if (range == null) _datePresetLabel = null;
+        });
       },
-      itemBuilder: (context) => [
-        const PopupMenuItem(value: 'all', child: Text('All Dates')),
-        const PopupMenuItem(value: 'today', child: Text('Today')),
-        const PopupMenuItem(value: 'week', child: Text('Last 7 Days')),
-        const PopupMenuItem(value: 'month', child: Text('Last 30 Days')),
-        const PopupMenuItem(value: 'custom', child: Text('Custom Range...')),
-      ],
+      onPresetLabelChanged: (preset) {
+        setState(() {
+          _datePresetLabel = preset;
+        });
+      },
     );
   }
 
@@ -1076,12 +1105,12 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
               leading: Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0D9488).withValues(alpha: 0.1),
+                  color: AppColors.navyMid.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
                   Icons.access_time_rounded,
-                  color: Color(0xFF0D9488),
+                  color: AppColors.navyMid,
                   size: 22,
                 ),
               ),
@@ -1101,12 +1130,12 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
                         const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                     decoration: BoxDecoration(
                       color: count > 0
-                          ? const Color(0xFFFFEBEE)
+                          ? AppColors.navyMid.withValues(alpha: 0.08)
                           : Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: count > 0
-                            ? const Color(0xFFEF5350)
+                            ? AppColors.navyMid.withValues(alpha: 0.18)
                             : Colors.grey.shade300,
                       ),
                     ),
@@ -1116,7 +1145,7 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
                         fontWeight: FontWeight.w700,
                         fontSize: 13,
                         color: count > 0
-                            ? const Color(0xFFC62828)
+                            ? AppColors.navyMid
                             : Colors.grey.shade700,
                       ),
                     ),
@@ -1171,9 +1200,9 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               leading: CircleAvatar(
-                backgroundColor: const Color(0xFF0D9488).withValues(alpha: 0.1),
+                backgroundColor: AppColors.navyMid.withValues(alpha: 0.08),
                 child:
-                    const Icon(Icons.person_rounded, color: Color(0xFF0D9488)),
+                    const Icon(Icons.person_rounded, color: AppColors.navyMid),
               ),
               title: Text(
                 ioName,
@@ -1198,12 +1227,12 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: count > 0
-                          ? const Color(0xFFFFEBEE)
+                          ? AppColors.navyMid.withValues(alpha: 0.08)
                           : Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: count > 0
-                            ? const Color(0xFFEF5350)
+                            ? AppColors.navyMid.withValues(alpha: 0.18)
                             : Colors.grey.shade300,
                       ),
                     ),
@@ -1213,7 +1242,7 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
                         fontWeight: FontWeight.w700,
                         fontSize: 12,
                         color: count > 0
-                            ? const Color(0xFFC62828)
+                            ? AppColors.navyMid
                             : Colors.grey.shade700,
                       ),
                     ),

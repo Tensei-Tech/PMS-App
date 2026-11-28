@@ -10,11 +10,13 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
     required this.isAd,
     this.realDataRows,
     this.serialOffset = 0,
+    this.groupedData,
   });
 
   final bool isAd;
   final List<Map<String, String>>? realDataRows;
   final int serialOffset;
+  final Map<String, List<Map<String, String>>>? groupedData;
 
   @override
   Widget build(BuildContext context) {
@@ -57,13 +59,16 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
           };
         }
 
-        Widget headerCell(String s) => Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+        Widget headerCell(String s, {Alignment align = Alignment.center}) =>
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 9),
               color: AppColors.navyMid,
-              alignment: Alignment.center,
+              alignment: align,
               child: Text(
                 s,
-                textAlign: TextAlign.center,
+                textAlign: align == Alignment.center
+                    ? TextAlign.center
+                    : TextAlign.left,
                 softWrap: true,
                 style: GoogleFonts.poppins(
                   fontSize: headerFontSize,
@@ -74,50 +79,56 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
               ),
             );
 
-        Widget dataCell(String s, {Alignment align = Alignment.center}) =>
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-              alignment: align,
-              child: Text(
-                s,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.poppins(
-                  fontSize: cellFontSize,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.lightText,
-                  height: 1.15,
-                ),
+        Widget dataCell(String s, {Alignment align = Alignment.center}) {
+          final isDash = s.trim() == '—' || s.trim() == '-' || s.trim().isEmpty;
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            alignment: align,
+            child: Text(
+              s.isEmpty ? '—' : s,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.poppins(
+                fontSize: cellFontSize,
+                fontWeight: isDash ? FontWeight.w400 : FontWeight.w500,
+                color: isDash ? const Color(0xFF94A3B8) : AppColors.navyDark,
+                height: 1.15,
               ),
-            );
+            ),
+          );
+        }
 
         final headers = <Widget>[
           headerCell('Sr. No'),
           headerCell('Cr. No.'),
-          headerCell('Sec & Act'),
-          headerCell('Head'),
-          headerCell('Accused Name'),
-          headerCell('IO Name'),
+          headerCell('Sec & Act', align: Alignment.centerLeft),
+          headerCell('Head', align: Alignment.centerLeft),
+          headerCell('Accused Name', align: Alignment.centerLeft),
+          headerCell('IO Name', align: Alignment.centerLeft),
         ];
 
-        TableRow rowFor(int idx, Map<String, String> r) {
-          final bg = idx.isEven ? Colors.white : const Color(0xFFF6F8FF);
+        TableRow rowFor(int idx, Map<String, String> r, [int? customSerial]) {
+          final bg = (customSerial != null ? customSerial.isOdd : idx.isEven)
+              ? Colors.white
+              : const Color(0xFFF6F8FF);
           return TableRow(
             decoration: BoxDecoration(color: bg),
             children: [
-              dataCell('${serialOffset + idx + 1}'),
-              dataCell(r['cr']?.isNotEmpty == true ? r['cr']! : '-'),
-              dataCell(
-                  r['sections']?.isNotEmpty == true ? r['sections']! : '-'),
-              dataCell(r['head']?.isNotEmpty == true ? r['head']! : '-'),
-              dataCell(r['accused']?.isNotEmpty == true ? r['accused']! : '-',
+              dataCell('${customSerial ?? (serialOffset + idx + 1)}'),
+              dataCell(r['cr']?.isNotEmpty == true ? r['cr']! : '—'),
+              dataCell(r['sections']?.isNotEmpty == true ? r['sections']! : '—',
                   align: Alignment.centerLeft),
-              dataCell(r['io']?.isNotEmpty == true ? r['io']! : '-',
+              dataCell(r['head']?.isNotEmpty == true ? r['head']! : '—',
+                  align: Alignment.centerLeft),
+              dataCell(r['accused']?.isNotEmpty == true ? r['accused']! : '—',
+                  align: Alignment.centerLeft),
+              dataCell(r['io']?.isNotEmpty == true ? r['io']! : '—',
                   align: Alignment.centerLeft),
             ],
           );
         }
 
+        final isGrouped = groupedData != null && groupedData!.isNotEmpty;
         final maxH = constraints.maxHeight;
         final hasFiniteHeight = maxH.isFinite;
 
@@ -129,8 +140,8 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
             columnWidths: columnWidths,
             defaultVerticalAlignment: TableCellVerticalAlignment.middle,
             border: const TableBorder(
-              verticalInside: BorderSide(color: Color(0xFFE2E8F0), width: 1),
-              bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1),
+              verticalInside: BorderSide(color: Color(0x33FFFFFF), width: 1),
+              bottom: BorderSide(color: AppColors.navyDark, width: 1.5),
             ),
             children: [
               TableRow(
@@ -169,12 +180,115 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
           ),
         );
 
+        final List<Widget> groupWidgets = [];
+        if (isGrouped) {
+          var globalSerial = serialOffset;
+          for (final entry in groupedData!.entries) {
+            if (entry.value.isEmpty) continue;
+            groupWidgets.add(
+              Container(
+                width: tableWidth,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFEEF2FF),
+                  border: Border(
+                    top: BorderSide(color: Color(0xFFC7D2FE), width: 1),
+                    bottom: BorderSide(color: Color(0xFFC7D2FE), width: 1),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: AppColors.navyMid.withValues(alpha: 0.14),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Icon(
+                        Icons.verified_outlined,
+                        size: 14,
+                        color: AppColors.navyMid,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      entry.key,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.navyDark,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 7, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFC7D2FE)),
+                      ),
+                      child: Text(
+                        '${entry.value.length} ${entry.value.length == 1 ? 'case' : 'cases'}',
+                        style: GoogleFonts.poppins(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.navyMid,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+
+            groupWidgets.add(
+              Container(
+                decoration: const BoxDecoration(color: Colors.white),
+                child: Table(
+                  columnWidths: columnWidths,
+                  defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                  border: const TableBorder(
+                    horizontalInside:
+                        BorderSide(color: Color(0xFFE2E8F0), width: 1),
+                    verticalInside:
+                        BorderSide(color: Color(0xFFE2E8F0), width: 1),
+                    bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1),
+                  ),
+                  children: [
+                    for (var i = 0; i < entry.value.length; i++)
+                      rowFor(i, entry.value[i], ++globalSerial),
+                  ],
+                ),
+              ),
+            );
+          }
+        }
+
+        final Widget contentToScroll = isGrouped
+            ? (groupWidgets.isEmpty
+                ? bodyTable
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.min,
+                    children: groupWidgets,
+                  ))
+            : bodyTable;
+
         final inner = Container(
           width: tableWidth,
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+            border: Border.all(color: const Color(0xFFCBD5E1), width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.02),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(11),
@@ -188,7 +302,7 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
                           thumbVisibility: true,
                           child: SingleChildScrollView(
                             scrollDirection: Axis.vertical,
-                            child: bodyTable,
+                            child: contentToScroll,
                           ),
                         ),
                       ),
@@ -200,7 +314,7 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         headerTable,
-                        bodyTable,
+                        contentToScroll,
                       ],
                     ),
                   ),

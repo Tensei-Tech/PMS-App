@@ -3,6 +3,7 @@
 // Reusable screen for ALL 12 modules — strictly isolated data per module.
 
 import '../widgets/modern_date_filter_calendar.dart';
+import '../widgets/modern_date_sort_button.dart';
 import 'package:flutter/material.dart';
 import 'itsso_hub_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -705,7 +706,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               widget.moduleKey != 'sam_warrant' &&
               widget.moduleKey != 'pending')
             _buildStatsRow(totalCount, disposalCount, pendingCount),
-          if (isTheftOrFormIVStyle) _buildToolbar(displayRecords.length),
+          if (isTheftOrFormIVStyle)
+            _buildToolbar(displayRecords.length, allRecords),
           Expanded(
             child: RefreshIndicator(
               color: AppColors.navyMid,
@@ -1587,136 +1589,128 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         TranslationHelper.translate(context, months[_reportMonth - 1]);
     final monthYearLabel = '$transMonth $_reportYear';
 
+    final isMobile = MediaQuery.sizeOf(context).width < 650;
     return Padding(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          border: Border.all(color: AppColors.lightBorder),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 10,
-              offset: const Offset(0, 6),
+      padding: EdgeInsets.all(isMobile ? 12 : AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Compact Month/Year selector
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(
+                TranslationHelper.translate(
+                    context, 'Summons & Warrant Report'),
+                style: GoogleFonts.poppins(
+                  fontSize: isMobile ? 15 : 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.navyDark,
+                ),
+              ),
+              if (!isMobile) const SizedBox(width: 8),
+              Row(
+                mainAxisSize: isMobile ? MainAxisSize.max : MainAxisSize.min,
+                children: [
+                  if (isMobile)
+                    Expanded(child: _buildMonthDropdown(months))
+                  else
+                    SizedBox(width: 165, child: _buildMonthDropdown(months)),
+                  const SizedBox(width: 8),
+                  SizedBox(width: 96, child: _buildYearDropdown()),
+                ],
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 14),
+
+          // Dynamic Summons & Warrant Report Table from database API
+          SummonsWarrantReportTable(
+            selectedYear: _reportYear,
+            selectedMonth: _reportMonth,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMonthDropdown(List<String> months) {
+    return Container(
+      height: 40,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFCBD5E1)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<int>(
+          value: _reportMonth,
+          isExpanded: true,
+          icon: const Icon(Icons.keyboard_arrow_down_rounded,
+              color: AppColors.navyMid),
+          items: List.generate(
+            12,
+            (i) => DropdownMenuItem(
+              value: i + 1,
+              child: Text(
+                TranslationHelper.translate(context, months[i]),
+                style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.navyDark),
+              ),
             ),
-          ],
+          ),
+          onChanged: (v) {
+            if (v != null) {
+              setState(() => _reportMonth = v);
+            }
+          },
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      TranslationHelper.translate(
-                          context, 'Summons & Warrant Report'),
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navyDark,
-                      ),
-                    ),
-                    Text(
-                      monthYearLabel,
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.goldPrimary,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
+      ),
+    );
+  }
 
-            // Month/Year selector (compact)
-            Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                      border: Border.all(color: AppColors.lightBorder),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<int>(
-                        value: _reportMonth,
-                        isExpanded: true,
-                        icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                            color: AppColors.navyMid),
-                        items: List.generate(
-                          12,
-                          (i) => DropdownMenuItem(
-                            value: i + 1,
-                            child: Text(
-                              TranslationHelper.translate(context, months[i]),
-                              style: GoogleFonts.poppins(
-                                  fontSize: 13, fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                        ),
-                        onChanged: (v) {
-                          if (v != null) {
-                            setState(() => _reportMonth = v);
-                          }
-                        },
-                      ),
-                    ),
-                  ),
+  Widget _buildYearDropdown() {
+    return Container(
+      height: 40,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFCBD5E1)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<int>(
+          value: _reportYear,
+          isExpanded: true,
+          icon: const Icon(Icons.keyboard_arrow_down_rounded,
+              color: AppColors.navyMid),
+          items: List.generate(
+            5,
+            (i) {
+              final y = DateTime.now().year - i;
+              return DropdownMenuItem(
+                value: y,
+                child: Text(
+                  '$y',
+                  style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.navyDark),
                 ),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                    border: Border.all(color: AppColors.lightBorder),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<int>(
-                      value: _reportYear,
-                      icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                          color: AppColors.navyMid),
-                      items: List.generate(
-                        5,
-                        (i) {
-                          final y = DateTime.now().year - i;
-                          return DropdownMenuItem(
-                            value: y,
-                            child: Text(
-                              '$y',
-                              style: GoogleFonts.poppins(
-                                  fontSize: 13, fontWeight: FontWeight.w600),
-                            ),
-                          );
-                        },
-                      ),
-                      onChanged: (v) {
-                        if (v != null) {
-                          setState(() => _reportYear = v);
-                        }
-                      },
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 16),
-
-            // Dynamic Summons & Warrant Report Table from database API
-            SummonsWarrantReportTable(
-              selectedYear: _reportYear,
-              selectedMonth: _reportMonth,
-            ),
-          ],
+              );
+            },
+          ),
+          onChanged: (v) {
+            if (v != null) {
+              setState(() => _reportYear = v);
+            }
+          },
         ),
       ),
     );
@@ -2810,7 +2804,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                             Text(
                               'CR ',
                               style: GoogleFonts.poppins(
-                                fontSize: 9.5,
+                                fontSize: 10.0,
                                 fontWeight: FontWeight.w600,
                                 color: const Color(0xFF64748B),
                               ),
@@ -2821,7 +2815,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.poppins(
-                                  fontSize: 11.5,
+                                  fontSize: 12.0,
                                   fontWeight: FontWeight.w700,
                                   color: const Color(0xFF0F172A),
                                 ),
@@ -2855,7 +2849,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.poppins(
-                              fontSize: 10.5,
+                              fontSize: 10.0,
                               fontWeight: FontWeight.w600,
                               color: AppColors.goldPrimary,
                             ),
@@ -2981,7 +2975,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                             child: Text(
                               crimeDate,
                               style: GoogleFonts.poppins(
-                                fontSize: 11.5,
+                                fontSize: 12.0,
                                 fontWeight: FontWeight.w500,
                                 color: const Color(0xFF334155),
                               ),
@@ -3017,7 +3011,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.poppins(
-                          fontSize: 10.5,
+                          fontSize: 10.0,
                           fontWeight: FontWeight.w700,
                           color: statusColor,
                         ),
@@ -3127,7 +3121,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                   Text(
                     'CR ',
                     style: GoogleFonts.poppins(
-                      fontSize: 9.5,
+                      fontSize: 10.0,
                       fontWeight: FontWeight.w600,
                       color: const Color(0xFF64748B),
                     ),
@@ -3135,7 +3129,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                   Text(
                     crNo,
                     style: GoogleFonts.poppins(
-                      fontSize: 11.5,
+                      fontSize: 12.0,
                       fontWeight: FontWeight.w700,
                       color: const Color(0xFF0F172A),
                     ),
@@ -3255,7 +3249,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     );
   }
 
-  Widget _buildToolbar(int count) {
+  Widget _buildToolbar(int count, List<ModuleRecord> allRecords) {
     final hasDateFilter = _selectedDateRange != null;
     final dateText = hasDateFilter
         ? '${DateFormat('dd/MM/yy').format(_selectedDateRange!.start)} - ${DateFormat('dd/MM/yy').format(_selectedDateRange!.end)}'
@@ -3325,7 +3319,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                     TranslationHelper.translate(context, widget.moduleLabel),
                     style: GoogleFonts.poppins(
                       color: const Color(0xFF1976D2),
-                      fontSize: 12.5,
+                      fontSize: 12.0,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -3377,6 +3371,11 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               ModernDateFilterCalendar(
                 selectedDateRange: _selectedDateRange,
                 datePresetLabel: _datePresetLabel,
+                activeDates: allRecords
+                    .map((r) => _dateField == FormIVDateField.incidentDate
+                        ? r.incidentDate
+                        : r.createdAt)
+                    .toSet(),
                 onDateRangeChanged: (range) {
                   setState(() {
                     _selectedDateRange = range;
@@ -3401,8 +3400,12 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               const SizedBox(width: 8),
 
               // Sort Popup
-              PopupMenuButton<String>(
-                tooltip: TranslationHelper.translate(context, 'Sort by Date'),
+              ModernDateSortButton(
+                selectedKey: _dateField == FormIVDateField.createdAt
+                    ? 'newest_created'
+                    : (_dateSortOrder == FormIVDateSortOrder.newestFirst
+                        ? 'newest_incident'
+                        : 'oldest_incident'),
                 onSelected: (val) {
                   setState(() {
                     switch (val) {
@@ -3418,145 +3421,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                         _dateField = FormIVDateField.createdAt;
                         _dateSortOrder = FormIVDateSortOrder.newestFirst;
                         break;
-                      case 'oldest_created':
-                        _dateField = FormIVDateField.createdAt;
-                        _dateSortOrder = FormIVDateSortOrder.oldestFirst;
-                        break;
                     }
                   });
                 },
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    value: 'newest_incident',
-                    child: Row(
-                      children: [
-                        Icon(
-                          _dateField == FormIVDateField.incidentDate &&
-                                  _dateSortOrder ==
-                                      FormIVDateSortOrder.newestFirst
-                              ? Icons.check_circle_rounded
-                              : Icons.radio_button_unchecked_rounded,
-                          size: 16,
-                          color: const Color(0xFF1976D2),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Incident Date (Newest first)',
-                          style: GoogleFonts.poppins(fontSize: 12),
-                        ),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'oldest_incident',
-                    child: Row(
-                      children: [
-                        Icon(
-                          _dateField == FormIVDateField.incidentDate &&
-                                  _dateSortOrder ==
-                                      FormIVDateSortOrder.oldestFirst
-                              ? Icons.check_circle_rounded
-                              : Icons.radio_button_unchecked_rounded,
-                          size: 16,
-                          color: const Color(0xFF1976D2),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Incident Date (Oldest first)',
-                          style: GoogleFonts.poppins(fontSize: 12),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const PopupMenuDivider(),
-                  PopupMenuItem(
-                    value: 'newest_created',
-                    child: Row(
-                      children: [
-                        Icon(
-                          _dateField == FormIVDateField.createdAt &&
-                                  _dateSortOrder ==
-                                      FormIVDateSortOrder.newestFirst
-                              ? Icons.check_circle_rounded
-                              : Icons.radio_button_unchecked_rounded,
-                          size: 16,
-                          color: const Color(0xFF1976D2),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Filing Date (Newest first)',
-                          style: GoogleFonts.poppins(fontSize: 12),
-                        ),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'oldest_created',
-                    child: Row(
-                      children: [
-                        Icon(
-                          _dateField == FormIVDateField.createdAt &&
-                                  _dateSortOrder ==
-                                      FormIVDateSortOrder.oldestFirst
-                              ? Icons.check_circle_rounded
-                              : Icons.radio_button_unchecked_rounded,
-                          size: 16,
-                          color: const Color(0xFF1976D2),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Filing Date (Oldest first)',
-                          style: GoogleFonts.poppins(fontSize: 12),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFFCBD5E1)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.02),
-                        blurRadius: 4,
-                        offset: const Offset(0, 1),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        _dateSortOrder == FormIVDateSortOrder.newestFirst
-                            ? Icons.arrow_downward_rounded
-                            : Icons.arrow_upward_rounded,
-                        size: 14,
-                        color: AppColors.navyMid,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        _dateSortOrder == FormIVDateSortOrder.newestFirst
-                            ? TranslationHelper.translate(context, 'Newest')
-                            : TranslationHelper.translate(context, 'Oldest'),
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.navyDark,
-                        ),
-                      ),
-                      const SizedBox(width: 2),
-                      const Icon(
-                        Icons.arrow_drop_down_rounded,
-                        size: 18,
-                        color: AppColors.navyDark,
-                      ),
-                    ],
-                  ),
-                ),
               ),
             ],
           ),
@@ -3661,7 +3528,7 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.poppins(
-                    fontSize: 9.5,
+                    fontSize: 10.0,
                     fontWeight: FontWeight.w500,
                     color: const Color(0xFF64748B),
                     height: 1.1,
@@ -3678,7 +3545,7 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.poppins(
-                fontSize: 11.5,
+                fontSize: 12.0,
                 fontWeight: FontWeight.w600,
                 color: valueColor ?? AppColors.navyDark,
                 height: 1.15,
@@ -4104,7 +3971,7 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.poppins(
-                      fontSize: 11.5,
+                      fontSize: 12.0,
                       fontWeight: FontWeight.w700,
                       color: AppColors.navyDark,
                       height: 1.0,

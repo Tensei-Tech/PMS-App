@@ -316,12 +316,12 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
                         const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                     decoration: BoxDecoration(
                       color: count > 0
-                          ? const Color(0xFFFFEBEE)
+                          ? AppColors.navyMid.withValues(alpha: 0.08)
                           : Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: count > 0
-                            ? const Color(0xFFEF5350)
+                            ? AppColors.navyMid.withValues(alpha: 0.18)
                             : Colors.grey.shade300,
                       ),
                     ),
@@ -331,7 +331,7 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
                         fontWeight: FontWeight.w700,
                         fontSize: 13,
                         color: count > 0
-                            ? const Color(0xFFC62828)
+                            ? AppColors.navyMid
                             : Colors.grey.shade700,
                       ),
                     ),
@@ -413,12 +413,12 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: count > 0
-                          ? const Color(0xFFFFEBEE)
+                          ? AppColors.navyMid.withValues(alpha: 0.08)
                           : Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: count > 0
-                            ? const Color(0xFFEF5350)
+                            ? AppColors.navyMid.withValues(alpha: 0.18)
                             : Colors.grey.shade300,
                       ),
                     ),
@@ -428,7 +428,7 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
                         fontWeight: FontWeight.w700,
                         fontSize: 12,
                         color: count > 0
-                            ? const Color(0xFFC62828)
+                            ? AppColors.navyMid
                             : Colors.grey.shade700,
                       ),
                     ),
@@ -464,12 +464,12 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: const Color(0xFF673AB7).withValues(alpha: 0.1),
+                color: AppColors.navyMid.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(
                 Icons.fingerprint_rounded,
-                color: Color(0xFF673AB7),
+                color: AppColors.navyMid,
                 size: 22,
               ),
             ),
@@ -503,58 +503,146 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.description_outlined,
-                color: Color(0xFF107C41)),
-            tooltip: 'Export to Excel',
-            onPressed: () {
-              if (_caseWiseList != null && _caseWiseList!.isNotEmpty) {
-                ExcelExportHelper.exportNafisToExcel(dataset: _caseWiseList!);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content:
-                        Text('NAFIS cases exported to Excel successfully.'),
-                    backgroundColor: Color(0xFF107C41),
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () {
+                    if (_caseWiseList != null && _caseWiseList!.isNotEmpty) {
+                      ExcelExportHelper.exportNafisToExcel(
+                          dataset: _caseWiseList!);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                              'NAFIS cases exported to Excel successfully.'),
+                          backgroundColor: Color(0xFF107C41),
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text('No NAFIS cases to export.')),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.table_chart_rounded,
+                      color: Colors.white, size: 16),
+                  label: Text(
+                    'Excel',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12.5,
+                      color: Colors.white,
+                    ),
                   ),
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('No NAFIS cases to export.')),
-                );
-              }
-            },
-          ),
-          IconButton(
-            icon:
-                const Icon(Icons.table_chart_rounded, color: AppColors.navyMid),
-            tooltip: 'All Cases Summary',
-            onPressed: () {
-              Navigator.push(
-                context,
-                AppTheme.fadeSlideRoute(
-                  page: NAFISSummaryScreen(stationName: widget.stationName),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF107C41),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
                 ),
-              );
-            },
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      AppTheme.fadeSlideRoute(
+                        page:
+                            NAFISSummaryScreen(stationName: widget.stationName),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.table_chart_rounded,
+                      color: Colors.white, size: 16),
+                  label: Text(
+                    'Summary',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12.5,
+                      color: Colors.white,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.navyMid,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
         // NAFIS | Fingerprint switch above these tabs when opened from the
         // NAFIS/Fingerprint dashboard tile.
         bottom: SubTabHost.appBarBottomAbove(
           context,
-          TabBar(
-            controller: _tabController,
-            labelColor: AppColors.navyMid,
-            unselectedLabelColor: AppColors.lightSubText,
-            indicatorColor: AppColors.navyMid,
-            indicatorWeight: 3,
-            labelStyle:
-                GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 13),
-            tabs: const [
-              Tab(text: "Case Wise"),
-              Tab(text: "Time Wise"),
-              Tab(text: "IO Wise"),
-            ],
+          PreferredSize(
+            preferredSize: const Size.fromHeight(48),
+            child: Container(
+              color: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: TabBar(
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
+                controller: _tabController,
+                labelColor: AppColors.navyMid,
+                unselectedLabelColor: AppColors.lightSubText,
+                indicatorColor: AppColors.navyMid,
+                indicatorWeight: 3,
+                indicatorSize: TabBarIndicatorSize.label,
+                labelStyle: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                ),
+                unselectedLabelStyle: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 13,
+                ),
+                tabs: const [
+                  Tab(
+                    iconMargin: EdgeInsets.zero,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.category_outlined, size: 16),
+                        SizedBox(width: 8),
+                        Text('Case Wise'),
+                      ],
+                    ),
+                  ),
+                  Tab(
+                    iconMargin: EdgeInsets.zero,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.schedule_rounded, size: 16),
+                        SizedBox(width: 8),
+                        Text('Time Wise'),
+                      ],
+                    ),
+                  ),
+                  Tab(
+                    iconMargin: EdgeInsets.zero,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.badge_outlined, size: 16),
+                        SizedBox(width: 8),
+                        Text('IO Wise'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),

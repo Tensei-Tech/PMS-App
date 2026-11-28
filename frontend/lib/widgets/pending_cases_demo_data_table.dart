@@ -27,6 +27,7 @@ class PendingCasesDemoDataTable extends StatelessWidget {
     this.isAbsconded = false,
     this.isVictim = false,
     this.isUndetected = false,
+    this.groupedData,
   });
 
   final bool isAd;
@@ -35,6 +36,7 @@ class PendingCasesDemoDataTable extends StatelessWidget {
   final bool isAbsconded;
   final bool isVictim;
   final bool isUndetected;
+  final Map<String, List<Map<String, String>>>? groupedData;
 
   @override
   Widget build(BuildContext context) {
@@ -140,13 +142,16 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                         };
         }
 
-        Widget headerCell(String s) => Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+        Widget headerCell(String s, {Alignment align = Alignment.center}) =>
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 9),
               color: AppColors.navyMid,
-              alignment: Alignment.center,
+              alignment: align,
               child: Text(
                 s,
-                textAlign: TextAlign.center,
+                textAlign: align == Alignment.center
+                    ? TextAlign.center
+                    : TextAlign.left,
                 softWrap: true,
                 style: GoogleFonts.poppins(
                   fontSize: headerFontSize,
@@ -157,22 +162,24 @@ class PendingCasesDemoDataTable extends StatelessWidget {
               ),
             );
 
-        Widget dataCell(String s, {Alignment align = Alignment.center}) =>
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-              alignment: align,
-              child: Text(
-                s,
-                softWrap: true,
-                overflow: TextOverflow.visible,
-                style: GoogleFonts.poppins(
-                  fontSize: cellFontSize,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.lightText,
-                  height: 1.15,
-                ),
+        Widget dataCell(String s, {Alignment align = Alignment.center}) {
+          final isDash = s.trim() == '—' || s.trim() == '-' || s.trim().isEmpty;
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            alignment: align,
+            child: Text(
+              s.isEmpty ? '—' : s,
+              softWrap: true,
+              overflow: TextOverflow.visible,
+              style: GoogleFonts.poppins(
+                fontSize: cellFontSize,
+                fontWeight: isDash ? FontWeight.w400 : FontWeight.w500,
+                color: isDash ? const Color(0xFF94A3B8) : AppColors.navyDark,
+                height: 1.15,
               ),
-            );
+            ),
+          );
+        }
 
         Widget clickableCrCell(Map<String, String> r) {
           final cr = r['cr']?.trim().isNotEmpty == true ? r['cr']!.trim() : '—';
@@ -223,25 +230,31 @@ class PendingCasesDemoDataTable extends StatelessWidget {
         final headers = <Widget>[
           headerCell('Sr. No.'),
           headerCell('Cr. No.'),
-          headerCell('Sec & Act'),
-          if (!isVictim) headerCell('Head'),
-          if (isAbsconded) headerCell('Accused Name (फरार आरोपी)'),
-          if (isVictim) headerCell('Head'),
-          if (isVictim) headerCell('Name'),
-          if (isVictim) headerCell('Injured/Deceased'),
-          headerCell('IO Name'),
-          if (!isUndetected && !isAbsconded) headerCell('Reason of Pending'),
+          headerCell('Sec & Act', align: Alignment.centerLeft),
+          if (!isVictim) headerCell('Head', align: Alignment.centerLeft),
+          if (isAbsconded)
+            headerCell('Accused Name (फरार आरोपी)',
+                align: Alignment.centerLeft),
+          if (isVictim) headerCell('Head', align: Alignment.centerLeft),
+          if (isVictim) headerCell('Name', align: Alignment.centerLeft),
+          if (isVictim)
+            headerCell('Injured/Deceased', align: Alignment.centerLeft),
+          headerCell('IO Name', align: Alignment.centerLeft),
+          if (!isUndetected && !isAbsconded)
+            headerCell('Reason of Pending', align: Alignment.centerLeft),
         ];
 
-        TableRow rowFor(int idx, Map<String, String> r) {
-          final bg = idx.isEven ? Colors.white : const Color(0xFFF6F8FF);
+        TableRow rowFor(int idx, Map<String, String> r, [int? customSerial]) {
+          final bg = (customSerial != null ? customSerial.isOdd : idx.isEven)
+              ? Colors.white
+              : const Color(0xFFF6F8FF);
           return TableRow(
             decoration: BoxDecoration(color: bg),
             children: [
-              dataCell('${serialOffset + idx + 1}'),
+              dataCell('${customSerial ?? (serialOffset + idx + 1)}'),
               clickableCrCell(r),
-              dataCell(
-                  r['sections']?.isNotEmpty == true ? r['sections']! : '—'),
+              dataCell(r['sections']?.isNotEmpty == true ? r['sections']! : '—',
+                  align: Alignment.centerLeft),
               if (!isVictim)
                 dataCell(
                   r['head']?.isNotEmpty == true ? r['head']! : '—',
@@ -282,9 +295,15 @@ class PendingCasesDemoDataTable extends StatelessWidget {
           );
         }
 
+        final isGrouped = groupedData != null && groupedData!.isNotEmpty;
+        final int totalRowsCount = isGrouped
+            ? groupedData!.values
+                .fold<int>(0, (prev, list) => prev + list.length)
+            : rows.length;
+
         final maxH = constraints.maxHeight;
         final hasFiniteHeight = maxH.isFinite;
-        final double estHeight = 44.0 * (rows.length + 1) + 20.0;
+        final double estHeight = 44.0 * (totalRowsCount + 1) + 20.0;
         final double containerHeight = hasFiniteHeight
             ? maxH
             : math.min(MediaQuery.of(context).size.height * 0.65, estHeight);
@@ -297,8 +316,8 @@ class PendingCasesDemoDataTable extends StatelessWidget {
             columnWidths: columnWidths,
             defaultVerticalAlignment: TableCellVerticalAlignment.middle,
             border: const TableBorder(
-              verticalInside: BorderSide(color: Color(0xFFE2E8F0), width: 1),
-              bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1),
+              verticalInside: BorderSide(color: Color(0x33FFFFFF), width: 1),
+              bottom: BorderSide(color: AppColors.navyDark, width: 1.5),
             ),
             children: [
               TableRow(
@@ -338,16 +357,119 @@ class PendingCasesDemoDataTable extends StatelessWidget {
           ),
         );
 
+        final List<Widget> groupWidgets = [];
+        if (isGrouped) {
+          var globalSerial = serialOffset;
+          for (final entry in groupedData!.entries) {
+            if (entry.value.isEmpty) continue;
+            groupWidgets.add(
+              Container(
+                width: tableWidth,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFEEF2FF),
+                  border: Border(
+                    top: BorderSide(color: Color(0xFFC7D2FE), width: 1),
+                    bottom: BorderSide(color: Color(0xFFC7D2FE), width: 1),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: AppColors.navyMid.withValues(alpha: 0.14),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Icon(
+                        Icons.category_outlined,
+                        size: 14,
+                        color: AppColors.navyMid,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      entry.key,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.navyDark,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 7, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFC7D2FE)),
+                      ),
+                      child: Text(
+                        '${entry.value.length} ${entry.value.length == 1 ? 'case' : 'cases'}',
+                        style: GoogleFonts.poppins(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.navyMid,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+
+            groupWidgets.add(
+              Container(
+                decoration: const BoxDecoration(color: Colors.white),
+                child: Table(
+                  columnWidths: columnWidths,
+                  defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                  border: const TableBorder(
+                    horizontalInside:
+                        BorderSide(color: Color(0xFFE2E8F0), width: 1),
+                    verticalInside:
+                        BorderSide(color: Color(0xFFE2E8F0), width: 1),
+                    bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1),
+                  ),
+                  children: [
+                    for (var i = 0; i < entry.value.length; i++)
+                      rowFor(i, entry.value[i], ++globalSerial),
+                  ],
+                ),
+              ),
+            );
+          }
+        }
+
+        final Widget contentToScroll = isGrouped
+            ? (groupWidgets.isEmpty
+                ? bodyTable
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.min,
+                    children: groupWidgets,
+                  ))
+            : bodyTable;
+
         final inner = Container(
           width: tableWidth,
           height: hasFiniteHeight ? containerHeight : null,
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(12),
             border: Border.all(color: const Color(0xFFCBD5E1)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.02),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(9),
+            borderRadius: BorderRadius.circular(11),
             child: hasFiniteHeight
                 ? Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -358,7 +480,7 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                           thumbVisibility: true,
                           child: SingleChildScrollView(
                             scrollDirection: Axis.vertical,
-                            child: bodyTable,
+                            child: contentToScroll,
                           ),
                         ),
                       ),
@@ -369,7 +491,7 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       headerTable,
-                      bodyTable,
+                      contentToScroll,
                     ],
                   ),
           ),

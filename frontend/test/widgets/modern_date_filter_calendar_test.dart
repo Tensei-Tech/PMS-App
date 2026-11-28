@@ -111,7 +111,8 @@ void main() {
       expect(find.text('Today'), findsWidgets);
       expect(find.text('Range'), findsOneWidget);
       expect(find.text('Custom'), findsOneWidget);
-      expect(find.byIcon(Icons.delete_outline_rounded), findsOneWidget);
+      expect(find.byTooltip('Clear date filter'), findsOneWidget);
+      expect(find.byIcon(Icons.close_rounded), findsOneWidget);
       expect(find.text('Mo'), findsOneWidget);
       expect(find.text('Tu'), findsOneWidget);
       expect(find.text('Su'), findsOneWidget);
@@ -197,13 +198,19 @@ void main() {
       await tester.tap(find.text('Range'));
       await tester.pumpAndSettle();
 
-      // Tap on This Week preset chip
-      expect(find.text('This Week'), findsOneWidget);
-      await tester.tap(find.text('This Week'));
+      // Default Range preset is Under 1 month; all Time Wise pills are shown
+      expect(find.text('Under 1 month'), findsWidgets);
+      expect(find.text('1 to 3 months'), findsOneWidget);
+      expect(find.text('3 to 6 months'), findsOneWidget);
+      expect(find.text('6 to 12 months'), findsOneWidget);
+      expect(find.text('More than 1 year'), findsOneWidget);
+      expect(find.text('Under 3 months (Total)'), findsOneWidget);
+
+      await tester.tap(find.text('1 to 3 months'));
       await tester.pumpAndSettle();
 
       expect(activeRange, isNotNull);
-      expect(activePreset, 'This Week');
+      expect(activePreset, '1 to 3 months');
     });
 
     testWidgets(
@@ -258,8 +265,8 @@ void main() {
       expect(activeRange!.start.day, 15);
       expect(activeRange!.end.day, 20);
 
-      // Tap trash button inside popover to clear
-      await tester.tap(find.byIcon(Icons.delete_outline_rounded));
+      // Tap clear button inside popover to reset
+      await tester.tap(find.byTooltip('Clear date filter'));
       await tester.pumpAndSettle();
 
       expect(activeRange, isNull);
@@ -384,6 +391,44 @@ void main() {
       expect(find.text('Range'), findsOneWidget);
       expect(find.text('Custom'), findsOneWidget);
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('shows dot indicator under dates present in activeDates',
+        (tester) async {
+      tester.view.physicalSize = const Size(1200, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      final today = DateTime.now();
+      final d1 = DateTime(today.year, today.month, 1, 14, 30);
+      final d2 = DateTime(today.year, today.month, today.day, 9, 15);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Align(
+              alignment: Alignment.topLeft,
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: ModernDateFilterCalendar(
+                  selectedDateRange: null,
+                  activeDates: {d1, d2},
+                  onDateRangeChanged: (_) {},
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Date Filter'));
+      await tester.pumpAndSettle();
+
+      // Only the 2 dates with cases in the current month get a dot indicator.
+      expect(
+        find.byKey(const Key('date-case-dot')),
+        findsNWidgets(today.day == 1 ? 1 : 2),
+      );
     });
   });
 }

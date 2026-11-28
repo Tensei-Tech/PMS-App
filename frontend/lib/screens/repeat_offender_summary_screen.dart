@@ -152,74 +152,80 @@ class RepeatOffenderSummaryScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  PopupMenuButton<String>(
-                    enabled: anyRows,
-                    tooltip: 'Export',
-                    onSelected: (val) {
-                      if (val == 'excel') {
-                        _exportExcel(context, dataset);
-                      } else if (val == 'pdf') {
-                        _exportPdf(context, dataset);
-                      }
-                    },
-                    itemBuilder: (context) => [
-                      PopupMenuItem(
-                        value: 'excel',
-                        child: Row(
-                          children: [
-                            const Icon(Icons.table_chart_outlined,
-                                color: Color(0xFF107C41), size: 18),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Export to Excel (CSV)',
-                              style: GoogleFonts.poppins(fontSize: 13),
-                            ),
-                          ],
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value: 'pdf',
-                        child: Row(
-                          children: [
-                            const Icon(Icons.picture_as_pdf_outlined,
-                                color: Color(0xFFD32F2F), size: 18),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Export to PDF',
-                              style: GoogleFonts.poppins(fontSize: 13),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color:
-                            anyRows ? AppColors.navyMid : Colors.grey.shade400,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.download_rounded,
-                              size: 16, color: Colors.white),
-                          const SizedBox(width: 6),
-                          Text(
-                            'Export',
-                            style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
-                              color: Colors.white,
-                            ),
+                  MouseRegion(
+                    cursor: anyRows
+                        ? SystemMouseCursors.click
+                        : SystemMouseCursors.basic,
+                    child: PopupMenuButton<String>(
+                      enabled: anyRows,
+                      tooltip: 'Export',
+                      onSelected: (val) {
+                        if (val == 'excel') {
+                          _exportExcel(context, dataset);
+                        } else if (val == 'pdf') {
+                          _exportPdf(context, dataset);
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          value: 'excel',
+                          child: Row(
+                            children: [
+                              const Icon(Icons.table_chart_outlined,
+                                  color: Color(0xFF107C41), size: 18),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Export to Excel (CSV)',
+                                style: GoogleFonts.poppins(fontSize: 13),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 4),
-                          const Icon(Icons.arrow_drop_down_rounded,
-                              size: 18, color: Colors.white),
-                        ],
+                        ),
+                        PopupMenuItem(
+                          value: 'pdf',
+                          child: Row(
+                            children: [
+                              const Icon(Icons.picture_as_pdf_outlined,
+                                  color: Color(0xFFD32F2F), size: 18),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Export to PDF',
+                                style: GoogleFonts.poppins(fontSize: 13),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: anyRows
+                              ? AppColors.navyMid
+                              : Colors.grey.shade400,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.download_rounded,
+                                size: 16, color: Colors.white),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Export',
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(Icons.arrow_drop_down_rounded,
+                                size: 18, color: Colors.white),
+                          ],
+                        ),
                       ),
                     ),
                   ),

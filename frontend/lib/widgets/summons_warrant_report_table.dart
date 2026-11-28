@@ -420,32 +420,37 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
     final grandTotal =
         _reportData?['grand_total'] as Map<String, dynamic>? ?? {};
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.lightBorder),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = constraints.maxWidth < 600;
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.lightBorder),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-        ],
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _buildHeader(),
-          const SizedBox(height: 16),
-          _buildSectionPills(sections),
-          const SizedBox(height: 16),
-          _buildSummaryCards(sections, grandTotal),
-          const SizedBox(height: 16),
-          _buildReportTable(sections, grandTotal),
-        ],
-      ),
+          padding: EdgeInsets.all(isCompact ? 12 : 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildHeader(),
+              SizedBox(height: isCompact ? 12 : 16),
+              _buildSectionPills(sections),
+              SizedBox(height: isCompact ? 12 : 16),
+              _buildSummaryCards(sections, grandTotal),
+              SizedBox(height: isCompact ? 12 : 16),
+              _buildReportTable(sections, grandTotal),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -504,176 +509,163 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
             ),
           ],
         ),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ElevatedButton.icon(
-                onPressed: () async {
-                  final added = await AddWarrantCaseDialog.show(
-                    context,
-                    initialYear: widget.selectedYear,
-                    initialMonth: widget.selectedMonth,
-                  );
-                  if (added == true) {
-                    _fetchReport();
-                  }
-                },
-                icon: const Icon(Icons.add_rounded,
-                    size: 15, color: Colors.white),
-                label: Text(
-                  'Add Case',
-                  style: GoogleFonts.poppins(
-                    fontSize: 11,
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            ElevatedButton.icon(
+              onPressed: () async {
+                final added = await AddWarrantCaseDialog.show(
+                  context,
+                  initialYear: widget.selectedYear,
+                  initialMonth: widget.selectedMonth,
+                );
+                if (added == true) {
+                  _fetchReport();
+                }
+              },
+              icon:
+                  const Icon(Icons.add_rounded, size: 15, color: Colors.white),
+              label: Text(
+                'Add Case',
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.navyMid,
+                elevation: 0,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            OutlinedButton.icon(
+              onPressed: _openAllAnalyzedCases,
+              icon: const Icon(Icons.folder_shared_rounded,
+                  size: 15, color: AppColors.navyMid),
+              label: Text(
+                'View All Cases ($totalAnalyzed)',
+                style: GoogleFonts.poppins(
+                    fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.navyMid,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                  ),
+                    color: AppColors.navyMid),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: AppColors.navyMid, width: 1.2),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
+            ),
+            if (isAbovePl) ...[
               const SizedBox(width: 8),
+              // PS-wise breakdown toggle (only for officers above PL level)
               OutlinedButton.icon(
-                onPressed: _openAllAnalyzedCases,
-                icon: const Icon(Icons.folder_shared_rounded,
-                    size: 15, color: AppColors.navyMid),
+                onPressed: () => setState(
+                    () => _showStationBreakdown = !_showStationBreakdown),
+                icon: Icon(
+                  Icons.location_city_rounded,
+                  size: 15,
+                  color: _showStationBreakdown
+                      ? AppColors.navyDark
+                      : AppColors.navyMid,
+                ),
                 label: Text(
-                  'View All Cases ($totalAnalyzed)',
+                  'PS Breakdown',
                   style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.navyMid),
-                ),
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: AppColors.navyMid, width: 1.2),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              if (isAbovePl) ...[
-                const SizedBox(width: 8),
-                // PS-wise breakdown toggle (only for officers above PL level)
-                OutlinedButton.icon(
-                  onPressed: () => setState(
-                      () => _showStationBreakdown = !_showStationBreakdown),
-                  icon: Icon(
-                    Icons.location_city_rounded,
-                    size: 15,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
                     color: _showStationBreakdown
-                        ? AppColors.goldPrimary
+                        ? AppColors.navyDark
                         : AppColors.navyMid,
                   ),
-                  label: Text(
-                    'PS Breakdown',
-                    style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: _showStationBreakdown
-                          ? AppColors.goldPrimary
-                          : AppColors.navyMid,
-                    ),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    backgroundColor: _showStationBreakdown
-                        ? AppColors.goldPrimary.withValues(alpha: 0.12)
-                        : Colors.transparent,
-                    side: BorderSide(
-                      color: _showStationBreakdown
-                          ? AppColors.goldPrimary
-                          : AppColors.navyMid,
-                      width: 1.2,
-                    ),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppRadius.sm),
-                    ),
-                  ),
                 ),
-              ],
-              const SizedBox(width: 8),
-              IconButton(
-                tooltip: 'Refresh Report',
-                onPressed: _fetchReport,
-                icon:
-                    const Icon(Icons.refresh_rounded, color: AppColors.navyMid),
-              ),
-              const SizedBox(width: 4),
-              ElevatedButton.icon(
-                onPressed: _exportPdf,
-                icon: const Icon(Icons.picture_as_pdf_rounded,
-                    size: 15, color: Colors.white),
-                label: Text('Export PDF',
-                    style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.navyMid,
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: _showStationBreakdown
+                      ? AppColors.navyMid.withValues(alpha: 0.1)
+                      : Colors.transparent,
+                  side: BorderSide(
+                    color: AppColors.navyMid,
+                    width: _showStationBreakdown ? 1.6 : 1.2,
+                  ),
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppRadius.sm)),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
               ),
             ],
-          ),
+            const SizedBox(width: 8),
+            ElevatedButton.icon(
+              onPressed: _exportPdf,
+              icon: const Icon(Icons.picture_as_pdf_rounded,
+                  size: 15, color: Colors.white),
+              label: Text('PDF',
+                  style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.navyMid,
+                elevation: 0,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
+              ),
+            ),
+          ],
         ),
       ],
     );
   }
 
   Widget _buildSectionPills(List<dynamic> sections) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          _pillButton('All Sam/Warrant (सर्व)', 'all'),
-          ...sections.map((s) {
-            final key = s['key']?.toString() ?? '';
-            final titleMr = s['title_mr']?.toString() ?? '';
-            final titleEn = s['code']?.toString() ?? '';
-            return _pillButton('$titleEn ($titleMr)', key);
-          }),
-        ],
-      ),
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        _pillButton('All Sam/Warrant (सर्व)', 'all'),
+        ...sections.map((s) {
+          final key = s['key']?.toString() ?? '';
+          final titleMr = s['title_mr']?.toString() ?? '';
+          final titleEn = s['code']?.toString() ?? '';
+          return _pillButton('$titleEn ($titleMr)', key);
+        }),
+      ],
     );
   }
 
   Widget _pillButton(String label, String key) {
     final isSelected = _selectedSectionKey == key;
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: InkWell(
-        onTap: () => setState(() => _selectedSectionKey = key),
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-          decoration: BoxDecoration(
-            color: isSelected ? AppColors.navyMid : const Color(0xFFF1F5F9),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: isSelected ? AppColors.navyMid : Colors.grey.shade300,
-            ),
+    return InkWell(
+      onTap: () => setState(() => _selectedSectionKey = key),
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.navyMid : const Color(0xFFF1F5F9),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? AppColors.navyMid : Colors.grey.shade300,
           ),
-          child: Text(
-            label,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-              color: isSelected ? Colors.white : AppColors.navyDark,
-            ),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.poppins(
+            fontSize: 12,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+            color: isSelected ? Colors.white : AppColors.navyDark,
           ),
         ),
       ),
@@ -699,35 +691,49 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
     final unserved = targetSummary['unserved'] ?? 0;
     final pending = targetSummary['pending'] ?? 0;
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          SizedBox(
-            width: 130,
-            child: _summaryCard('Total (बेरीज)', '$total',
-                const Color(0xFF1E293B), const Color(0xFFF8FAFC)),
-          ),
-          const SizedBox(width: 8),
-          SizedBox(
-            width: 160,
-            child: _summaryCard('Executed (तामील)', '$executed ($executedPct)',
-                Colors.green.shade800, Colors.green.shade50),
-          ),
-          const SizedBox(width: 8),
-          SizedBox(
-            width: 130,
-            child: _summaryCard('Unserved (अदम)', '$unserved',
-                AppColors.navyMid, AppColors.lightBg),
-          ),
-          const SizedBox(width: 8),
-          SizedBox(
-            width: 130,
-            child: _summaryCard('Pending (अखेर)', '$pending',
-                AppColors.dangerRed, const Color(0xFFFEF2F2)),
-          ),
-        ],
-      ),
+    final cards = [
+      _summaryCard('Total (बेरीज)', '$total', const Color(0xFF1E293B),
+          const Color(0xFFF8FAFC)),
+      _summaryCard('Executed (तामील)', '$executed ($executedPct)',
+          Colors.green.shade800, Colors.green.shade50),
+      _summaryCard(
+          'Unserved (अदम)', '$unserved', AppColors.navyMid, AppColors.lightBg),
+      _summaryCard('Pending (अखेर)', '$pending', AppColors.dangerRed,
+          const Color(0xFFFEF2F2)),
+    ];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth >= 600) {
+          return Row(
+            children: [
+              for (var i = 0; i < cards.length; i++) ...[
+                if (i > 0) const SizedBox(width: 10),
+                Expanded(child: cards[i]),
+              ],
+            ],
+          );
+        }
+        return Column(
+          children: [
+            Row(
+              children: [
+                Expanded(child: cards[0]),
+                const SizedBox(width: 8),
+                Expanded(child: cards[1]),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(child: cards[2]),
+                const SizedBox(width: 8),
+                Expanded(child: cards[3]),
+              ],
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -772,150 +778,189 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
         ? sections
         : sections.where((s) => s['key'] == _selectedSectionKey).toList();
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: DataTable(
-        headingRowColor: WidgetStateProperty.all(const Color(0xFFE2E8F0)),
-        headingRowHeight: 48,
-        dataRowMinHeight: 42,
-        dataRowMaxHeight: 46,
-        columnSpacing: 18,
-        border: TableBorder.all(color: AppColors.lightBorder, width: 1),
-        columns: [
-          _tblCol('अ.क्र.\nSr.'),
-          _tblCol('प्रवर्ग / प्रकार\nCategory'),
-          _tblCol('मागील\nPrev'),
-          _tblCol('चालू\nCurr'),
-          _tblCol('बेरीज\nTotal'),
-          _tblCol('तामील\nExec'),
-          _tblCol('तामील %\nExec %'),
-          _tblCol('अदम\nUnserved'),
-          _tblCol('अखेर\nPending'),
-        ],
-        rows: [
-          ...activeSections.asMap().entries.map((entry) {
-            final idx = entry.key + 1;
-            final sec = entry.value;
-            final sum = sec['summary'] as Map<String, dynamic>? ?? {};
-            final caseIds = sum['case_ids'] as Map<String, dynamic>? ?? {};
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFCBD5E1)),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(11),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                child: DataTable(
+                  headingRowColor: WidgetStateProperty.all(AppColors.navyMid),
+                  headingRowHeight: 48,
+                  dataRowMinHeight: 42,
+                  dataRowMaxHeight: 46,
+                  columnSpacing: 18,
+                  border: const TableBorder(
+                    horizontalInside:
+                        BorderSide(color: Color(0xFFE2E8F0), width: 1),
+                    verticalInside:
+                        BorderSide(color: Color(0xFFE2E8F0), width: 1),
+                  ),
+                  columns: [
+                    _tblCol('अ.क्र.\nSr.'),
+                    _tblCol('प्रवर्ग / प्रकार\nCategory'),
+                    _tblCol('मागील\nPrev'),
+                    _tblCol('चालू\nCurr'),
+                    _tblCol('बेरीज\nTotal'),
+                    _tblCol('तामील\nExec'),
+                    _tblCol('तामील %\nExec %'),
+                    _tblCol('अदम\nUnserved'),
+                    _tblCol('अखेर\nPending'),
+                  ],
+                  rows: [
+                    ...activeSections.asMap().entries.map((entry) {
+                      final idx = entry.key + 1;
+                      final sec = entry.value;
+                      final sum = sec['summary'] as Map<String, dynamic>? ?? {};
+                      final caseIds =
+                          sum['case_ids'] as Map<String, dynamic>? ?? {};
 
-            final title = '${sec['code']} (${sec['title_mr']})';
+                      final title = '${sec['code']} (${sec['title_mr']})';
 
-            return DataRow(
-              cells: [
-                DataCell(Center(
-                    child: Text('$idx',
-                        style:
-                            GoogleFonts.poppins(fontWeight: FontWeight.w600)))),
-                DataCell(Text(title,
-                    style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.navyDark))),
-                _clickableCell('${sum['previous_month'] ?? 0}',
-                    caseIds['previous_month'] as List<dynamic>? ?? [], title),
-                _clickableCell('${sum['current_month'] ?? 0}',
-                    caseIds['current_month'] as List<dynamic>? ?? [], title),
-                DataCell(Center(
-                  child: Text(
-                    '${sum['total'] ?? 0}',
-                    style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-                  ),
-                )),
-                _clickableCell(
-                  '${sum['executed'] ?? 0}',
-                  caseIds['executed'] as List<dynamic>? ?? [],
-                  '$title - Executed',
-                  color: Colors.green.shade700,
+                      return DataRow(
+                        color: WidgetStateProperty.all(entry.key.isEven
+                            ? Colors.white
+                            : const Color(0xFFF6F8FF)),
+                        cells: [
+                          DataCell(Center(
+                              child: Text('$idx',
+                                  style: GoogleFonts.poppins(
+                                      fontWeight: FontWeight.w600)))),
+                          DataCell(Text(title,
+                              style: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.navyDark))),
+                          _clickableCell(
+                              '${sum['previous_month'] ?? 0}',
+                              caseIds['previous_month'] as List<dynamic>? ?? [],
+                              title),
+                          _clickableCell(
+                              '${sum['current_month'] ?? 0}',
+                              caseIds['current_month'] as List<dynamic>? ?? [],
+                              title),
+                          DataCell(Center(
+                            child: Text(
+                              '${sum['total'] ?? 0}',
+                              style: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          )),
+                          _clickableCell(
+                            '${sum['executed'] ?? 0}',
+                            caseIds['executed'] as List<dynamic>? ?? [],
+                            '$title - Executed',
+                            color: Colors.green.shade700,
+                          ),
+                          DataCell(Center(
+                            child: Text(
+                              '${sum['executed_percent'] ?? "0%"}',
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green.shade800,
+                              ),
+                            ),
+                          )),
+                          _clickableCell(
+                            '${sum['unserved'] ?? 0}',
+                            caseIds['unserved'] as List<dynamic>? ?? [],
+                            '$title - Unserved',
+                            color: AppColors.navyMid,
+                          ),
+                          _clickableCell(
+                            '${sum['pending'] ?? 0}',
+                            caseIds['pending'] as List<dynamic>? ?? [],
+                            '$title - Pending',
+                            color: AppColors.dangerRed,
+                          ),
+                        ],
+                      );
+                    }),
+                    // Grand Total row if 'all' is selected
+                    if (_selectedSectionKey == 'all')
+                      DataRow(
+                        color: WidgetStateProperty.all(const Color(0xFFEEF2FF)),
+                        cells: [
+                          const DataCell(Center(child: Text(''))),
+                          DataCell(Text('एकूण (Grand Total)',
+                              style: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.navyDark))),
+                          _clickableCell(
+                            '${grandTotal['previous_month'] ?? 0}',
+                            grandTotal['case_ids']?['previous_month']
+                                    as List<dynamic>? ??
+                                [],
+                            'Grand Total Previous',
+                            isBold: true,
+                          ),
+                          _clickableCell(
+                            '${grandTotal['current_month'] ?? 0}',
+                            grandTotal['case_ids']?['current_month']
+                                    as List<dynamic>? ??
+                                [],
+                            'Grand Total Current',
+                            isBold: true,
+                          ),
+                          DataCell(Center(
+                            child: Text(
+                              '${grandTotal['total'] ?? 0}',
+                              style: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.bold, fontSize: 13),
+                            ),
+                          )),
+                          _clickableCell(
+                            '${grandTotal['executed'] ?? 0}',
+                            grandTotal['case_ids']?['executed']
+                                    as List<dynamic>? ??
+                                [],
+                            'Grand Total Executed',
+                            color: Colors.green.shade800,
+                            isBold: true,
+                          ),
+                          DataCell(Center(
+                            child: Text(
+                              '${grandTotal['executed_percent'] ?? "0%"}',
+                              style: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                  color: Colors.green.shade900),
+                            ),
+                          )),
+                          _clickableCell(
+                            '${grandTotal['unserved'] ?? 0}',
+                            grandTotal['case_ids']?['unserved']
+                                    as List<dynamic>? ??
+                                [],
+                            'Grand Total Unserved',
+                            color: AppColors.navyMid,
+                            isBold: true,
+                          ),
+                          _clickableCell(
+                            '${grandTotal['pending'] ?? 0}',
+                            grandTotal['case_ids']?['pending']
+                                    as List<dynamic>? ??
+                                [],
+                            'Grand Total Pending',
+                            color: AppColors.dangerRed,
+                            isBold: true,
+                          ),
+                        ],
+                      ),
+                  ],
                 ),
-                DataCell(Center(
-                  child: Text(
-                    '${sum['executed_percent'] ?? "0%"}',
-                    style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green.shade800,
-                    ),
-                  ),
-                )),
-                _clickableCell(
-                  '${sum['unserved'] ?? 0}',
-                  caseIds['unserved'] as List<dynamic>? ?? [],
-                  '$title - Unserved',
-                  color: AppColors.navyMid,
-                ),
-                _clickableCell(
-                  '${sum['pending'] ?? 0}',
-                  caseIds['pending'] as List<dynamic>? ?? [],
-                  '$title - Pending',
-                  color: AppColors.dangerRed,
-                ),
-              ],
-            );
-          }),
-          // Grand Total row if 'all' is selected
-          if (_selectedSectionKey == 'all')
-            DataRow(
-              color: WidgetStateProperty.all(const Color(0xFFEDF2F7)),
-              cells: [
-                const DataCell(Center(child: Text(''))),
-                DataCell(Text('एकूण (Grand Total)',
-                    style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.navyDark))),
-                _clickableCell(
-                  '${grandTotal['previous_month'] ?? 0}',
-                  grandTotal['case_ids']?['previous_month'] as List<dynamic>? ??
-                      [],
-                  'Grand Total Previous',
-                  isBold: true,
-                ),
-                _clickableCell(
-                  '${grandTotal['current_month'] ?? 0}',
-                  grandTotal['case_ids']?['current_month'] as List<dynamic>? ??
-                      [],
-                  'Grand Total Current',
-                  isBold: true,
-                ),
-                DataCell(Center(
-                  child: Text(
-                    '${grandTotal['total'] ?? 0}',
-                    style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.bold, fontSize: 13),
-                  ),
-                )),
-                _clickableCell(
-                  '${grandTotal['executed'] ?? 0}',
-                  grandTotal['case_ids']?['executed'] as List<dynamic>? ?? [],
-                  'Grand Total Executed',
-                  color: Colors.green.shade800,
-                  isBold: true,
-                ),
-                DataCell(Center(
-                  child: Text(
-                    '${grandTotal['executed_percent'] ?? "0%"}',
-                    style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                        color: Colors.green.shade900),
-                  ),
-                )),
-                _clickableCell(
-                  '${grandTotal['unserved'] ?? 0}',
-                  grandTotal['case_ids']?['unserved'] as List<dynamic>? ?? [],
-                  'Grand Total Unserved',
-                  color: AppColors.navyMid,
-                  isBold: true,
-                ),
-                _clickableCell(
-                  '${grandTotal['pending'] ?? 0}',
-                  grandTotal['case_ids']?['pending'] as List<dynamic>? ?? [],
-                  'Grand Total Pending',
-                  color: AppColors.dangerRed,
-                  isBold: true,
-                ),
-              ],
+              ),
             ),
-        ],
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -966,15 +1011,15 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
                   border:
                       TableBorder.all(color: AppColors.lightBorder, width: 0.8),
                   columns: [
-                    _tblCol('Sr.'),
-                    _tblCol('Police Station'),
-                    _tblCol('Prev'),
-                    _tblCol('Curr'),
-                    _tblCol('Total'),
-                    _tblCol('Exec'),
-                    _tblCol('Exec %'),
-                    _tblCol('Unserved'),
-                    _tblCol('Pending'),
+                    _tblCol('Sr.', color: AppColors.navyDark),
+                    _tblCol('Police Station', color: AppColors.navyDark),
+                    _tblCol('Prev', color: AppColors.navyDark),
+                    _tblCol('Curr', color: AppColors.navyDark),
+                    _tblCol('Total', color: AppColors.navyDark),
+                    _tblCol('Exec', color: AppColors.navyDark),
+                    _tblCol('Exec %', color: AppColors.navyDark),
+                    _tblCol('Unserved', color: AppColors.navyDark),
+                    _tblCol('Pending', color: AppColors.navyDark),
                   ],
                   rows: stations.map((st) {
                     final sr = st['sr_no'] ?? '';
@@ -1035,7 +1080,7 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
     );
   }
 
-  DataColumn _tblCol(String label) {
+  DataColumn _tblCol(String label, {Color color = Colors.white}) {
     return DataColumn(
       label: Text(
         label,
@@ -1043,7 +1088,7 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
         style: GoogleFonts.poppins(
           fontSize: 11,
           fontWeight: FontWeight.w700,
-          color: AppColors.navyDark,
+          color: color,
         ),
       ),
     );
